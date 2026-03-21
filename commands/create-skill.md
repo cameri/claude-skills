@@ -25,7 +25,7 @@ Follow up as needed. Conclude when you have a clear picture of the usage pattern
 From `$ARGUMENTS` and the concrete examples, derive:
 
 - **plugin-name**: kebab-case, short, noun-based (e.g. `pocket`, `todoist`, `wallabag`)
-- **plugin-dir**: `/workspace/projects/claude-skills/<plugin-name>`
+- **plugin-dir**: `~/Workspace/cameri/claude-skills/<plugin-name>`
 - **skills**: list of skills needed (always include `configure` for API-connected plugins)
 - **channel server needed?** — yes if the plugin receives real-time inbound events from an external source (e.g. incoming messages, network events, webhooks). Channel plugins include a long-running MCP server that pushes `notifications/claude/channel` notifications back to Claude.
 
@@ -65,7 +65,8 @@ No `git init` — the plugin lives inside the existing `claude-skills` git repo.
 
 ## Step 5 — Update root `marketplace.json`
 
-Add the new plugin entry to `/workspace/projects/claude-skills/.claude-plugin/marketplace.json` under `"plugins"`:
+**This step is required.** Read `~/Workspace/cameri/claude-skills/.claude-plugin/marketplace.json`,
+append the new entry to the `"plugins"` array, and write the file back:
 
 ```json
 {
@@ -79,6 +80,8 @@ Add the new plugin entry to `/workspace/projects/claude-skills/.claude-plugin/ma
   "source": "./<plugin-name>"
 }
 ```
+
+Use the Read tool to load the current file, then the Edit tool to append the new entry before the closing `]` of the `"plugins"` array. Do not overwrite the existing entries.
 
 ---
 
@@ -240,8 +243,8 @@ Plugin-level user-facing documentation. Include:
 
 Stage only the new plugin files and commit inside the `claude-skills` repo:
 ```bash
-git -C /workspace/projects/claude-skills add <plugin-name>/ .claude-plugin/marketplace.json
-git -C /workspace/projects/claude-skills commit -m "Add <plugin-name> skill plugin
+git -C ~/Workspace/cameri/claude-skills add <plugin-name>/ .claude-plugin/marketplace.json
+git -C ~/Workspace/cameri/claude-skills commit -m "Add <plugin-name> skill plugin
 
 <one-line description of what the plugin does>
 
