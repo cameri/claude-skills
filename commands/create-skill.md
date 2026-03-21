@@ -27,6 +27,7 @@ From `$ARGUMENTS` and the concrete examples, derive:
 - **plugin-name**: kebab-case, short, noun-based (e.g. `pocket`, `todoist`, `wallabag`)
 - **plugin-dir**: `/workspace/projects/claude-skills/<plugin-name>`
 - **skills**: list of skills needed (always include `configure` for API-connected plugins)
+- **channel server needed?** — yes if the plugin receives real-time inbound events from an external source (e.g. incoming messages, network events, webhooks). Channel plugins include a long-running MCP server that pushes `notifications/claude/channel` notifications back to Claude.
 
 For each skill, decide what bundled resources would help:
 
@@ -131,6 +132,79 @@ For any API-connected plugin, create `skills/configure/SKILL.md` following this 
 
 ---
 
+## Step 6b — (Channel plugins only) Create the MCP channel server
+
+Skip for plain plugins that only respond to user commands.
+
+Three files live at the plugin root and together define the channel server that Claude Code manages automatically:
+
+### `.mcp.json`
+
+Registers the server with Claude Code. Lifecycle (start/stop) is managed automatically — no manual intervention needed.
+
+```json
+{
+  "mcpServers": {
+    "<plugin-name>": {
+      "command": "bun",
+      "args": ["run", "--cwd", "${CLAUDE_PLUGIN_ROOT}", "--shell=bun", "--silent", "start"]
+    }
+  }
+}
+```
+
+### `package.json`
+
+```json
+{
+  "name": "claude-channel-<plugin-name>",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": "./server.ts",
+  "scripts": {
+    "start": "bun install --no-summary && bun server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "<external-sdk>": "<version>"
+  }
+}
+```
+
+Replace `<external-sdk>` with the library for the external service (e.g. `nats` for NATS, `grammy` for Telegram, `discord.js` for Discord).
+
+### `server.ts`
+
+A self-contained Bun/TypeScript MCP server. Required structure:
+
+1. **Read config** from `~/.claude/channels/<plugin-name>/.env` at startup.
+2. **Create an MCP `Server`** with `capabilities: { tools: {}, experimental: { "claude/channel": {} } }` and an `instructions` string describing available tools and how to interpret channel notifications.
+3. **Connect the MCP transport first** (`await mcp.connect(new StdioServerTransport())`) — before connecting to the external service, so no events are lost.
+4. **Connect to the external service** and subscribe to inbound events.
+5. **Push channel notifications** for each inbound event:
+   ```ts
+   void mcp.notification({
+     method: "notifications/claude/channel",
+     params: {
+       content: "<human-readable summary for Claude>",
+       meta: { source: "<plugin-name>", /* event-specific fields */ },
+     },
+   });
+   ```
+6. **Expose MCP tools** (via `ListToolsRequestSchema` / `CallToolRequestSchema`) for outbound actions Claude can take (e.g. send a reply, publish a message).
+7. **Graceful shutdown** on `SIGTERM`/`SIGINT`.
+
+Use `nats/server.ts` as the reference implementation. Keep the server in a single file.
+
+**Startup note:** activating a channel plugin requires:
+```sh
+claude --dangerously-load-development-channels plugin:<plugin-name>@claude-skills
+```
+This requires interactive approval the first time. Once channels are generally available, `--channels` will replace `--dangerously-load-development-channels`.
+
+---
+
 ## Step 7 — Create `.gitignore`
 
 ```
@@ -151,6 +225,13 @@ Plugin-level user-facing documentation. Include:
   /plugin install <plugin-name>@claude-skills
   /reload-plugins
   ```
+- For channel plugins, add the startup flag and note:
+  ```sh
+  claude --dangerously-load-development-channels plugin:<plugin-name>@claude-skills
+  ```
+  > **Note:** `--dangerously-load-development-channels` requires interactive
+  > approval the first time. Once channels are generally available, use
+  > `--channels` instead.
 - License: Apache-2.0
 
 ---
