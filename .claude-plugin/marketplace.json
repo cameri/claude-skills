@@ -46,6 +46,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./nats"
+    },
+    {
+      "name": "paperless",
+      "description": "Upload documents to and search a Paperless-ngx instance via its REST API.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./paperless"
     }
   ]
 }
