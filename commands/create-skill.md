@@ -1,6 +1,6 @@
 # /create-skill
 
-Create a new Claude Code skill plugin from scratch.
+Create a new Claude Code skill plugin inside the `claude-skills` monorepo at `/workspace/projects/claude-skills/`.
 
 Arguments passed: `$ARGUMENTS`
 
@@ -25,7 +25,7 @@ Follow up as needed. Conclude when you have a clear picture of the usage pattern
 From `$ARGUMENTS` and the concrete examples, derive:
 
 - **plugin-name**: kebab-case, short, noun-based (e.g. `pocket`, `todoist`, `wallabag`)
-- **default-dir**: `~/Workspace/<plugin-name>-skill`
+- **plugin-dir**: `/workspace/projects/claude-skills/<plugin-name>`
 - **skills**: list of skills needed (always include `configure` for API-connected plugins)
 
 For each skill, decide what bundled resources would help:
@@ -34,22 +34,22 @@ For each skill, decide what bundled resources would help:
 |---|---|---|---|
 | **When** | Code rewritten repeatedly; deterministic operations | API docs, schemas, domain knowledge to load on demand | Templates, boilerplate, static files used in output |
 
-Ask the user to confirm the plugin name, directory, and planned skills before creating anything.
+Ask the user to confirm the plugin name and planned skills before creating anything.
 
 ---
 
-## Step 3 — Initialize the git repo
+## Step 3 — Create directory structure
 
 ```bash
-mkdir -p <dir>/.claude-plugin
-mkdir -p <dir>/skills/configure
-cd <dir>
-git init
+mkdir -p <plugin-dir>/.claude-plugin
+mkdir -p <plugin-dir>/skills/configure
 ```
+
+No `git init` — the plugin lives inside the existing `claude-skills` git repo.
 
 ---
 
-## Step 4 — Create `.claude-plugin/plugin.json`
+## Step 4 — Create `<plugin-dir>/.claude-plugin/plugin.json`
 
 ```json
 {
@@ -62,29 +62,20 @@ git init
 
 ---
 
-## Step 5 — Create `.claude-plugin/marketplace.json`
+## Step 5 — Update root `marketplace.json`
+
+Add the new plugin entry to `/workspace/projects/claude-skills/.claude-plugin/marketplace.json` under `"plugins"`:
 
 ```json
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "<plugin-name>",
-  "description": "Local marketplace for the <plugin-name> Claude Code plugin.",
-  "owner": {
+  "description": "<same one-line description as plugin.json>",
+  "category": "productivity",
+  "author": {
     "name": "Ricardo Arturo Cabral Mejía",
     "email": "cameri@users.noreply.github.com"
   },
-  "plugins": [
-    {
-      "name": "<plugin-name>",
-      "description": "<same one-line description as plugin.json>",
-      "category": "productivity",
-      "author": {
-        "name": "Ricardo Arturo Cabral Mejía",
-        "email": "cameri@users.noreply.github.com"
-      },
-      "source": "./"
-    }
-  ]
+  "source": "./<plugin-name>"
 }
 ```
 
@@ -157,8 +148,7 @@ Plugin-level user-facing documentation. Include:
 - Credentials section (keys needed, where to find them; mention named envs stored as `<env>.env`)
 - Install commands:
   ```
-  /plugin marketplace add <dir>
-  /plugin install <plugin-name>@<plugin-name>
+  /plugin install <plugin-name>@claude-skills
   /reload-plugins
   ```
 - License: Apache-2.0
@@ -167,13 +157,14 @@ Plugin-level user-facing documentation. Include:
 
 ## Step 9 — Initial commit
 
-Stage all files and commit:
-```
-Initial scaffold for <plugin-name> Claude Code plugin
+Stage only the new plugin files and commit inside the `claude-skills` repo:
+```bash
+git -C /workspace/projects/claude-skills add <plugin-name>/ .claude-plugin/marketplace.json
+git -C /workspace/projects/claude-skills commit -m "Add <plugin-name> skill plugin
 
 <one-line description of what the plugin does>
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 ---
