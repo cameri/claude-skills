@@ -17,6 +17,10 @@ Then restart Claude Code with the channel flag:
 claude --dangerously-load-development-channels plugin:nats@claude-skills
 ```
 
+> **Note:** `--dangerously-load-development-channels` requires interactive
+> approval the first time you run it. Once channels are generally available,
+> switch back to `--channels` instead.
+
 The NATS agent server starts automatically. Run `/nats:discover` to see who's
 on the network.
 
