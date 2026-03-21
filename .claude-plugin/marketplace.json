@@ -26,6 +26,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./actual-budget"
+    },
+    {
+      "name": "technitium-dns",
+      "description": "Manage Technitium DNS Server instances — configure, query records, manage zones via the HTTP API.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./technitium-dns"
     }
   ]
 }
