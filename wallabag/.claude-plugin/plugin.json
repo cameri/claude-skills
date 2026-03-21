@@ -1,0 +1,11 @@
+{
+  "name": "wallabag",
+  "description": "Wallabag integration for Claude Code — save, search, and manage read-it-later articles via your Wallabag instance.",
+  "version": "0.0.1",
+  "keywords": [
+    "wallabag",
+    "read-it-later",
+    "articles",
+    "mcp"
+  ]
+}

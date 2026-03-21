@@ -1,0 +1,31 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-skills",
+  "description": "Monorepo of Claude Code plugins by Ricardo Arturo Cabral Mejía.",
+  "owner": {
+    "name": "Ricardo Arturo Cabral Mejía",
+    "email": "cameri@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "wallabag",
+      "description": "Save, search, and manage read-it-later articles via your Wallabag instance.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./wallabag"
+    },
+    {
+      "name": "actual-budget",
+      "description": "Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./actual-budget"
+    }
+  ]
+}
