@@ -36,6 +36,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./technitium-dns"
+    },
+    {
+      "name": "nats",
+      "description": "Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./nats"
     }
   ]
 }
