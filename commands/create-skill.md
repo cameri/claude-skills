@@ -1,24 +1,44 @@
 # /create-skill
 
-Create a new Claude Code skill plugin from scratch, following the structure documented in `~/.claude/projects/-Users-cameri-Workspace-cameri-notes/remember/claude-skill-plugin-structure.md`.
+Create a new Claude Code skill plugin from scratch.
 
 Arguments passed: `$ARGUMENTS`
 
-`$ARGUMENTS` is a short description of what the skill should do (e.g. "interact with Pocket API" or "manage Todoist tasks"). If no arguments are provided, ask the user what the skill should do before proceeding.
+`$ARGUMENTS` is a short description of what the plugin should do (e.g. "interact with Pocket API"). If empty, ask the user what it should do before proceeding.
 
 ---
 
-## Steps
+## Step 1 — Understand with concrete examples
 
-### 1. Derive names
+Before writing anything, gather enough context to design effectively. Ask focused questions (avoid asking too many at once):
 
-From `$ARGUMENTS`, derive:
+- "What would a user say to trigger this skill? Give me 2–3 example requests."
+- "What operations does it need to perform?" (read-only queries, writes, auth flows, etc.)
+- "Does it call an external API or service? If so, which one and how is it authenticated?"
+
+Follow up as needed. Conclude when you have a clear picture of the usage patterns, triggers, and operations.
+
+---
+
+## Step 2 — Plan the plugin
+
+From `$ARGUMENTS` and the concrete examples, derive:
+
 - **plugin-name**: kebab-case, short, noun-based (e.g. `pocket`, `todoist`, `wallabag`)
 - **default-dir**: `~/Workspace/<plugin-name>-skill`
+- **skills**: list of skills needed (always include `configure` for API-connected plugins)
 
-Ask the user to confirm the plugin name and directory, or provide alternatives, before creating anything.
+For each skill, decide what bundled resources would help:
 
-### 2. Initialize the git repo
+| Resource | `scripts/` | `references/` | `assets/` |
+|---|---|---|---|
+| **When** | Code rewritten repeatedly; deterministic operations | API docs, schemas, domain knowledge to load on demand | Templates, boilerplate, static files used in output |
+
+Ask the user to confirm the plugin name, directory, and planned skills before creating anything.
+
+---
+
+## Step 3 — Initialize the git repo
 
 ```bash
 mkdir -p <dir>/.claude-plugin
@@ -27,18 +47,22 @@ cd <dir>
 git init
 ```
 
-### 3. Create `.claude-plugin/plugin.json`
+---
+
+## Step 4 — Create `.claude-plugin/plugin.json`
 
 ```json
 {
   "name": "<plugin-name>",
-  "description": "<one-line description derived from $ARGUMENTS>",
+  "description": "<one-line description>",
   "version": "0.0.1",
   "keywords": ["<plugin-name>"]
 }
 ```
 
-### 4. Create `.claude-plugin/marketplace.json`
+---
+
+## Step 5 — Create `.claude-plugin/marketplace.json`
 
 ```json
 {
@@ -64,38 +88,73 @@ git init
 }
 ```
 
-### 5. Create `skills/configure/SKILL.md`
+---
 
-Generate a `configure` skill appropriate for the plugin. A configure skill should:
-- Store credentials or connection settings in `~/.claude/channels/<plugin-name>/${ENV}.env`
-  where `ENV` defaults to `""` (empty string), making the default file `~/.claude/channels/<plugin-name>/.env`
-- Accept `env=<name>` as an argument; when omitted, use `""` (empty string) so the file resolves to `.env`
-- When `ENV` is empty, display the environment as "(default)" and omit `env=` from suggested commands
-- When listing available environments, match `*.env` files; display `.env` as "(default)"
-- Support: no-args status check (shows active env + available envs), guided `setup` subcommand,
-  explicit `key=value` save, `clear` (env-scoped), and `clear <key>`
-- Test the connection after saving if an API endpoint is available
-- `chmod 600` the `${ENV}.env` after writing
-- Single-quote credential values in the env file (e.g. `PASSWORD='...'`) to prevent shell expansion of
-  special characters (`$`, `#`, `@`, etc.) when the file is sourced
+## Step 6 — Create skill files
 
-Use the wallabag configure skill as a reference pattern. Tailor the credential keys and connection test to the specific service described in `$ARGUMENTS`.
-- Use `http` (httpie) for all HTTP calls, not `curl`. Always pass `--ignore-stdin` to prevent blocking. Use `-b` flag for body-only output when parsing responses.
+Each skill lives in `skills/<skill-name>/` and may contain:
 
-### 6. Create `.gitignore`
+```
+skills/<skill-name>/
+├── SKILL.md          (required)
+├── scripts/          (optional — executable code)
+├── references/       (optional — docs/schemas loaded on demand)
+└── assets/           (optional — templates/files used in output)
+```
+
+Do **not** create README, CHANGELOG, or other auxiliary files inside skill directories.
+
+### Writing each SKILL.md
+
+**Frontmatter** — `description` is the primary trigger mechanism. Include both what the skill does *and* when to use it (with concrete triggers). All "when to use" context must be in the description — not in the body (the body only loads after triggering).
+
+```yaml
+---
+name: <skill-name>
+description: <what it does>. Use when <specific triggers and contexts>.
+user-invocable: true
+allowed-tools:
+  - Read
+  - Bash(<safe-commands> *)
+---
+```
+
+**Body** — Instructions Claude needs that it doesn't already know. Keep under 500 lines. Prefer concise examples over verbose explanation. Write in imperative form. Move detailed reference material (API schemas, long docs) to `references/` files and link them explicitly from SKILL.md so Claude knows they exist and when to read them.
+
+**Degrees of freedom** — match specificity to fragility:
+- Fragile, order-sensitive operations → specific step-by-step instructions
+- Flexible, judgment-based operations → high-level guidance with heuristics
+
+### `configure` skill
+
+For any API-connected plugin, create `skills/configure/SKILL.md` following this pattern:
+
+- Credential file: `~/.claude/channels/<plugin-name>/${ENV}.env`
+  - `ENV` defaults to `""` (empty string) → file resolves to `.env` (backwards compatible)
+  - Named envs: `env=production` → `production.env`
+  - Display `ENV=""` as "(default)"; omit `env=` from suggestions when ENV is empty
+- Support: no-args status (shows active env + lists all `*.env` files, `.env` shown as "(default)"), `setup` walkthrough, explicit `key=value` save, `clear` (env-scoped), `clear <key>`
+- After saving: test the connection, `chmod 600` the file
+- Single-quote credential values (e.g. `PASSWORD='...'`) to handle `$`, `#`, `@`, etc.
+- HTTP calls: use `http` (httpie), always `--ignore-stdin`, use `-b` for body-only output
+
+---
+
+## Step 7 — Create `.gitignore`
 
 ```
 node_modules/
 *.env
 ```
 
-### 7. Create `README.md`
+---
 
-Include:
+## Step 8 — Create `README.md`
+
+Plugin-level user-facing documentation. Include:
 - What the plugin does
 - Skills table (name + one-line description)
-- Credentials section (what keys are needed and where to find them); note that named environments
-  are stored as `<env>.env` alongside the default `.env`
+- Credentials section (keys needed, where to find them; mention named envs stored as `<env>.env`)
 - Install commands:
   ```
   /plugin marketplace add <dir>
@@ -104,7 +163,9 @@ Include:
   ```
 - License: Apache-2.0
 
-### 8. Initial commit
+---
+
+## Step 9 — Initial commit
 
 Stage all files and commit:
 ```
@@ -115,9 +176,12 @@ Initial scaffold for <plugin-name> Claude Code plugin
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
-### 9. Report
+---
+
+## Step 10 — Report and iterate
 
 Tell the user:
-- Where the plugin was created
-- The install commands to load it into Claude
-- What skills are available and what to build next
+- Where the plugin was created and the install commands
+- What skills are scaffolded and what to build next
+
+After testing on real tasks, revisit SKILL.md and bundled resources based on what worked and what didn't.
