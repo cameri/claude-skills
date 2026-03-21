@@ -1,18 +1,18 @@
 ---
 name: status
-description: Show the current status of the Claude Code NATS agent — connection info, PID, NATS URL, and all discovered agents with their capabilities. Use when the user says "nats status", "show nats agents", "what agents are connected", or wants to see the agent network state.
+description: Show the current status of the Claude Code NATS agent — connection info, NATS URL, and all discovered agents with their capabilities. Use when the user says "nats status", "show nats agents", "what agents are connected", or wants to see the agent network state.
 user-invocable: true
 allowed-tools:
   - Read
   - Bash(cat *)
-  - Bash(kill *)
   - Bash(ls *)
 ---
 
 # /nats:status — NATS Agent Status
 
-Shows the running state of the local NATS agent and all known agents discovered
-from the network cache.
+Shows the connection state of the local NATS agent and all known agents from
+the local cache. The NATS MCP server is managed automatically by Claude Code
+via the channel feature — no manual start/stop needed.
 
 Arguments passed: `$ARGUMENTS`
 
@@ -20,36 +20,35 @@ Arguments passed: `$ARGUMENTS`
 
 ## Steps
 
-### 1. Server process
-
-Read `/tmp/nats-agent.pid`:
-- If missing: report "Agent: not running"
-- If present: check `kill -0 <PID> 2>/dev/null`
-  - Running: report "Agent: running (PID: `<pid>`)"
-  - Stale: report "Agent: not running (stale PID file)"
-
-### 2. Configuration
+### 1. Configuration
 
 Read `~/.claude/channels/nats/.env` if it exists. Show:
 - `NATS_URL`: value or "(not configured — using defaults: nats://nats:4222, nats://nats-server:4222)"
 
-### 3. This agent's ID
+### 2. This agent's ID
 
 Read `~/.claude/skills/nats/agent-id` if it exists. Show the agent ID,
-or "(not yet assigned — start the agent first)".
+or "(not yet assigned — the channel server assigns one on first run)".
+
+### 3. MCP server and connection
+
+Use the `get_agents` MCP tool to check whether the NATS MCP server is
+connected. If the tool call succeeds, the server is running and NATS is
+reachable. If it fails, note that the channel may not be active — the user
+can restart Claude Code with `--channels plugin:nats@claude-skills`.
 
 ### 4. Discovered agents
 
-Read `/tmp/nats-agents.json` if it exists. For each agent, display:
+Display the result of `get_agents`. For each agent:
 - Agent ID
 - Name
 - Last seen (ISO timestamp)
-- Capabilities list (type + name + description)
+- Capabilities (type + name + description)
 
-Format as a clean table or structured list. If the cache is empty or missing,
-show "No agents discovered yet — run `/nats:discover` to scan the network."
+Format as a structured list. If the cache is empty, suggest running
+`/nats:discover` to scan the network.
 
-### 5. Logs
+### 5. Hint
 
-Mention that agent logs are at `/tmp/nats-agent.log`.
-Suggest `cat /tmp/nats-agent.log | tail -20` to view recent activity.
+Agent cache is at `~/.claude/channels/nats/agents.json`.
+Run `/nats:discover` for a live scan of all connected agents.

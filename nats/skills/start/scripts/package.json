@@ -1,9 +1,0 @@
-{
-  "name": "nats-agent-server",
-  "version": "1.0.0",
-  "description": "Claude Code NATS agent server",
-  "type": "module",
-  "dependencies": {
-    "nats": "^2.28.2"
-  }
-}
