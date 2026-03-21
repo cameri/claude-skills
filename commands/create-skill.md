@@ -25,7 +25,7 @@ Follow up as needed. Conclude when you have a clear picture of the usage pattern
 From `$ARGUMENTS` and the concrete examples, derive:
 
 - **plugin-name**: kebab-case, short, noun-based (e.g. `pocket`, `todoist`, `wallabag`)
-- **plugin-dir**: `~/Workspace/cameri/claude-skills/<plugin-name>`
+- **plugin-dir**: `/path/to/claude-skills/<plugin-name>` (resolve the actual repo root from the current working directory or ask the user if unclear)
 - **skills**: list of skills needed (always include `configure` for API-connected plugins)
 - **channel server needed?** — yes if the plugin receives real-time inbound events from an external source (e.g. incoming messages, network events, webhooks). Channel plugins include a long-running MCP server that pushes `notifications/claude/channel` notifications back to Claude.
 
@@ -65,7 +65,7 @@ No `git init` — the plugin lives inside the existing `claude-skills` git repo.
 
 ## Step 5 — Update root `marketplace.json`
 
-**This step is required.** Read `~/Workspace/cameri/claude-skills/.claude-plugin/marketplace.json`,
+**This step is required.** Read `/path/to/claude-skills/.claude-plugin/marketplace.json` (same repo root as the plugin-dir),
 append the new entry to the `"plugins"` array, and write the file back:
 
 ```json
@@ -243,8 +243,8 @@ Plugin-level user-facing documentation. Include:
 
 Stage only the new plugin files and commit inside the `claude-skills` repo:
 ```bash
-git -C ~/Workspace/cameri/claude-skills add <plugin-name>/ .claude-plugin/marketplace.json
-git -C ~/Workspace/cameri/claude-skills commit -m "Add <plugin-name> skill plugin
+git -C /path/to/claude-skills add <plugin-name>/ .claude-plugin/marketplace.json
+git -C /path/to/claude-skills commit -m "Add <plugin-name> skill plugin
 
 <one-line description of what the plugin does>
 
