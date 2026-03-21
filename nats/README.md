@@ -14,7 +14,7 @@ invoked point-to-point or via broadcast.
 Then restart Claude Code with the channel flag:
 
 ```sh
-claude --channels plugin:nats@claude-skills
+claude --dangerously-load-development-channels plugin:nats@claude-skills
 ```
 
 The NATS agent server starts automatically. Run `/nats:discover` to see who's
