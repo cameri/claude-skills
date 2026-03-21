@@ -13,7 +13,7 @@ allowed-tools:
 
 # /wallabag:configure — Wallabag Credentials Setup
 
-Writes Wallabag credentials to `~/.claude/channels/wallabag/.env` and
+Writes Wallabag credentials to `~/.claude/channels/wallabag/{env}.env` and
 verifies the connection. The credentials file is used by Wallabag tools to
 authenticate with the Wallabag API using OAuth2 password grant.
 
@@ -21,9 +21,24 @@ Arguments passed: `$ARGUMENTS`
 
 ---
 
+## Environment selection
+
+Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from the
+remaining arguments. Default to `""` (empty string) if not provided.
+
+The credential file for the selected environment is:
+`~/.claude/channels/wallabag/${ENV}.env`
+
+When `ENV` is empty the path resolves to `~/.claude/channels/wallabag/.env`,
+which is the default environment and preserves backwards compatibility.
+When displaying the environment name, show "(default)" for an empty `ENV`.
+When suggesting commands, omit the `env=` argument if `ENV` is empty.
+
+---
+
 ## Credential file format
 
-`~/.claude/channels/wallabag/.env`:
+`~/.claude/channels/wallabag/${ENV}.env`:
 
 ```
 WALLABAG_URL=https://app.wallabag.it
@@ -37,19 +52,20 @@ All five keys are required. Never quote values. `chmod 600` after writing.
 
 ---
 
-## Dispatch on arguments
+## Dispatch on arguments (after stripping `env=`)
 
 ### No args — status and guidance
 
-Read `~/.claude/channels/wallabag/.env` (missing = not configured) and show:
+Read `~/.claude/channels/wallabag/${ENV}.env` (missing = not configured) and show:
 
-1. **Instance URL** — `WALLABAG_URL`: show the value, or "not set".
-2. **Client credentials** — `WALLABAG_CLIENT_ID` and `WALLABAG_CLIENT_SECRET`:
+1. **Environment** — show the active environment name, or "(default)" if `ENV` is empty.
+2. **Instance URL** — `WALLABAG_URL`: show the value, or "not set".
+3. **Client credentials** — `WALLABAG_CLIENT_ID` and `WALLABAG_CLIENT_SECRET`:
    show set/not-set. If set, show `CLIENT_ID` fully (it is not secret) and
    mask `CLIENT_SECRET` (first 4 chars + `...`).
-3. **User credentials** — `WALLABAG_USERNAME`: show the value.
+4. **User credentials** — `WALLABAG_USERNAME`: show the value.
    `WALLABAG_PASSWORD`: show set/not-set only, never expose the value.
-4. **Connection test** — if all five keys are present, test the OAuth token
+5. **Connection test** — if all five keys are present, test the OAuth token
    endpoint. Strip any trailing slash from `WALLABAG_URL` before constructing
    the path:
    ```
@@ -63,13 +79,15 @@ Read `~/.claude/channels/wallabag/.env` (missing = not configured) and show:
    - Success (HTTP 200, JSON contains `access_token`): show "✓ Connection OK"
    - Failure: show the error and suggest which credential is likely wrong.
 
-5. **What next** — end with a concrete next step based on state:
+6. **What next** — end with a concrete next step based on state:
    - No file or missing keys → show the full setup command syntax (see
      "Guided setup" below) and ask the user to provide values.
-   - All set, connection failed → *"Run `/wallabag:configure` again after
+   - All set, connection failed → *"Run `/wallabag:configure env=$ENV` again after
      correcting the credential that failed."*
    - All set, connection OK → *"Ready. You can now use Wallabag tools to
      save and manage articles."*
+7. **Available environments** — list all files in `~/.claude/channels/wallabag/`
+   matching `*.env`, stripping the `.env` suffix. Display `.env` as "(default)".
 
 ### Guided setup — `setup`
 
@@ -86,7 +104,7 @@ Walk the user through configuring credentials interactively:
 
 2. Ask the user to run the explicit form once they have all values:
    ```
-   /wallabag:configure url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>
+   /wallabag:configure env=$ENV url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>
    ```
 
 ### Explicit save — `url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>`
@@ -100,25 +118,25 @@ Required keys: `url`, `client_id`, `client_secret`, `username`, `password`.
 If any key is missing, tell the user which keys are absent and stop.
 
 1. `mkdir -p ~/.claude/channels/wallabag`
-2. Read existing `.env` if present; update/add only the provided keys,
+2. Read existing `${ENV}.env` if present; update/add only the provided keys,
    preserve any other keys already in the file.
 3. Write back in the format `KEY=value`, no quotes.
-4. `chmod 600 ~/.claude/channels/wallabag/.env` — this file contains
+4. `chmod 600 ~/.claude/channels/wallabag/${ENV}.env` — this file contains
    credentials.
 5. Strip any trailing slash from the saved `WALLABAG_URL` value before writing
    (store it clean, without trailing slash).
 6. Test the connection (same `http` call as in the status check above).
 7. Show the result and the full status.
 
-### `clear` — remove all credentials
+### `clear` — remove all credentials for this environment
 
-Delete `~/.claude/channels/wallabag/.env`. Confirm before proceeding by
-asking the user: *"This will remove all Wallabag credentials. Are you sure?"*
+Delete `~/.claude/channels/wallabag/${ENV}.env`. Confirm before proceeding by
+asking the user: *"This will remove all Wallabag credentials for environment '$ENV'. Are you sure?"*
 Only proceed if they confirm.
 
 ### `clear <key>` — remove a single credential
 
-Remove only the named key line from the `.env` file. Valid keys: `url`,
+Remove only the named key line from the `${ENV}.env` file. Valid keys: `url`,
 `client_id`, `client_secret`, `username`, `password`.
 
 ---

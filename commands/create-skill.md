@@ -67,11 +67,17 @@ git init
 ### 5. Create `skills/configure/SKILL.md`
 
 Generate a `configure` skill appropriate for the plugin. A configure skill should:
-- Store credentials or connection settings in `~/.claude/channels/<plugin-name>/.env`
-- Support: no-args status check, guided `setup` subcommand, explicit `key=value` save, `clear`, and `clear <key>`
+- Store credentials or connection settings in `~/.claude/channels/<plugin-name>/${ENV}.env`
+  where `ENV` defaults to `""` (empty string), making the default file `~/.claude/channels/<plugin-name>/.env`
+- Accept `env=<name>` as an argument; when omitted, use `""` (empty string) so the file resolves to `.env`
+- When `ENV` is empty, display the environment as "(default)" and omit `env=` from suggested commands
+- When listing available environments, match `*.env` files; display `.env` as "(default)"
+- Support: no-args status check (shows active env + available envs), guided `setup` subcommand,
+  explicit `key=value` save, `clear` (env-scoped), and `clear <key>`
 - Test the connection after saving if an API endpoint is available
-- `chmod 600` the `.env` after writing
-- Single-quote credential values in the `.env` file (e.g. `PASSWORD='...'`) to prevent shell expansion of special characters (`$`, `#`, `@`, etc.) when the file is sourced
+- `chmod 600` the `${ENV}.env` after writing
+- Single-quote credential values in the env file (e.g. `PASSWORD='...'`) to prevent shell expansion of
+  special characters (`$`, `#`, `@`, etc.) when the file is sourced
 
 Use the wallabag configure skill as a reference pattern. Tailor the credential keys and connection test to the specific service described in `$ARGUMENTS`.
 - Use `http` (httpie) for all HTTP calls, not `curl`. Always pass `--ignore-stdin` to prevent blocking. Use `-b` flag for body-only output when parsing responses.
@@ -80,6 +86,7 @@ Use the wallabag configure skill as a reference pattern. Tailor the credential k
 
 ```
 node_modules/
+*.env
 ```
 
 ### 7. Create `README.md`
@@ -87,7 +94,8 @@ node_modules/
 Include:
 - What the plugin does
 - Skills table (name + one-line description)
-- Credentials section (what keys are needed and where to find them)
+- Credentials section (what keys are needed and where to find them); note that named environments
+  are stored as `<env>.env` alongside the default `.env`
 - Install commands:
   ```
   /plugin marketplace add <dir>

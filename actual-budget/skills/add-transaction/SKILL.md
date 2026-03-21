@@ -17,15 +17,28 @@ Arguments passed: `$ARGUMENTS`
 
 ---
 
+## Environment selection
+
+Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from the
+remaining arguments. Default to `""` (empty string) if not provided.
+
+The credential file for the selected environment is:
+`~/.claude/channels/actual-budget/${ENV}.env`
+
+When `ENV` is empty the path resolves to `~/.claude/channels/actual-budget/.env` (the default).
+When suggesting commands, omit the `env=` argument if `ENV` is empty.
+
+---
+
 ## Prerequisites
 
-Load credentials from `~/.claude/channels/actual-budget/.env`. If the file doesn't exist,
-tell the user to run `/actual-budget:configure setup` first.
+Load credentials from `~/.claude/channels/actual-budget/${ENV}.env`. If the file doesn't exist,
+tell the user to run `/actual-budget:configure env=$ENV setup` first.
 
 ## Authentication
 
 ```bash
-source ~/.claude/channels/actual-budget/.env
+source ~/.claude/channels/actual-budget/${ENV}.env
 TOKEN=$(curl -s -X POST "$SERVER_URL/account/login" \
   -H "Content-Type: application/json" \
   -d "{\"password\":\"$PASSWORD\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
@@ -33,7 +46,7 @@ TOKEN=$(curl -s -X POST "$SERVER_URL/account/login" \
 
 ---
 
-## Parsing `$ARGUMENTS`
+## Parsing `$ARGUMENTS` (after stripping `env=`)
 
 `$ARGUMENTS` is a natural language description such as:
 - "spent $45 at Walmart on groceries"

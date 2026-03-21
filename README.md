@@ -8,6 +8,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
+| [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache |
 
 ## Commands
 
@@ -55,6 +56,7 @@ Run this once inside any Claude Code session:
 ```
 /plugin install wallabag@claude-skills
 /plugin install actual-budget@claude-skills
+/plugin install technitium-dns@claude-skills
 ```
 
 ### 5. Reload plugins

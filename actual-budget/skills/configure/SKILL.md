@@ -10,14 +10,30 @@ allowed-tools:
   - Bash(chmod *)
   - Bash(cat *)
   - Bash(grep *)
+  - Bash(ls *)
 ---
 
 # /actual-budget:configure — Configure Actual Budget Connection
 
 Manages connection settings for the user's self-hosted Actual Budget instance.
-Credentials are stored in `~/.claude/channels/actual-budget/.env` (chmod 600).
+Credentials are stored in `~/.claude/channels/actual-budget/{env}.env` (chmod 600).
 
 Arguments passed: `$ARGUMENTS`
+
+---
+
+## Environment selection
+
+Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from the
+remaining arguments. Default to `""` (empty string) if not provided.
+
+The credential file for the selected environment is:
+`~/.claude/channels/actual-budget/${ENV}.env`
+
+When `ENV` is empty the path resolves to `~/.claude/channels/actual-budget/.env`,
+which is the default environment and preserves backwards compatibility.
+When displaying the environment name, show "(default)" for an empty `ENV`.
+When suggesting commands, omit the `env=` argument if `ENV` is empty.
 
 ---
 
@@ -28,12 +44,12 @@ Arguments passed: `$ARGUMENTS`
 
 ---
 
-## Dispatch on `$ARGUMENTS`
+## Dispatch on `$ARGUMENTS` (after stripping `env=`)
 
 ### No arguments → status check
 
-1. Check if `~/.claude/channels/actual-budget/.env` exists.
-2. If not: tell the user no credentials are saved and suggest running `/actual-budget:configure setup`.
+1. Check if `~/.claude/channels/actual-budget/${ENV}.env` exists.
+2. If not: tell the user no credentials are saved for the selected environment and suggest running `/actual-budget:configure setup` (for the default) or `/actual-budget:configure env=$ENV setup` (for a named env).
 3. If yes: load the file, show `SERVER_URL` (masked password), then test the connection:
    ```bash
    curl -s -o /dev/null -w "%{http_code}" -X POST "$SERVER_URL/account/login" \
@@ -43,6 +59,7 @@ Arguments passed: `$ARGUMENTS`
    - 200 → connected successfully
    - 400 → wrong password
    - other → server unreachable or unexpected error
+4. List all available environments by showing files in `~/.claude/channels/actual-budget/` matching `*.env`, stripping the `.env` suffix. Display `.env` as "(default)".
 
 ### `setup` → guided setup
 
@@ -55,15 +72,15 @@ After collecting all values, save and test (same as key=value save below).
 ### `KEY=VALUE` → save a single credential
 
 Parse the key and value from `$ARGUMENTS`. Valid keys: `SERVER_URL`, `PASSWORD`.
-Load existing `.env` if present, update the key, write back, chmod 600, then test connection.
+Load existing `${ENV}.env` if present, update the key, write back, chmod 600, then test connection.
 
-### `clear` → remove all credentials
+### `clear` → remove all credentials for this environment
 
-Delete `~/.claude/channels/actual-budget/.env` and confirm.
+Delete `~/.claude/channels/actual-budget/${ENV}.env` and confirm.
 
 ### `clear KEY` → remove a single key
 
-Remove just that key from the `.env` file.
+Remove just that key from the `${ENV}.env` file.
 
 ---
 
@@ -71,11 +88,11 @@ Remove just that key from the `.env` file.
 
 ```bash
 mkdir -p ~/.claude/channels/actual-budget
-cat > ~/.claude/channels/actual-budget/.env <<'EOF'
+cat > ~/.claude/channels/actual-budget/${ENV}.env <<'EOF'
 SERVER_URL=<value>
 PASSWORD='<value>'
 EOF
-chmod 600 ~/.claude/channels/actual-budget/.env
+chmod 600 ~/.claude/channels/actual-budget/${ENV}.env
 ```
 
 Note: the password is single-quoted to prevent shell expansion of special characters (`$`, `#`, `@`, etc.).
@@ -87,7 +104,7 @@ Note: the password is single-quoted to prevent shell expansion of special charac
 After saving, authenticate and report success or failure:
 
 ```bash
-source ~/.claude/channels/actual-budget/.env
+source ~/.claude/channels/actual-budget/${ENV}.env
 curl -s -X POST "$SERVER_URL/account/login" \
   -H "Content-Type: application/json" \
   -d "{\"password\":\"$PASSWORD\"}"
