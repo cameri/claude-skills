@@ -1,6 +1,6 @@
 {
   "name": "actual-budget",
   "description": "Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "keywords": ["actual-budget", "budget", "finance", "transactions"]
 }
