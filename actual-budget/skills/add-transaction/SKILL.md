@@ -9,7 +9,7 @@ allowed-tools:
 
 # /actual-budget:add-transaction — Add a Transaction
 
-Adds a transaction to the user's Actual Budget instance.
+Adds a transaction to the user's Actual Budget instance using the official `@actual-app/cli` CLI.
 
 Arguments passed: `$ARGUMENTS`
 
@@ -35,21 +35,29 @@ run `/actual-budget:configure` first.
 
 ---
 
-## Client
+## CLI setup
 
-All API calls are made via the Node.js client at `client.ts`, located two directories above
-this skill's base directory (i.e. `<base_dir>/../../client.ts`).
+The `actual` CLI binary is installed at:
 
-Run it with:
-
-```bash
-node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] <command> [args...]
+```
+<base_dir>/../../node_modules/.bin/actual
 ```
 
-If `node_modules` is missing from the client directory, install first:
+If `node_modules` is missing, install first:
 
 ```bash
 npm install --prefix <base_dir>/../..
+```
+
+Load credentials and export them for the CLI:
+
+```bash
+source ~/.claude/channels/actual-budget/${ENV}.env
+# Support both old (no prefix) and new (ACTUAL_ prefix) credential names
+export ACTUAL_SERVER_URL="${ACTUAL_SERVER_URL:-$SERVER_URL}"
+export ACTUAL_PASSWORD="${ACTUAL_PASSWORD:-$PASSWORD}"
+export ACTUAL_SYNC_ID="${ACTUAL_SYNC_ID:-$SYNC_ID}"
+ACTUAL="<base_dir>/../../node_modules/.bin/actual"
 ```
 
 ---
@@ -74,30 +82,33 @@ Extract:
 
 ## Resolve account and category IDs
 
-Fetch accounts to resolve names to IDs:
+Resolve the account name to an ID:
 
 ```bash
-bun run <client> [--env=$ENV] accounts 100 0
+$ACTUAL server get-id --type accounts --name "<account name>" --format json
 ```
 
-If a category was mentioned, fetch categories:
+If a category was mentioned, resolve it too:
 
 ```bash
-bun run <client> [--env=$ENV] categories 100 0
+$ACTUAL server get-id --type categories --name "<category name>" --format json
 ```
 
-Match names case-insensitively. If still ambiguous, ask the user before proceeding.
+Match names case-insensitively. If ambiguous, ask the user before proceeding.
 
 ---
 
 ## Add the transaction
 
+Amounts use **integer cents** (e.g. -$45.00 → `-4500`, $500 income → `50000`).
+
 ```bash
-bun run <client> [--env=$ENV] add-transaction <accountId> <date> <amount> "<payee>" [categoryId] [notes...]
+$ACTUAL transactions add \
+  --account <accountId> \
+  --data '[{"date":"<YYYY-MM-DD>","amount":<cents>,"payee_name":"<payee>","category":"<categoryId>","notes":"<notes>"}]'
 ```
 
-- `amount` is in dollars (e.g. `-45.00` for a $45 expense, `500` for $500 income)
-- The client converts to Actual Budget's internal integer format automatically
+Omit `category` and `notes` fields if not provided.
 
 ---
 

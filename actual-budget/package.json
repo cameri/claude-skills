@@ -1,8 +1,8 @@
 {
   "name": "actual-budget-skill",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "type": "module",
   "dependencies": {
-    "@actual-app/api": "latest"
+    "@actual-app/cli": "latest"
   }
 }

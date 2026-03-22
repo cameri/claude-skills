@@ -39,10 +39,13 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 
 ## Credential keys
 
-- `SERVER_URL` — base URL of the Actual Budget server (e.g. `https://budget.example.com`)
-- `PASSWORD` — server login password used to authenticate
-- `SYNC_ID` — budget Sync ID from Settings → Advanced (optional; auto-picks first budget if unset)
-- `ENCRYPT_PASSWORD` — budget file encryption password (optional; falls back to `PASSWORD` if unset)
+- `ACTUAL_SERVER_URL` — base URL of the Actual Budget server (e.g. `https://budget.example.com`)
+- `ACTUAL_PASSWORD` — server login password used to authenticate
+- `ACTUAL_SYNC_ID` — budget Sync ID from Settings → Advanced (optional; auto-picks first budget if unset)
+
+> **Migration note:** Older credential files may use `SERVER_URL`, `PASSWORD`, and `SYNC_ID`
+> (without the `ACTUAL_` prefix). These are still recognized by the skills. When saving new or
+> updated credentials, always use the `ACTUAL_` prefixed names.
 
 ---
 
@@ -52,11 +55,11 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 
 1. Check if `~/.claude/channels/actual-budget/${ENV}.env` exists.
 2. If not: tell the user no credentials are saved for the selected environment and suggest running `/actual-budget:configure setup` (for the default) or `/actual-budget:configure env=$ENV setup` (for a named env).
-3. If yes: load the file, show `SERVER_URL` (masked password), then test the connection:
+3. If yes: load the file, show `ACTUAL_SERVER_URL` (mask the password), then test the connection:
    ```bash
-   curl -s -o /dev/null -w "%{http_code}" -X POST "$SERVER_URL/account/login" \
+   curl -s -o /dev/null -w "%{http_code}" -X POST "$ACTUAL_SERVER_URL/account/login" \
      -H "Content-Type: application/json" \
-     -d "{\"password\":\"$PASSWORD\"}"
+     -d "{\"password\":\"$ACTUAL_PASSWORD\"}"
    ```
    - 200 → connected successfully
    - 400 → wrong password
@@ -66,14 +69,14 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 ### `setup` → guided setup
 
 Prompt the user for each credential interactively (one at a time):
-1. `SERVER_URL` — ask for the base URL (no trailing slash)
-2. `PASSWORD` — ask for the server password
+1. `ACTUAL_SERVER_URL` — ask for the base URL (no trailing slash)
+2. `ACTUAL_PASSWORD` — ask for the server password
 
 After collecting all values, save and test (same as key=value save below).
 
 ### `KEY=VALUE` → save a single credential
 
-Parse the key and value from `$ARGUMENTS`. Valid keys: `SERVER_URL`, `PASSWORD`, `SYNC_ID`, `ENCRYPT_PASSWORD`.
+Parse the key and value from `$ARGUMENTS`. Valid keys: `ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, `ACTUAL_SYNC_ID`.
 Load existing `${ENV}.env` if present, update the key, write back, chmod 600, then test connection.
 
 ### `clear` → remove all credentials for this environment
@@ -91,8 +94,8 @@ Remove just that key from the `${ENV}.env` file.
 ```bash
 mkdir -p ~/.claude/channels/actual-budget
 cat > ~/.claude/channels/actual-budget/${ENV}.env <<'EOF'
-SERVER_URL=<value>
-PASSWORD='<value>'
+ACTUAL_SERVER_URL=<value>
+ACTUAL_PASSWORD='<value>'
 EOF
 chmod 600 ~/.claude/channels/actual-budget/${ENV}.env
 ```
@@ -107,9 +110,9 @@ After saving, authenticate and report success or failure:
 
 ```bash
 source ~/.claude/channels/actual-budget/${ENV}.env
-curl -s -X POST "$SERVER_URL/account/login" \
+curl -s -X POST "$ACTUAL_SERVER_URL/account/login" \
   -H "Content-Type: application/json" \
-  -d "{\"password\":\"$PASSWORD\"}"
+  -d "{\"password\":\"$ACTUAL_PASSWORD\"}"
 ```
 
 A successful response returns HTTP 200 with a JSON body containing a `token` field.

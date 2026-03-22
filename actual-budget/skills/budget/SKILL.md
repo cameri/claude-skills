@@ -9,7 +9,8 @@ allowed-tools:
 
 # /actual-budget:budget — Query Budget Data
 
-Queries the user's Actual Budget instance for accounts, balances, and transactions.
+Queries the user's Actual Budget instance for accounts, balances, and transactions
+using the official `@actual-app/cli` CLI.
 
 Arguments passed: `$ARGUMENTS`
 
@@ -35,24 +36,43 @@ run `/actual-budget:configure` first.
 
 ---
 
-## Client
+## CLI setup
 
-All API calls are made via the Node.js client at `client.ts`, located two directories above
-this skill's base directory (i.e. `<base_dir>/../../client.ts`).
+The `actual` CLI binary is installed at:
 
-Run it with:
-
-```bash
-node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] <command> [args...]
+```
+<base_dir>/../../node_modules/.bin/actual
 ```
 
-If `node_modules` is missing from the client directory, install first:
+If `node_modules` is missing, install first:
 
 ```bash
 npm install --prefix <base_dir>/../..
 ```
 
-The client outputs JSON on stdout and errors as `{"error": "..."}` on stderr with exit code 1.
+Load credentials and export them for the CLI:
+
+```bash
+source ~/.claude/channels/actual-budget/${ENV}.env
+# Support both old (no prefix) and new (ACTUAL_ prefix) credential names
+export ACTUAL_SERVER_URL="${ACTUAL_SERVER_URL:-$SERVER_URL}"
+export ACTUAL_PASSWORD="${ACTUAL_PASSWORD:-$PASSWORD}"
+export ACTUAL_SYNC_ID="${ACTUAL_SYNC_ID:-$SYNC_ID}"
+ACTUAL="<base_dir>/../../node_modules/.bin/actual"
+```
+
+All CLI calls below assume these variables are set.
+
+---
+
+## Name resolution
+
+To resolve an account, category, or payee name to its ID, use:
+
+```bash
+$ACTUAL server get-id --type accounts --name "<name>" --format json
+$ACTUAL server get-id --type categories --name "<name>" --format json
+```
 
 ---
 
@@ -61,57 +81,60 @@ The client outputs JSON on stdout and errors as `{"error": "..."}` on stderr wit
 ### No arguments or `accounts` → list accounts with balances
 
 ```bash
-bun run <client> [--env=$ENV] accounts
+$ACTUAL accounts list --format json
 ```
 
-Display a clean table: Account Name | Type | Balance (formatted as currency).
+For each account, fetch its balance:
+
+```bash
+$ACTUAL accounts balance <id> --format json
+```
+
+Display a clean table: Account Name | Type | Balance.
 
 ### `transactions [account-name-or-id] [limit]` → recent transactions
 
-If an account name is given, first resolve it to an ID:
+Resolve the account name to an ID, then:
 
 ```bash
-bun run <client> [--env=$ENV] accounts 100 0
+$ACTUAL transactions list --account <id> --start <YYYY-01-01> --end <today> --format json
 ```
 
-Then fetch transactions (default limit 20, start from beginning of current year):
-
-```bash
-bun run <client> [--env=$ENV] transactions <accountId> <YYYY-01-01> <today> <limit> 0
-```
-
-Display: Date | Payee | Category | Amount (negative = expense, positive = income).
+Default limit: 20. Display: Date | Payee | Category | Amount.
 
 ### `budget [month]` → budget vs actual for a month
 
 Month format: `YYYY-MM` (default: current month).
 
 ```bash
-bun run <client> [--env=$ENV] budget-month [YYYY-MM]
+$ACTUAL budgets month <month> --format json
 ```
 
 Display a table: Category | Budgeted | Spent | Remaining.
 
 ### `summary` → overall financial snapshot
 
-Run net-worth and current month budget in parallel and display a combined summary:
+Run account balances and current month budget in parallel, then display:
+- Total assets, total liabilities, net worth (sum of all account balances)
+- Top 5 over-budget categories this month
 
 ```bash
-bun run <client> [--env=$ENV] net-worth
-bun run <client> [--env=$ENV] budget-month
+$ACTUAL accounts list --format json         # get all account IDs
+$ACTUAL accounts balance <id> --format json  # for each account
+$ACTUAL budgets month --format json          # current month budget
 ```
-
-Display:
-- Total assets, total liabilities, net worth
-- Top 5 over-budget categories this month
 
 ### `bank-sync [account-name-or-id]` → trigger bank sync
 
 ```bash
-node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] bank-sync [account-name-or-id]
+# Sync all accounts:
+$ACTUAL server bank-sync
+
+# Sync a specific account (resolve name to ID first):
+$ACTUAL server bank-sync --account <id>
 ```
 
-- If an account name or ID is given, syncs only that account.
-- If omitted, syncs all accounts.
+Display: `Synced: <account name or "all accounts">` on success, or the error on failure.
 
-Display: `Synced: <account name or "all accounts">` on success, or the error message on failure.
+If syncing all accounts and one fails, try syncing each account individually and report
+which ones succeeded and which failed.
