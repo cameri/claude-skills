@@ -1,0 +1,6 @@
+{
+  "name": "scheduler",
+  "description": "Schedule tasks using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes'. Fires channel notifications when tasks are due.",
+  "version": "0.0.1",
+  "keywords": ["scheduler", "cron", "schedule", "task", "reminder"]
+}
