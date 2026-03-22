@@ -4,9 +4,7 @@ description: Add a transaction to Actual Budget. Use when the user says they spe
 user-invocable: true
 allowed-tools:
   - Read
-  - Bash(curl *)
-  - Bash(cat *)
-  - Bash(date *)
+  - Bash(node *)
 ---
 
 # /actual-budget:add-transaction — Add a Transaction
@@ -32,16 +30,26 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 
 ## Prerequisites
 
-Load credentials from `~/.claude/channels/actual-budget/${ENV}.env`. If the file doesn't exist,
-tell the user to run `/actual-budget:configure env=$ENV setup` first.
+Check that `~/.claude/channels/actual-budget/${ENV}.env` exists. If not, tell the user to
+run `/actual-budget:configure` first.
 
-## Authentication
+---
+
+## Client
+
+All API calls are made via the Node.js client at `client.ts`, located two directories above
+this skill's base directory (i.e. `<base_dir>/../../client.ts`).
+
+Run it with:
 
 ```bash
-source ~/.claude/channels/actual-budget/${ENV}.env
-TOKEN=$(curl -s -X POST "$SERVER_URL/account/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"password\":\"$PASSWORD\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] <command> [args...]
+```
+
+If `node_modules` is missing from the client directory, install first:
+
+```bash
+npm install --prefix <base_dir>/../..
 ```
 
 ---
@@ -55,53 +63,45 @@ TOKEN=$(curl -s -X POST "$SERVER_URL/account/login" \
 - "coffee $4.50 today"
 
 Extract:
-- **amount** — numeric value (expenses are negative, income is positive)
+- **amount** — numeric value in dollars (expenses are negative, income is positive)
 - **payee** — merchant or description
-- **account** — account name if mentioned, otherwise ask or use the first checking account
-- **date** — if mentioned (e.g. "yesterday", "last Friday"); default to today (`date +%Y-%m-%d`)
-- **category** — if mentioned or confidently inferable (e.g. "groceries" → Groceries, "electricity" → Utilities)
+- **account** — account name if mentioned, otherwise use the first checking account
+- **date** — if mentioned (e.g. "yesterday", "last Friday"); default to today (YYYY-MM-DD)
+- **category** — if mentioned or confidently inferable (e.g. "groceries" → Groceries)
 - **notes** — any remaining context
 
-If account or category is ambiguous, first fetch the accounts/categories list and pick the best match.
-If still unclear, ask the user before proceeding.
+---
+
+## Resolve account and category IDs
+
+Fetch accounts to resolve names to IDs:
+
+```bash
+bun run <client> [--env=$ENV] accounts 100 0
+```
+
+If a category was mentioned, fetch categories:
+
+```bash
+bun run <client> [--env=$ENV] categories 100 0
+```
+
+Match names case-insensitively. If still ambiguous, ask the user before proceeding.
 
 ---
 
-## Resolve account ID
+## Add the transaction
 
 ```bash
-curl -s "$SERVER_URL/v1/accounts" -H "Authorization: Bearer $TOKEN"
+bun run <client> [--env=$ENV] add-transaction <accountId> <date> <amount> "<payee>" [categoryId] [notes...]
 ```
 
-Match the account name case-insensitively.
-
----
-
-## Post the transaction
-
-```bash
-curl -s -X POST "$SERVER_URL/v1/accounts/$ACCOUNT_ID/transactions" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transaction": {
-      "date": "'"$DATE"'",
-      "amount": '"$AMOUNT_IN_CENTS"',
-      "payee_name": "'"$PAYEE"'",
-      "category_id": "'"$CATEGORY_ID"'",
-      "notes": "'"$NOTES"'"
-    }
-  }'
-```
-
-Note: Actual Budget stores amounts in **milliunits** (cents × 10). Convert accordingly:
-- $45.00 expense → `-45000`
-- $4.50 expense → `-4500`
-- $500 income → `500000`
+- `amount` is in dollars (e.g. `-45.00` for a $45 expense, `500` for $500 income)
+- The client converts to Actual Budget's internal integer format automatically
 
 ---
 
 ## Confirm to the user
 
-After a successful POST (HTTP 200), summarize what was added:
+After a successful response, summarize what was added:
 > Added: **$45.00** at **Walmart** → Groceries · Checking · 2026-03-21

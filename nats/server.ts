@@ -19,7 +19,8 @@
  */
 
 import { connect, createInbox, StringCodec, type NatsConnection } from "nats";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -104,14 +105,194 @@ function decodeMsg(data: Uint8Array, sc: ReturnType<typeof StringCodec>): unknow
 
 // ── Capabilities ──────────────────────────────────────────────────────────────
 
-function getCapabilities(): Capability[] {
-  return [
-    { type: "skill", name: "nats:configure", description: "Configure the NATS server URL" },
-    { type: "skill", name: "nats:status", description: "Show NATS agent status and known agents" },
-    { type: "skill", name: "nats:discover", description: "Discover all NATS agents and their capabilities" },
-    { type: "skill", name: "nats:call", description: "Invoke a capability on a specific agent" },
-    { type: "skill", name: "nats:broadcast", description: "Broadcast a capability call to all agents" },
+/** Returns true for capability names that should never be advertised or executed remotely. */
+function isPrivateCapability(name: string): boolean {
+  const leaf = name.includes(":") ? name.split(":").pop()! : name;
+  return name.startsWith("nats:") || ["configure", "access", "setup"].includes(leaf);
+}
+
+/** Parse YAML-like frontmatter between --- delimiters. */
+function parseFrontmatter(content: string): Record<string, string> {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const result: Record<string, string> = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const m = line.match(/^([\w-]+):\s*(.+)$/);
+    if (m) result[m[1]] = m[2].trim();
+  }
+  return result;
+}
+
+/**
+ * Spawn a stdio MCP server, perform the initialize handshake, call tools/list,
+ * and return the tools as Capabilities. Kills the process when done or on timeout.
+ */
+async function queryMcpStdioTools(
+  pluginName: string,
+  installPath: string,
+  command: string,
+  args: string[],
+): Promise<Capability[]> {
+  const expandedArgs = args.map(a => a.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, installPath));
+  const TIMEOUT_MS = 15_000;
+
+  const child = spawn(command, expandedArgs, {
+    env: { ...process.env, CLAUDE_PLUGIN_ROOT: installPath },
+    stdio: ["pipe", "pipe", "ignore"],
+  });
+
+  const messages = [
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "nats-discovery", version: "1.0.0" } } },
+    { jsonrpc: "2.0", method: "notifications/initialized", params: {} },
+    { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
   ];
+  for (const msg of messages) child.stdin.write(JSON.stringify(msg) + "\n");
+
+  const result = await Promise.race([
+    new Promise<Capability[]>((resolve) => {
+      let buffer = "";
+      child.stdout.on("data", (chunk: Buffer) => {
+        buffer += chunk.toString();
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          try {
+            const msg = JSON.parse(line.trim()) as any;
+            if (msg.id === 2 && msg.result?.tools) {
+              resolve(
+                (msg.result.tools as Array<{ name: string; description: string }>)
+                  .filter(t => t.name && t.description && !isPrivateCapability(t.name))
+                  .map(t => ({ type: "tool" as const, name: t.name, description: t.description })),
+              );
+            }
+          } catch {}
+        }
+      });
+      child.on("close", () => resolve([]));
+      child.on("error", () => resolve([]));
+    }),
+    new Promise<Capability[]>(r => setTimeout(() => r([]), TIMEOUT_MS)),
+  ]);
+
+  try { child.kill(); } catch {}
+  return result;
+}
+
+/**
+ * Discover MCP tools from all enabled stdio plugins by spawning each server
+ * and calling tools/list. HTTP-type servers and self (nats) are skipped.
+ * Falls back gracefully on any per-plugin error.
+ */
+async function getMcpToolCapabilities(): Promise<Capability[]> {
+  const home = homedir();
+  const pluginsJsonPath = join(home, ".claude", "plugins", "installed_plugins.json");
+  const settingsJsonPath = join(home, ".claude", "settings.json");
+
+  try {
+    const settings = JSON.parse(readFileSync(settingsJsonPath, "utf-8")) as { enabledPlugins?: Record<string, boolean> };
+    const enabledPlugins = settings.enabledPlugins ?? {};
+    const installed = JSON.parse(readFileSync(pluginsJsonPath, "utf-8")) as { plugins?: Record<string, Array<{ installPath: string }>> };
+
+    const queries: Promise<Capability[]>[] = [];
+
+    for (const [pluginKey, entries] of Object.entries(installed.plugins ?? {})) {
+      if (!enabledPlugins[pluginKey]) continue;
+      const pluginName = pluginKey.split("@")[0];
+      if (pluginName === "nats") continue; // skip self
+
+      const installPath = entries[0]?.installPath;
+      if (!installPath) continue;
+
+      const mcpJsonPath = join(installPath, ".mcp.json");
+      if (!existsSync(mcpJsonPath)) continue;
+
+      let mcpConfig: any;
+      try { mcpConfig = JSON.parse(readFileSync(mcpJsonPath, "utf-8")); } catch { continue; }
+
+      for (const serverDef of Object.values(mcpConfig.mcpServers ?? {})) {
+        const def = serverDef as any;
+        if (!def.command || def.type === "http") continue;
+        queries.push(
+          queryMcpStdioTools(pluginName, installPath, def.command, def.args ?? [])
+            .then(tools => {
+              if (tools.length) process.stderr.write(`nats: discovered ${tools.length} MCP tools from ${pluginName}\n`);
+              return tools;
+            })
+            .catch(e => {
+              process.stderr.write(`nats: MCP tool discovery for ${pluginName} failed — ${(e as Error).message}\n`);
+              return [];
+            }),
+        );
+      }
+    }
+
+    const results = await Promise.allSettled(queries);
+    return results.flatMap(r => r.status === "fulfilled" ? r.value : []);
+  } catch (e) {
+    process.stderr.write(`nats: getMcpToolCapabilities error — ${(e as Error).message}\n`);
+    return [];
+  }
+}
+
+/**
+ * Dynamically build the capability list by scanning all installed plugins.
+ * Reads ~/.claude/plugins/installed_plugins.json, then for each enabled plugin
+ * scans its skills/ (SKILL.md) and agents/ (*.md) directories.
+ */
+function getCapabilities(): Capability[] {
+  const caps: Capability[] = [];
+  const home = homedir();
+  const pluginsJsonPath = join(home, ".claude", "plugins", "installed_plugins.json");
+  const settingsJsonPath = join(home, ".claude", "settings.json");
+
+  try {
+    const settings = JSON.parse(readFileSync(settingsJsonPath, "utf-8")) as {
+      enabledPlugins?: Record<string, boolean>;
+    };
+    const enabledPlugins = settings.enabledPlugins ?? {};
+    const installed = JSON.parse(readFileSync(pluginsJsonPath, "utf-8")) as {
+      plugins?: Record<string, Array<{ installPath: string }>>;
+    };
+
+    for (const [pluginKey, entries] of Object.entries(installed.plugins ?? {})) {
+      if (!enabledPlugins[pluginKey]) continue;
+      const pluginName = pluginKey.split("@")[0];
+      const installPath = entries[0]?.installPath;
+      if (!installPath) continue;
+
+      // Skills: installPath/skills/<skill-dir>/SKILL.md
+      const skillsDir = join(installPath, "skills");
+      if (existsSync(skillsDir)) {
+        for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
+          if (!entry.isDirectory()) continue;
+          const mdPath = join(skillsDir, entry.name, "SKILL.md");
+          if (!existsSync(mdPath)) continue;
+          const fm = parseFrontmatter(readFileSync(mdPath, "utf-8"));
+          if (!fm.name || !fm.description) continue;
+          const capName = `${pluginName}:${fm.name}`;
+          if (isPrivateCapability(capName)) continue;
+          caps.push({ type: "skill", name: capName, description: fm.description });
+        }
+      }
+
+      // Agents: installPath/agents/<name>.md
+      const agentsDir = join(installPath, "agents");
+      if (existsSync(agentsDir)) {
+        for (const entry of readdirSync(agentsDir, { withFileTypes: true })) {
+          if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+          const mdPath = join(agentsDir, entry.name);
+          const fm = parseFrontmatter(readFileSync(mdPath, "utf-8"));
+          if (!fm.name || !fm.description) continue;
+          if (isPrivateCapability(fm.name)) continue;
+          caps.push({ type: "skill", name: fm.name, description: fm.description });
+        }
+      }
+    }
+  } catch (e) {
+    process.stderr.write(`nats: getCapabilities error — ${(e as Error).message}\n`);
+  }
+
+  return caps;
 }
 
 // ── MCP Server ────────────────────────────────────────────────────────────────
@@ -302,7 +483,7 @@ try {
 }
 
 if (nc) {
-  const caps = getCapabilities();
+  const caps = [...getCapabilities(), ...await getMcpToolCapabilities()];
   const nnc = nc; // narrowed non-null ref for async closures
 
   // Direct invocation: claude.agents.<id>.invoke.*
@@ -310,7 +491,11 @@ if (nc) {
   (async () => {
     for await (const msg of invokeSub) {
       const capName = msg.subject.split(".").slice(4).join(".");
+      if (isPrivateCapability(capName)) continue;
       const data = decodeMsg(msg.data, sc) as any;
+      if (msg.reply) {
+        nnc.publish(msg.reply, sc.encode(envelope(agentId, "ack", { status: "accepted", capability: capName })));
+      }
       void mcp.notification({
         method: "notifications/claude/channel",
         params: {
@@ -336,6 +521,10 @@ if (nc) {
       const data = decodeMsg(msg.data, sc) as any;
       if (data?.from === agentId) continue;
       const capName = msg.subject.split(".").slice(3).join(".");
+      if (isPrivateCapability(capName)) continue;
+      if (msg.reply) {
+        nnc.publish(msg.reply, sc.encode(envelope(agentId, "ack", { status: "accepted", capability: capName })));
+      }
       void mcp.notification({
         method: "notifications/claude/channel",
         params: {
@@ -347,6 +536,33 @@ if (nc) {
             from: data?.from ?? "unknown",
             ts: new Date().toISOString(),
             ...(msg.reply ? { reply: msg.reply } : {}),
+          },
+        },
+      });
+    }
+  })().catch(console.error);
+
+  // Direct message: claude.agents.<id>.message (free-form agent-to-agent)
+  const messageSub = nnc.subscribe(`claude.agents.${agentId}.message`);
+  (async () => {
+    for await (const msg of messageSub) {
+      const data = decodeMsg(msg.data, sc) as any;
+      if (data?.from === agentId) continue;
+      if (msg.reply) {
+        nnc.publish(msg.reply, sc.encode(envelope(agentId, "ack", { status: "accepted" })));
+      }
+      void mcp.notification({
+        method: "notifications/claude/channel",
+        params: {
+          content: data?.payload?.text ?? "Message from agent",
+          meta: {
+            source: "nats",
+            event_type: "agent_message",
+            subject: msg.subject,
+            from: data?.from ?? "unknown",
+            ts: new Date().toISOString(),
+            ...(msg.reply ? { reply: msg.reply } : {}),
+            ...(data?.payload ? { payload: JSON.stringify(data.payload) } : {}),
           },
         },
       });

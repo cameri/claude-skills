@@ -1,6 +1,6 @@
 {
   "name": "nats",
   "description": "Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "keywords": ["nats", "agents", "messaging", "services", "discovery"]
 }

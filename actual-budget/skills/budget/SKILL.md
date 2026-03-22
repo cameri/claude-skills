@@ -4,9 +4,7 @@ description: Query Actual Budget — list accounts, check balances, and view rec
 user-invocable: true
 allowed-tools:
   - Read
-  - Bash(curl *)
-  - Bash(cat *)
-  - Bash(source *)
+  - Bash(node *)
 ---
 
 # /actual-budget:budget — Query Budget Data
@@ -32,21 +30,29 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 
 ## Prerequisites
 
-Load credentials from `~/.claude/channels/actual-budget/${ENV}.env`. If the file doesn't exist,
-tell the user to run `/actual-budget:configure env=$ENV setup` first.
+Check that `~/.claude/channels/actual-budget/${ENV}.env` exists. If not, tell the user to
+run `/actual-budget:configure` first.
 
-## Authentication
+---
 
-Every request requires a session token. Obtain one with:
+## Client
+
+All API calls are made via the Node.js client at `client.ts`, located two directories above
+this skill's base directory (i.e. `<base_dir>/../../client.ts`).
+
+Run it with:
 
 ```bash
-source ~/.claude/channels/actual-budget/${ENV}.env
-TOKEN=$(curl -s -X POST "$SERVER_URL/account/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"password\":\"$PASSWORD\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] <command> [args...]
 ```
 
-Use `Authorization: Bearer $TOKEN` on all subsequent requests.
+If `node_modules` is missing from the client directory, install first:
+
+```bash
+npm install --prefix <base_dir>/../..
+```
+
+The client outputs JSON on stdout and errors as `{"error": "..."}` on stderr with exit code 1.
 
 ---
 
@@ -55,20 +61,23 @@ Use `Authorization: Bearer $TOKEN` on all subsequent requests.
 ### No arguments or `accounts` → list accounts with balances
 
 ```bash
-curl -s "$SERVER_URL/v1/accounts" \
-  -H "Authorization: Bearer $TOKEN"
+bun run <client> [--env=$ENV] accounts
 ```
 
 Display a clean table: Account Name | Type | Balance (formatted as currency).
 
 ### `transactions [account-name-or-id] [limit]` → recent transactions
 
-If an account name is given, first resolve it to an ID via the accounts list.
-Default limit: 20.
+If an account name is given, first resolve it to an ID:
 
 ```bash
-curl -s "$SERVER_URL/v1/accounts/$ACCOUNT_ID/transactions?limit=$LIMIT" \
-  -H "Authorization: Bearer $TOKEN"
+bun run <client> [--env=$ENV] accounts 100 0
+```
+
+Then fetch transactions (default limit 20, start from beginning of current year):
+
+```bash
+bun run <client> [--env=$ENV] transactions <accountId> <YYYY-01-01> <today> <limit> 0
 ```
 
 Display: Date | Payee | Category | Amount (negative = expense, positive = income).
@@ -78,14 +87,20 @@ Display: Date | Payee | Category | Amount (negative = expense, positive = income
 Month format: `YYYY-MM` (default: current month).
 
 ```bash
-curl -s "$SERVER_URL/v1/budget/months/$MONTH" \
-  -H "Authorization: Bearer $TOKEN"
+bun run <client> [--env=$ENV] budget-month [YYYY-MM]
 ```
 
 Display a table: Category | Budgeted | Spent | Remaining.
 
 ### `summary` → overall financial snapshot
 
-Run accounts + current month budget in parallel and display a combined summary:
+Run net-worth and current month budget in parallel and display a combined summary:
+
+```bash
+bun run <client> [--env=$ENV] net-worth
+bun run <client> [--env=$ENV] budget-month
+```
+
+Display:
 - Total assets, total liabilities, net worth
 - Top 5 over-budget categories this month

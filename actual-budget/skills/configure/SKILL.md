@@ -40,7 +40,9 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
 ## Credential keys
 
 - `SERVER_URL` — base URL of the Actual Budget server (e.g. `https://budget.example.com`)
-- `PASSWORD` — server password used to authenticate
+- `PASSWORD` — server login password used to authenticate
+- `SYNC_ID` — budget Sync ID from Settings → Advanced (optional; auto-picks first budget if unset)
+- `ENCRYPT_PASSWORD` — budget file encryption password (optional; falls back to `PASSWORD` if unset)
 
 ---
 
@@ -71,7 +73,7 @@ After collecting all values, save and test (same as key=value save below).
 
 ### `KEY=VALUE` → save a single credential
 
-Parse the key and value from `$ARGUMENTS`. Valid keys: `SERVER_URL`, `PASSWORD`.
+Parse the key and value from `$ARGUMENTS`. Valid keys: `SERVER_URL`, `PASSWORD`, `SYNC_ID`, `ENCRYPT_PASSWORD`.
 Load existing `${ENV}.env` if present, update the key, write back, chmod 600, then test connection.
 
 ### `clear` → remove all credentials for this environment
