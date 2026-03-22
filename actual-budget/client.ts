@@ -16,6 +16,7 @@
  *   payees [limit] [offset]                           list payees
  *   net-worth                                         total assets / liabilities / net worth
  *   add-transaction <accountId> <date> <amount> <payee> [categoryId] [notes...]
+ *   bank-sync [account-name-or-id]                    trigger bank sync (all accounts or specific one)
  */
 
 import { mkdirSync, readFileSync } from "fs";
@@ -234,12 +235,35 @@ switch (command) {
     });
   }
 
+  case "bank-sync": {
+    const [accountArg] = rest;
+    let accountId: string | undefined;
+    if (accountArg) {
+      const accounts = (await api.getAccounts()) as any[];
+      const match =
+        accounts.find((a) => a.id === accountArg) ||
+        accounts.find((a) => a.name.toLowerCase() === accountArg.toLowerCase()) ||
+        accounts.find((a) => a.name.toLowerCase().includes(accountArg.toLowerCase()));
+      if (!match) {
+        await api.shutdown();
+        die(`Account not found: ${accountArg}`);
+      }
+      accountId = match.id;
+      console.error(`Syncing account: ${match.name} (${match.id})`);
+    } else {
+      console.error("Syncing all accounts...");
+    }
+    await (api as any).runBankSync(accountId ? { accountId } : undefined);
+    await api.shutdown();
+    out({ status: "ok", synced: accountId ?? "all" });
+  }
+
   default:
     await api.shutdown();
     die(
       `Unknown command: ${command}\n` +
         "Available: budgets, accounts, account-balance, transactions, " +
         "budget-months, budget-month, categories, category-groups, payees, " +
-        "net-worth, add-transaction"
+        "net-worth, add-transaction, bank-sync"
     );
 }

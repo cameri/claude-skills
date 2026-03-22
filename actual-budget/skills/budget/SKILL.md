@@ -1,6 +1,6 @@
 ---
 name: budget
-description: Query Actual Budget — list accounts, check balances, and view recent transactions. Use when the user asks about their budget, account balances, or spending.
+description: Query Actual Budget — list accounts, check balances, view recent transactions, and trigger bank sync. Use when the user asks about their budget, account balances, spending, or wants to sync bank transactions.
 user-invocable: true
 allowed-tools:
   - Read
@@ -104,3 +104,14 @@ bun run <client> [--env=$ENV] budget-month
 Display:
 - Total assets, total liabilities, net worth
 - Top 5 over-budget categories this month
+
+### `bank-sync [account-name-or-id]` → trigger bank sync
+
+```bash
+node --experimental-strip-types <base_dir>/../../client.ts [--env=$ENV] bank-sync [account-name-or-id]
+```
+
+- If an account name or ID is given, syncs only that account.
+- If omitted, syncs all accounts.
+
+Display: `Synced: <account name or "all accounts">` on success, or the error message on failure.
