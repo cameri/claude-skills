@@ -1,6 +1,6 @@
 {
   "name": "paperless",
   "description": "Upload documents to and search a Paperless-ngx instance via its REST API.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "keywords": ["paperless", "paperless-ngx", "documents", "dms"]
 }
