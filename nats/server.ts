@@ -331,6 +331,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           subject: { type: "string", description: "NATS subject" },
           payload: { type: "object", description: "Message payload" },
+          reply: { type: "string", description: "Optional reply subject — recipient will send responses here" },
         },
         required: ["subject", "payload"],
       },
@@ -393,7 +394,8 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   try {
     switch (req.params.name) {
       case "publish": {
-        nc!.publish(args.subject as string, sc.encode(envelope(agentId, "request", args.payload ?? {})));
+        const pubOpts = args.reply ? { reply: args.reply as string } : undefined;
+        nc!.publish(args.subject as string, sc.encode(envelope(agentId, "request", args.payload ?? {})), pubOpts);
         return { content: [{ type: "text", text: `Published to ${args.subject}` }] };
       }
 

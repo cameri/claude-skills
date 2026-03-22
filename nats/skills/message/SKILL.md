@@ -7,8 +7,9 @@ user-invocable: true
 # /nats:message — Send a Message to Another Agent
 
 Sends a free-form message to a specific agent on `claude.agents.<id>.message`.
-Uses `request` to get an immediate ack (accepted/rejected), then the agent
-processes the message asynchronously.
+Sets the NATS reply subject to `claude.agents.<your-agent-id>.message` so that
+responses are delivered back through the same subscription — no ephemeral inboxes,
+no missed replies.
 
 Arguments passed: `$ARGUMENTS`
 
@@ -42,28 +43,20 @@ specify one. If text is missing, ask the user what to say.
 
 ## Send the message
 
-Use the `request` MCP tool to deliver the message and receive an ack:
+Your agent ID is shown in the MCP server instructions (e.g. `claude-fc195d56`).
+
+Use `publish` with your own message subject as the reply target:
 
 ```
-request(
-  subject: "claude.agents.<agent-id>.message",
+publish(
+  subject: "claude.agents.<recipient-agent-id>.message",
   payload: { text: "<message text>", from_context: "<brief description of why you're sending this>" },
-  timeout_ms: 5000
+  reply: "claude.agents.<your-agent-id>.message"
 )
 ```
 
----
-
-## Handle the response
-
-Parse the ack envelope:
-```json
-{ "schema": "1.0", "from": "<agent-id>", "type": "ack", "payload": { "status": "accepted" } }
-```
-
-- `accepted` — agent received the message and will process it. Report this to the user.
-- Timeout — agent did not respond. Suggest `/nats:discover` to verify it's online.
-- If the response payload contains `status: "rejected"` or an error, report it.
+Tell the user the message was sent and that any response will arrive as an
+inbound `agent_message` channel notification.
 
 ---
 
@@ -76,6 +69,6 @@ When an inbound `agent_message` channel notification arrives:
 </channel>
 ```
 
-Read the message, decide if action is required, and respond using this skill
-if a reply is needed. Do not reply merely to acknowledge — only respond if
-you have something substantive to contribute.
+Read the message, decide if action is required. To reply, use this skill again
+targeting the sender's agent ID. Do not reply merely to acknowledge — only
+respond if you have something substantive to contribute.
