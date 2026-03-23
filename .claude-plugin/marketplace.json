@@ -66,6 +66,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./scheduler"
+    },
+    {
+      "name": "elevenlabs",
+      "description": "Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./elevenlabs"
     }
   ]
 }

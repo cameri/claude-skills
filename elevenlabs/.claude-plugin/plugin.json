@@ -1,0 +1,6 @@
+{
+  "name": "elevenlabs",
+  "description": "Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API.",
+  "version": "0.1.0",
+  "keywords": ["elevenlabs", "text-to-speech", "speech-to-text", "tts", "voice", "audio", "music", "transcription"]
+}
