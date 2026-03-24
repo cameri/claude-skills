@@ -1,6 +1,6 @@
 ---
 name: Working with Jujutsu Version Control
-description: Understand and work with Jujutsu (jj) version control system. Use when the user mentions commits, changes, version control, or working with jj repositories. Helps with stack-based commit workflows, change curation, and jj best practices.
+description: Use jj (Jujutsu) instead of git for all version control operations — commits, history, branching, pushing. Use for any git or jj repository. Prefer jj commands over git equivalents at all times.
 allowed-tools: Bash(jj status:*), Bash(jj log:*), Bash(jj show:*), Bash(jj diff:*)
 ---
 
