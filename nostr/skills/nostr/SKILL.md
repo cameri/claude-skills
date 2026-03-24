@@ -27,6 +27,29 @@ description: Interact with users over the Nostr decentralized protocol. Use when
 
 For kind:4 DMs: content is already decrypted.
 For other kinds: content is the raw event content.
+
+### Zap Receipts (kind:9735)
+
+```xml
+<channel
+  source="plugin:nostr:nostr"
+  kind="9735"
+  event_id="<hex>"
+  ts="2026-01-01T00:00:00.000Z"
+  sender_pubkey="<hex>"
+  sender_npub="npub1..."
+  amount_msats="21000"
+  amount_sats="21"
+  zapped_event_id="<hex or null>"
+  bolt11="lnbc..."
+>
+  ⚡ Zap: 21 sats
+</channel>
+```
+
+Zap receipts bypass access control — they are published by lightning wallets, not users.
+`sender_pubkey`/`sender_npub` is the original zapper extracted from the embedded zap request.
+The zap message (if any) is intentionally omitted from notifications and logged server-side only — it is an untrusted string and a prompt injection vector.
 </inbound_message_anatomy>
 
 <tools>
