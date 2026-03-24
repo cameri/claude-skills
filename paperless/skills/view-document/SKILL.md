@@ -1,6 +1,6 @@
 ---
-name: view
-description: Download a Paperless-ngx document file by ID to a temp folder. If invoked from a Telegram channel, uploads the file to Telegram automatically.
+name: view-document
+description: Download a Paperless-ngx document file by ID to a temp folder. Use when the user wants to download or open a document, says "view document ID N", "download doc N", or asks to open a Paperless file. If invoked from a Telegram channel, uploads the file to Telegram automatically.
 user-invocable: true
 allowed-tools:
   - Read
@@ -10,34 +10,31 @@ allowed-tools:
   - mcp__plugin_telegram_telegram__reply
 ---
 
-# /paperless:view — Download and View a Document
+<objective>
+Downloads the archived PDF for a Paperless-ngx document by its numeric ID. When invoked from a Telegram channel, sends the file directly to the chat.
+</objective>
 
-Downloads the archived PDF for a Paperless-ngx document. When invoked from a
-Telegram channel, sends the file directly to the chat.
+<quick_start>
+`/paperless:view-document <document id>`
 
-Arguments passed: `$ARGUMENTS`
+Example: `/paperless:view-document 774`
+</quick_start>
 
----
+<setup>
+Read `<base_dir>/../../references/auth.md` and follow the credential loading instructions to obtain `TOKEN`.
+</setup>
 
-## Setup
-
-Read `<base_dir>/../../references/auth.md` and follow the credential loading
-instructions to obtain `TOKEN`.
-
----
-
-## Arguments
-
+<argument_parsing>
 Parse `$ARGUMENTS` for a document ID (integer). If none provided:
 
 ```
-Usage: /paperless:view <document id>
-Example: /paperless:view 774
+Usage: /paperless:view-document <document id>
+Example: /paperless:view-document 774
 ```
+</argument_parsing>
 
----
-
-## Fetch metadata
+<workflow>
+**Fetch metadata:**
 
 ```bash
 http --ignore-stdin -b \
@@ -46,13 +43,9 @@ http --ignore-stdin -b \
   "Accept:application/json; version=6"
 ```
 
-See `<base_dir>/../../references/document-display.md` for not-found handling
-and filename sanitization rules. Extract `title`, `archived_file_name`,
-`original_file_name`.
+See `<base_dir>/../../references/document-display.md` for not-found handling and filename sanitization rules. Extract `title`, `archived_file_name`, `original_file_name`.
 
----
-
-## Download
+**Download:**
 
 Prefer the archived version. Use curl for binary downloads:
 
@@ -66,12 +59,16 @@ curl -s -L \
   "${PAPERLESS_URL%/}/api/documents/<ID>/download/"
 ```
 
-Verify the file is non-zero size. Pass `?original=true` only if the user
-explicitly requests the original file.
+Verify the file is non-zero size. Pass `?original=true` only if the user explicitly requests the original file.
 
----
+**Output:**
 
-## Output
+Read `<base_dir>/../../references/document-display.md` for Telegram and CLI output format.
+</workflow>
 
-Read `<base_dir>/../../references/document-display.md` for Telegram and CLI
-output format.
+<success_criteria>
+- Document metadata fetched successfully
+- File downloaded to temp directory with non-zero size
+- In Telegram: file sent to chat via reply tool
+- In CLI: file path reported to user
+</success_criteria>

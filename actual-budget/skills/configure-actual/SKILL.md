@@ -1,5 +1,5 @@
 ---
-name: configure
+name: configure-actual
 description: Set up Actual Budget credentials — save the server URL and password. Use when the user wants to configure Actual Budget, connect to their instance, or check connection status.
 user-invocable: true
 allowed-tools:
@@ -13,48 +13,34 @@ allowed-tools:
   - Bash(ls *)
 ---
 
-# /actual-budget:configure — Configure Actual Budget Connection
+<objective>
+Manages connection settings for the user's self-hosted Actual Budget instance. Credentials are stored in `~/.claude/channels/actual-budget/{env}.env` (chmod 600).
+</objective>
 
-Manages connection settings for the user's self-hosted Actual Budget instance.
-Credentials are stored in `~/.claude/channels/actual-budget/{env}.env` (chmod 600).
+<quick_start>
+Save credentials: `/actual-budget:configure-actual ACTUAL_SERVER_URL=https://budget.example.com`
 
-Arguments passed: `$ARGUMENTS`
+Check status: `/actual-budget:configure-actual` (no args)
 
----
+Guided setup: `/actual-budget:configure-actual setup`
+</quick_start>
 
-## Environment selection
+<context>
+Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from remaining arguments. Default to `""` (empty string). Display empty ENV as "(default)". Credential file: `~/.claude/channels/actual-budget/${ENV}.env`. Omit `env=` from suggested commands when ENV is empty.
 
-Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from the
-remaining arguments. Default to `""` (empty string) if not provided.
-
-The credential file for the selected environment is:
-`~/.claude/channels/actual-budget/${ENV}.env`
-
-When `ENV` is empty the path resolves to `~/.claude/channels/actual-budget/.env`,
-which is the default environment and preserves backwards compatibility.
-When displaying the environment name, show "(default)" for an empty `ENV`.
-When suggesting commands, omit the `env=` argument if `ENV` is empty.
-
----
-
-## Credential keys
-
+**Credential keys:**
 - `ACTUAL_SERVER_URL` — base URL of the Actual Budget server (e.g. `https://budget.example.com`)
 - `ACTUAL_PASSWORD` — server login password used to authenticate
 - `ACTUAL_SYNC_ID` — budget Sync ID from Settings → Advanced (optional; auto-picks first budget if unset)
 
-> **Migration note:** Older credential files may use `SERVER_URL`, `PASSWORD`, and `SYNC_ID`
-> (without the `ACTUAL_` prefix). These are still recognized by the skills. When saving new or
-> updated credentials, always use the `ACTUAL_` prefixed names.
+**Migration note:** Older credential files may use `SERVER_URL`, `PASSWORD`, and `SYNC_ID` (without the `ACTUAL_` prefix). These are still recognized by the skills. When saving new or updated credentials, always use the `ACTUAL_` prefixed names.
+</context>
 
----
-
-## Dispatch on `$ARGUMENTS` (after stripping `env=`)
-
-### No arguments → status check
+<workflow>
+**No arguments — status check:**
 
 1. Check if `~/.claude/channels/actual-budget/${ENV}.env` exists.
-2. If not: tell the user no credentials are saved for the selected environment and suggest running `/actual-budget:configure setup` (for the default) or `/actual-budget:configure env=$ENV setup` (for a named env).
+2. If not: tell the user no credentials are saved and suggest running `/actual-budget:configure-actual setup`.
 3. If yes: load the file, show `ACTUAL_SERVER_URL` (mask the password), then test the connection:
    ```bash
    curl -s -o /dev/null -w "%{http_code}" -X POST "$ACTUAL_SERVER_URL/account/login" \
@@ -64,33 +50,31 @@ When suggesting commands, omit the `env=` argument if `ENV` is empty.
    - 200 → connected successfully
    - 400 → wrong password
    - other → server unreachable or unexpected error
-4. List all available environments by showing files in `~/.claude/channels/actual-budget/` matching `*.env`, stripping the `.env` suffix. Display `.env` as "(default)".
+4. List all available environments by showing files in `~/.claude/channels/actual-budget/` matching `*.env`, stripping `.env` suffix. Display `.env` as "(default)".
 
-### `setup` → guided setup
+**`setup` — guided setup:**
 
-Prompt the user for each credential interactively (one at a time):
+Prompt the user for each credential interactively:
 1. `ACTUAL_SERVER_URL` — ask for the base URL (no trailing slash)
 2. `ACTUAL_PASSWORD` — ask for the server password
 
 After collecting all values, save and test (same as key=value save below).
 
-### `KEY=VALUE` → save a single credential
+**`KEY=VALUE` — save a single credential:**
 
-Parse the key and value from `$ARGUMENTS`. Valid keys: `ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, `ACTUAL_SYNC_ID`.
+Parse the key and value. Valid keys: `ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, `ACTUAL_SYNC_ID`.
 Load existing `${ENV}.env` if present, update the key, write back, chmod 600, then test connection.
 
-### `clear` → remove all credentials for this environment
+**`clear` — remove all credentials for this environment:**
 
 Delete `~/.claude/channels/actual-budget/${ENV}.env` and confirm.
 
-### `clear KEY` → remove a single key
+**`clear KEY` — remove a single key:**
 
 Remove just that key from the `${ENV}.env` file.
+</workflow>
 
----
-
-## Saving credentials
-
+<credential_storage>
 ```bash
 mkdir -p ~/.claude/channels/actual-budget
 cat > ~/.claude/channels/actual-budget/${ENV}.env <<'EOF'
@@ -100,20 +84,20 @@ EOF
 chmod 600 ~/.claude/channels/actual-budget/${ENV}.env
 ```
 
-Note: the password is single-quoted to prevent shell expansion of special characters (`$`, `#`, `@`, etc.).
+The password is single-quoted to prevent shell expansion of special characters (`$`, `#`, `@`, etc.).
+</credential_storage>
 
----
+<security_checklist>
+- Never print or log the `ACTUAL_PASSWORD` or auth token — show set/not-set only
+- Always `chmod 600` the `.env` file after writing
+- Single-quote the password value to handle special characters safely
+- Report connection test result without exposing the token
+- When saving, always use `ACTUAL_` prefixed key names
+</security_checklist>
 
-## Connection test
-
-After saving, authenticate and report success or failure:
-
-```bash
-source ~/.claude/channels/actual-budget/${ENV}.env
-curl -s -X POST "$ACTUAL_SERVER_URL/account/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"password\":\"$ACTUAL_PASSWORD\"}"
-```
-
-A successful response returns HTTP 200 with a JSON body containing a `token` field.
-Report the result to the user without printing the token or password.
+<success_criteria>
+- Credentials written to `~/.claude/channels/actual-budget/${ENV}.env` with `chmod 600`
+- Connection test returns HTTP 200 with a `token` field
+- Status output never exposes the password or token
+- User knows exactly what to do next based on current state
+</success_criteria>
