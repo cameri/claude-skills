@@ -76,6 +76,36 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./elevenlabs"
+    },
+    {
+      "name": "telegram",
+      "description": "Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription.",
+      "category": "communication",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./telegram"
+    },
+    {
+      "name": "nostr",
+      "description": "Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs.",
+      "category": "communication",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./nostr"
+    },
+    {
+      "name": "jj",
+      "description": "Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./jj"
     }
   ]
 }
