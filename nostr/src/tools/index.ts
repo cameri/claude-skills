@@ -5,6 +5,8 @@ import { handleFetch } from './fetch.js'
 import { handleRelayList } from './relay-list.js'
 import { handleMetadata } from './metadata.js'
 import { handleStatus } from './status.js'
+import { handleNip19Decode, handleNip19Encode } from './nip19.js'
+import { handleReact } from './react.js'
 import { stats } from '../publisher.js'
 
 export function registerTools(ctx: Ctx): void {
@@ -113,6 +115,49 @@ export function registerTools(ctx: Ctx): void {
         },
       },
       {
+        name: 'nip19_decode',
+        description: 'Decode a NIP-19 bech32 entity (note1, npub1, nevent1, nprofile1, naddr1, nsec1) into its components.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            bech32: { type: 'string', description: 'The bech32 string to decode' },
+          },
+          required: ['bech32'],
+        },
+      },
+      {
+        name: 'nip19_encode',
+        description: 'Encode a Nostr entity into a NIP-19 bech32 string.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['npub', 'note', 'nprofile', 'nevent', 'naddr'],
+              description: 'Entity type to encode',
+            },
+            data: {
+              description: 'Entity data. For npub/note: hex string. For nprofile: {pubkey, relays?}. For nevent: {id, relays?, author?, kind?}. For naddr: {identifier, pubkey, kind, relays?}.',
+            },
+          },
+          required: ['type', 'data'],
+        },
+      },
+      {
+        name: 'react',
+        description: 'Publish a NIP-25 kind:7 reaction to a Nostr event. Use "+" for like, "-" for dislike, or any emoji.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            event_id: { type: 'string', description: 'Event ID to react to (hex, note1, or nevent1)' },
+            content: { type: 'string', description: 'Reaction content: "+" (like), "-" (dislike), or an emoji (default: "+")' },
+            author_pubkey: { type: 'string', description: 'Pubkey of the event author (hex or npub) — adds a "p" tag' },
+            target_kind: { type: 'number', description: 'Kind of the target event — adds a "k" tag (recommended)' },
+          },
+          required: ['event_id'],
+        },
+      },
+      {
         name: 'publish_metadata',
         description: 'Publish a kind:0 profile metadata event to update the Nostr identity. Saves a local profile cache.',
         inputSchema: {
@@ -146,6 +191,12 @@ export function registerTools(ctx: Ctx): void {
         case 'publish_relay_list':
         case 'get_relay_list':
           return await handleRelayList(req.params.name, args, ctx)
+        case 'nip19_decode':
+          return handleNip19Decode(args)
+        case 'nip19_encode':
+          return handleNip19Encode(args)
+        case 'react':
+          return await handleReact(args, ctx)
         case 'publish_metadata':
           return await handleMetadata(args, ctx)
         default:

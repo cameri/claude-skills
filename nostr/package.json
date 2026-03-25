@@ -1,6 +1,6 @@
 {
   "name": "claude-channel-nostr",
-  "version": "0.1.7",
+  "version": "0.1.13",
   "license": "MIT",
   "type": "module",
   "bin": "./server.ts",

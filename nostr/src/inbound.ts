@@ -1,10 +1,11 @@
 import * as nip04 from 'nostr-tools/nip04'
+import * as nip17 from 'nostr-tools/nip17'
 import * as nip19 from 'nostr-tools/nip19'
 import { verifyEvent } from 'nostr-tools'
 import { randomBytes } from 'crypto'
 import type { NostrEventRaw, Ctx } from './types.js'
 import { readAccess, writeAccess, pruneExpired } from './config.js'
-import { sendDm } from './publisher.js'
+import { sendDm, fetchEvent } from './publisher.js'
 
 // Bug fix: call verifyEvent() on every inbound event, drop invalid
 export function handleRelayMessage(relayUrl: string, raw: string, ctx: Ctx): void {
@@ -29,6 +30,7 @@ export function handleRelayMessage(relayUrl: string, raw: string, ctx: Ctx): voi
     const e = event as NostrEventRaw
     if (ctx.cache.hasSeen(e.id)) return
     ctx.cache.markSeen(e.id, e.kind)
+    ctx.cache.store(e)
     void handleNostrEvent(e, ctx)
   } else if (type === 'NOTICE') {
     process.stderr.write(`nostr [${relayUrl}] NOTICE: ${msg[1]}\n`)
@@ -75,6 +77,101 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
           amount_msats: amountMsats,
           amount_sats: amountSats,
           bolt11,
+        },
+      },
+    })
+    return
+  }
+
+  // kind:1059 NIP-17 gift wrap — unwrap and deliver
+  if (event.kind === 1059) {
+    let rumor: { pubkey: string; content: string; created_at: number }
+    try {
+      rumor = nip17.unwrapEvent(event as NostrEventRaw & { pubkey: string; sig: string }, sk) as typeof rumor
+    } catch {
+      process.stderr.write(`nostr: failed to unwrap NIP-17 gift wrap ${event.id}\n`)
+      return
+    }
+
+    const senderPubkey = rumor.pubkey
+    const access = readAccess()
+    pruneExpired(access)
+
+    if (access.allowFrom.includes(senderPubkey)) {
+      void mcp.notification({
+        method: 'notifications/claude/channel',
+        params: {
+          content: rumor.content,
+          meta: {
+            source: 'nostr',
+            pubkey: senderPubkey,
+            npub: nip19.npubEncode(senderPubkey),
+            event_id: event.id,
+            kind: 1059,
+            ts: new Date(rumor.created_at * 1000).toISOString(),
+          },
+        },
+      })
+    }
+    // NIP-17 doesn't do pairing — drop silently if not in allowlist
+    return
+  }
+
+  // kind:7 NIP-25 Reaction — deliver only if sender is in allowlist and we are p-tagged
+  if (event.kind === 7) {
+    const pTags = event.tags.filter(t => t[0] === 'p').map(t => t[1])
+    if (!pTags.includes(pubkey)) return
+    const access = readAccess()
+    if (!access.allowFrom.includes(event.pubkey)) return
+    const reactedToEventId = event.tags.find(t => t[0] === 'e')?.[1] ?? null
+    const reactedToKind = event.tags.find(t => t[0] === 'k')?.[1] ?? null
+    void mcp.notification({
+      method: 'notifications/claude/channel',
+      params: {
+        content: event.content || '+',
+        meta: {
+          source: 'nostr',
+          pubkey: event.pubkey,
+          npub: nip19.npubEncode(event.pubkey),
+          event_id: event.id,
+          kind: 7,
+          ts: new Date(event.created_at * 1000).toISOString(),
+          reacted_to_event_id: reactedToEventId,
+          reacted_to_kind: reactedToKind ? parseInt(reactedToKind, 10) : null,
+        },
+      },
+    })
+    return
+  }
+
+  // kind:1 mention — p-tagged note from allowed sender, fetch thread ancestors
+  if (event.kind === 1) {
+    const pTags = event.tags.filter(t => t[0] === 'p').map(t => t[1])
+    if (!pTags.includes(pubkey)) return
+    const access = readAccess()
+    if (!access.allowFrom.includes(event.pubkey)) return
+    const ancestors = await fetchThreadAncestors(event, ctx)
+    void mcp.notification({
+      method: 'notifications/claude/channel',
+      params: {
+        content: event.content,
+        meta: {
+          source: 'nostr',
+          pubkey: event.pubkey,
+          npub: nip19.npubEncode(event.pubkey),
+          event_id: event.id,
+          note_id: nip19.noteEncode(event.id),
+          kind: 1,
+          ts: new Date(event.created_at * 1000).toISOString(),
+          thread: ancestors.map(a => ({
+            event_id: a.id,
+            note_id: nip19.noteEncode(a.id),
+            pubkey: a.pubkey,
+            npub: nip19.npubEncode(a.pubkey),
+            kind: a.kind,
+            content: a.content,
+            ts: new Date(a.created_at * 1000).toISOString(),
+          })),
         },
       },
     })
@@ -171,4 +268,47 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
     `Pairing code: ${code}\nAsk your assistant to run: /nostr:access pair ${code}`,
     sk, pubkey, pool,
   )
+}
+
+async function fetchEventWithCache(id: string, ctx: Ctx): Promise<NostrEventRaw | null> {
+  const cached = ctx.cache.get(id)
+  if (cached) return cached
+  try {
+    const event = await fetchEvent({ ids: [id], limit: 1 }, ctx.pool, 5000)
+    if (event) {
+      ctx.cache.markSeen(event.id, event.kind)
+      ctx.cache.store(event)
+    }
+    return event
+  } catch {
+    return null
+  }
+}
+
+async function fetchThreadAncestors(event: NostrEventRaw, ctx: Ctx, maxDepth = 10): Promise<NostrEventRaw[]> {
+  const ancestors: NostrEventRaw[] = []
+  const visited = new Set<string>([event.id])
+  let current = event
+
+  for (let depth = 0; depth < maxDepth; depth++) {
+    // NIP-10: prefer 'reply' marker, then 'root', then last e-tag, then first e-tag
+    const eTags = current.tags.filter(t => t[0] === 'e')
+    if (eTags.length === 0) break
+
+    const replyTag = eTags.find(t => t[3] === 'reply')
+    const rootTag = eTags.find(t => t[3] === 'root')
+    const parentTag = replyTag ?? (eTags.length > 1 ? eTags[eTags.length - 1] : null) ?? rootTag ?? eTags[0]
+    const parentId = parentTag[1]
+
+    if (visited.has(parentId)) break
+    visited.add(parentId)
+
+    const parent = await fetchEventWithCache(parentId, ctx)
+    if (!parent) break
+
+    ancestors.unshift(parent)
+    current = parent
+  }
+
+  return ancestors
 }

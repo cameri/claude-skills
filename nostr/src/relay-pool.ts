@@ -102,8 +102,10 @@ export class RelayPool {
     const config = readConfig()
     const extraKinds = config.subscribeKinds.filter(k => k !== 4)
 
-    ws.send(JSON.stringify(['REQ', this.subscriptionId, { kinds: [4], '#p': [pubkey], limit: 0 }]))
+    ws.send(JSON.stringify(['REQ', this.subscriptionId, { kinds: [4, 1059], '#p': [pubkey], limit: 0 }]))
     ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-zaps`, { kinds: [9735], '#p': [pubkey], limit: 0 }]))
+    ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-reactions`, { kinds: [7], '#p': [pubkey], limit: 0 }]))
+    ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-mentions`, { kinds: [1], '#p': [pubkey], limit: 0 }]))
 
     if (extraKinds.length > 0) {
       ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-extra`, { kinds: extraKinds, limit: 0 }]))

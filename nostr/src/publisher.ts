@@ -218,6 +218,31 @@ export async function sendNote(
   return signed.id
 }
 
+export async function sendReaction(
+  targetEventId: string,
+  content: string,
+  sk: Uint8Array,
+  pubkey: string,
+  pool: IRelayPool,
+  authorPubkey?: string,
+  targetKind?: number,
+): Promise<string> {
+  const tags: string[][] = [['e', targetEventId]]
+  if (authorPubkey) tags.push(['p', authorPubkey])
+  if (targetKind !== undefined) tags.push(['k', String(targetKind)])
+  const unsigned: UnsignedEvent = {
+    kind: 7,
+    created_at: Math.floor(Date.now() / 1000),
+    tags,
+    content,
+    pubkey,
+  }
+  const signed = finalizeEvent(unsigned, sk)
+  await publishToPool(signed, pool)
+  stats.messages.sent++
+  return signed.id
+}
+
 export async function fetchEvent(
   filter: Record<string, unknown>,
   pool: IRelayPool,

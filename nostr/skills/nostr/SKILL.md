@@ -28,6 +28,26 @@ description: Interact with users over the Nostr decentralized protocol. Use when
 For kind:4 DMs: content is already decrypted.
 For other kinds: content is the raw event content.
 
+### Reactions (kind:7, NIP-25)
+
+```xml
+<channel
+  source="plugin:nostr:nostr"
+  pubkey="<hex-pubkey>"
+  npub="npub1..."
+  event_id="<hex>"
+  kind="7"
+  ts="2026-01-01T00:00:00.000Z"
+  reacted_to_event_id="<hex or null>"
+  reacted_to_kind="1"
+>
+  + (or emoji)
+</channel>
+```
+
+Only delivered from pubkeys in the allowlist that `p`-tag your identity.
+`+` = like, `-` = dislike, emoji = custom reaction.
+
 ### Zap Receipts (kind:9735)
 
 ```xml
@@ -72,6 +92,17 @@ Publish a public kind:1 note to all connected relays.
 ```
 send_note(text, reply_to_event_id?, reply_to_pubkey?)
 ```
+
+### react
+Publish a NIP-25 kind:7 reaction to a Nostr event.
+
+```
+react(event_id, content?, author_pubkey?, target_kind?)
+```
+
+- `content` — `+` (like), `-` (dislike), or any emoji (default: `+`)
+- `author_pubkey` — pubkey of event author (adds `p` tag)
+- `target_kind` — kind of target event (adds `k` tag)
 
 ### fetch_event
 Fetch a Nostr event by ID or filter.

@@ -14,6 +14,9 @@ export async function handleFetch(
     if (id.startsWith('note1')) {
       const d = nip19.decode(id)
       if (d.type === 'note') id = d.data as string
+    } else if (id.startsWith('nevent1')) {
+      const d = nip19.decode(id)
+      if (d.type === 'nevent') id = (d.data as nip19.EventPointer).id
     }
     filter.ids = [id]
   }

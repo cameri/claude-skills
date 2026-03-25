@@ -1,6 +1,6 @@
 {
   "name": "nostr",
   "description": "Nostr channel for Claude Code — messaging bridge over the Nostr protocol with access control, pairing, and relay management.",
-  "version": "0.1.7",
+  "version": "0.1.13",
   "keywords": ["nostr", "messaging", "channel", "mcp", "decentralized"]
 }

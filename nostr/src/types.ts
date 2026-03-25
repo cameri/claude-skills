@@ -71,6 +71,8 @@ export interface IRelayPool {
 export interface IEventCache {
   hasSeen(id: string): boolean
   markSeen(id: string, kind: number): void
+  store(event: NostrEventRaw): void
+  get(id: string): NostrEventRaw | null
   close(): void
 }
 
