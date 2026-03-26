@@ -2,10 +2,9 @@
 /**
  * Claude Code Webhooks Channel Server
  *
- * MCP server that runs an Express HTTP listener and a BullMQ worker.
+ * MCP server that runs an Express HTTP listener.
  * External systems POST to /webhook/{id} — the server responds 202 immediately
- * and enqueues a job. The worker dequeues it and sends a channel notification
- * to Claude so it can react to the event.
+ * and fires a channel notification to Claude asynchronously.
  *
  * State: ~/.claude/channels/webhooks/
  *   webhooks.json  — webhook configurations
@@ -17,7 +16,6 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import express from "express";
-import { Queue, Worker } from "bullmq";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -57,16 +55,6 @@ interface PluginConfig {
   redisUrl: string;
   /** Trust X-Forwarded-For for client IP resolution */
   trustProxy: boolean;
-}
-
-interface WebhookJob {
-  webhookId: string;
-  webhookName: string;
-  payload: unknown;
-  contentType: string;
-  method: string;
-  receivedAt: string;
-  sourceIp: string;
 }
 
 // ── Config helpers ────────────────────────────────────────────────────────────
@@ -369,60 +357,13 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   }
 });
 
-// ── Connect MCP (must happen before BullMQ worker starts) ─────────────────────
+// ── Connect MCP ───────────────────────────────────────────────────────────────
 
 await mcp.connect(new StdioServerTransport());
 
-// ── BullMQ setup ──────────────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
 
 const config = loadConfig();
-const redisConnection = { url: config.redisUrl };
-
-const queue = new Queue<WebhookJob>("webhooks", { connection: redisConnection });
-
-const worker = new Worker<WebhookJob>(
-  "webhooks",
-  async (job) => {
-    const { webhookId, webhookName, payload, contentType, method, receivedAt, sourceIp } = job.data;
-
-    const payloadStr =
-      typeof payload === "string"
-        ? payload
-        : JSON.stringify(payload, null, 2);
-
-    const content = [
-      `Webhook received: ${webhookName} (${webhookId})`,
-      `Method: ${method}`,
-      `Source IP: ${sourceIp}`,
-      `Content-Type: ${contentType}`,
-      `Received at: ${receivedAt}`,
-      ``,
-      `Payload:`,
-      payloadStr,
-    ].join("\n");
-
-    await mcp.notification({
-      method: "notifications/claude/channel",
-      params: {
-        content,
-        meta: {
-          source: "webhooks",
-          webhook_id: webhookId,
-          webhook_name: webhookName,
-          method,
-          content_type: contentType,
-          source_ip: sourceIp,
-          received_at: receivedAt,
-        },
-      },
-    });
-  },
-  { connection: redisConnection },
-);
-
-worker.on("failed", (job, err) => {
-  process.stderr.write(`webhooks: job ${job?.id} failed: ${err.message}\n`);
-});
 
 // ── Express server ────────────────────────────────────────────────────────────
 
@@ -485,8 +426,8 @@ app.post("/webhook/:id", async (req, res) => {
     payload = rawBody.toString("utf-8");
   }
 
-  // ── Enqueue — respond 202 immediately ─────────────────────────────────────
-  await queue.add("webhook", {
+  // ── Respond 202 immediately, then notify ──────────────────────────────────
+  const job = {
     webhookId: webhook.id,
     webhookName: webhook.name,
     payload,
@@ -494,9 +435,37 @@ app.post("/webhook/:id", async (req, res) => {
     method: req.method,
     receivedAt: new Date().toISOString(),
     sourceIp: clientIp,
-  });
+  };
 
   res.status(202).json({ status: "accepted" });
+
+  const payloadStr = typeof job.payload === "string" ? job.payload : JSON.stringify(job.payload, null, 2);
+  const content = [
+    `Webhook received: ${job.webhookName} (${job.webhookId})`,
+    `Method: ${job.method}`,
+    `Source IP: ${job.sourceIp}`,
+    `Content-Type: ${job.contentType}`,
+    `Received at: ${job.receivedAt}`,
+    ``,
+    `Payload:`,
+    payloadStr,
+  ].join("\n");
+
+  mcp.notification({
+    method: "notifications/claude/channel",
+    params: {
+      content,
+      meta: {
+        source: "webhooks",
+        webhook_id: job.webhookId,
+        webhook_name: job.webhookName,
+        method: job.method,
+        content_type: job.contentType,
+        source_ip: job.sourceIp,
+        received_at: job.receivedAt,
+      },
+    },
+  }).catch(err => process.stderr.write(`webhooks: notification failed: ${err.message}\n`));
 });
 
 app.listen(config.port, () => {
@@ -505,9 +474,7 @@ app.listen(config.port, () => {
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
-const shutdown = async () => {
-  await worker.close();
-  await queue.close();
+const shutdown = () => {
   process.exit(0);
 };
 

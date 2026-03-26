@@ -1,6 +1,6 @@
 {
   "name": "webhooks",
   "description": "Receive webhook events from external systems (GitHub, Stripe, CI/CD, etc.) as channel notifications. Express listener with BullMQ processing, HMAC-SHA256 verification, IP allowlisting, and add/edit/remove management.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "keywords": ["webhooks", "http", "events", "integrations", "bullmq", "hmac"]
 }
