@@ -106,6 +106,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./jj"
+    },
+    {
+      "name": "webhooks",
+      "description": "Receive webhook events from external systems (GitHub, Stripe, CI/CD, etc.) as channel notifications. Express listener with BullMQ processing, HMAC-SHA256 verification, IP allowlisting, and endpoint management.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./webhooks"
     }
   ]
 }

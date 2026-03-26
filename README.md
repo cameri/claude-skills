@@ -13,6 +13,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral MejÃ
 | [scheduler](./scheduler/) | Schedule tasks using natural language â€” 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server â€” zones, records, stats, and cache |
 | [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
+| [webhooks](./webhooks/) | Receive webhook events from external systems as channel notifications â€” HMAC-SHA256, IP allowlisting, BullMQ processing |
 
 ### actual-budget
 
@@ -76,6 +77,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral MejÃ
 |---|---|
 | `/wallabag:configure` | Save the instance URL and OAuth credentials |
 | `/wallabag:save` | Save a URL to Wallabag to read later |
+
+### webhooks
+
+| Skill | Description |
+|---|---|
+| `webhooks:receive-webhooks` | Configure webhook endpoints (add/edit/remove/list), set auth mode, manage IP allowlists, and react to inbound events |
 
 ## Commands
 
