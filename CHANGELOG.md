@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [elevenlabs 0.1.1] - 2026-03-28
+
+### Added
+- `references/premade-voices.md`: full list of 45 premade voices with IDs, gender, accent, and use case
+- Credit conservation guidance in text-to-speech skill (avoid filler text to reduce character usage)
+- Expanded voice table with accent and use case details
+
+## [jj] - 2026-03-28
+
+### Added
+- Document that jj does not support git submodules; use `git` directly for submodule operations
+- Warning about `jj restore` accidentally deleting files that are absent in the source revision, with pre-flight checklist
+
 ## [technitium-dns 0.2.0] - 2026-03-28
 
 ### Added
