@@ -31,14 +31,23 @@ export function handleRelayMessage(relayUrl: string, raw: string, ctx: Ctx): voi
     if (ctx.cache.hasSeen(e.id)) return
     ctx.cache.markSeen(e.id, e.kind)
     ctx.cache.store(e)
-    void handleNostrEvent(e, ctx)
+    handleNostrEvent(e, ctx).catch(err => {
+      process.stderr.write(`nostr: handleNostrEvent error (kind:${e.kind} ${e.id}): ${err}\n`)
+    })
   } else if (type === 'NOTICE') {
     process.stderr.write(`nostr [${relayUrl}] NOTICE: ${msg[1]}\n`)
   }
 }
 
+function notify(mcp: Ctx['mcp'], params: { content: string; meta: Record<string, unknown> }): void {
+  mcp.notification({ method: 'notifications/claude/channel', params }).catch(err => {
+    process.stderr.write(`nostr: notification failed: ${err}\n`)
+  })
+}
+
 async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
   const { sk, pubkey, pool, mcp } = ctx
+  process.stderr.write(`nostr: handling kind:${event.kind} ${event.id} from ${event.pubkey}\n`)
 
   // kind:9735 Zap Receipt — deliver directly, no access control
   if (event.kind === 9735) {
@@ -62,22 +71,19 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
     if (zapMessage) {
       process.stderr.write(`nostr: zap message from ${senderPubkey ?? 'unknown'}: ${zapMessage}\n`)
     }
-    void mcp.notification({
-      method: 'notifications/claude/channel',
-      params: {
-        content: `⚡ Zap: ${amountSats !== null ? amountSats + ' sats' : 'unknown amount'}`,
-        meta: {
-          source: 'nostr',
-          kind: 9735,
-          event_id: event.id,
-          ts: new Date(event.created_at * 1000).toISOString(),
-          sender_pubkey: senderPubkey,
-          sender_npub: senderPubkey ? nip19.npubEncode(senderPubkey) : null,
-          zapped_event_id: eTag,
-          amount_msats: amountMsats,
-          amount_sats: amountSats,
-          bolt11,
-        },
+    notify(mcp, {
+      content: `⚡ Zap: ${amountSats !== null ? amountSats + ' sats' : 'unknown amount'}`,
+      meta: {
+        source: 'nostr',
+        kind: 9735,
+        event_id: event.id,
+        ts: new Date(event.created_at * 1000).toISOString(),
+        sender_pubkey: senderPubkey,
+        sender_npub: senderPubkey ? nip19.npubEncode(senderPubkey) : null,
+        zapped_event_id: eTag,
+        amount_msats: amountMsats,
+        amount_sats: amountSats,
+        bolt11,
       },
     })
     return
@@ -98,22 +104,37 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
     pruneExpired(access)
 
     if (access.allowFrom.includes(senderPubkey)) {
-      void mcp.notification({
-        method: 'notifications/claude/channel',
-        params: {
-          content: rumor.content,
-          meta: {
-            source: 'nostr',
-            pubkey: senderPubkey,
-            npub: nip19.npubEncode(senderPubkey),
-            event_id: event.id,
-            kind: 1059,
-            ts: new Date(rumor.created_at * 1000).toISOString(),
-          },
+      notify(mcp, {
+        content: rumor.content,
+        meta: {
+          source: 'nostr',
+          pubkey: senderPubkey,
+          npub: nip19.npubEncode(senderPubkey),
+          event_id: event.id,
+          kind: 1059,
+          ts: new Date(rumor.created_at * 1000).toISOString(),
         },
       })
     }
     // NIP-17 doesn't do pairing — drop silently if not in allowlist
+    return
+  }
+
+  // kind:0 Profile update — deliver if sender is in allowlist
+  if (event.kind === 0) {
+    const access = readAccess()
+    if (!access.allowFrom.includes(event.pubkey)) return
+    notify(mcp, {
+      content: event.content,
+      meta: {
+        source: 'nostr',
+        pubkey: event.pubkey,
+        npub: nip19.npubEncode(event.pubkey),
+        event_id: event.id,
+        kind: 0,
+        ts: new Date(event.created_at * 1000).toISOString(),
+      },
+    })
     return
   }
 
@@ -125,54 +146,46 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
     if (!access.allowFrom.includes(event.pubkey)) return
     const reactedToEventId = event.tags.find(t => t[0] === 'e')?.[1] ?? null
     const reactedToKind = event.tags.find(t => t[0] === 'k')?.[1] ?? null
-    void mcp.notification({
-      method: 'notifications/claude/channel',
-      params: {
-        content: event.content || '+',
-        meta: {
-          source: 'nostr',
-          pubkey: event.pubkey,
-          npub: nip19.npubEncode(event.pubkey),
-          event_id: event.id,
-          kind: 7,
-          ts: new Date(event.created_at * 1000).toISOString(),
-          reacted_to_event_id: reactedToEventId,
-          reacted_to_kind: reactedToKind ? parseInt(reactedToKind, 10) : null,
-        },
+    notify(mcp, {
+      content: event.content || '+',
+      meta: {
+        source: 'nostr',
+        pubkey: event.pubkey,
+        npub: nip19.npubEncode(event.pubkey),
+        event_id: event.id,
+        kind: 7,
+        ts: new Date(event.created_at * 1000).toISOString(),
+        reacted_to_event_id: reactedToEventId,
+        reacted_to_kind: reactedToKind ? parseInt(reactedToKind, 10) : null,
       },
     })
     return
   }
 
-  // kind:1 mention — p-tagged note from allowed sender, fetch thread ancestors
+  // kind:1 note from allowed sender, fetch thread ancestors
   if (event.kind === 1) {
-    const pTags = event.tags.filter(t => t[0] === 'p').map(t => t[1])
-    if (!pTags.includes(pubkey)) return
     const access = readAccess()
     if (!access.allowFrom.includes(event.pubkey)) return
     const ancestors = await fetchThreadAncestors(event, ctx)
-    void mcp.notification({
-      method: 'notifications/claude/channel',
-      params: {
-        content: event.content,
-        meta: {
-          source: 'nostr',
-          pubkey: event.pubkey,
-          npub: nip19.npubEncode(event.pubkey),
-          event_id: event.id,
-          note_id: nip19.noteEncode(event.id),
-          kind: 1,
-          ts: new Date(event.created_at * 1000).toISOString(),
-          thread: ancestors.map(a => ({
-            event_id: a.id,
-            note_id: nip19.noteEncode(a.id),
-            pubkey: a.pubkey,
-            npub: nip19.npubEncode(a.pubkey),
-            kind: a.kind,
-            content: a.content,
-            ts: new Date(a.created_at * 1000).toISOString(),
-          })),
-        },
+    notify(mcp, {
+      content: event.content,
+      meta: {
+        source: 'nostr',
+        pubkey: event.pubkey,
+        npub: nip19.npubEncode(event.pubkey),
+        event_id: event.id,
+        note_id: nip19.noteEncode(event.id),
+        kind: 1,
+        ts: new Date(event.created_at * 1000).toISOString(),
+        thread: ancestors.map(a => ({
+          event_id: a.id,
+          note_id: nip19.noteEncode(a.id),
+          pubkey: a.pubkey,
+          npub: nip19.npubEncode(a.pubkey),
+          kind: a.kind,
+          content: a.content,
+          ts: new Date(a.created_at * 1000).toISOString(),
+        })),
       },
     })
     return
@@ -182,19 +195,16 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
   if (event.kind !== 4) {
     const access = readAccess()
     if (!access.allowFrom.includes(event.pubkey)) return
-    void mcp.notification({
-      method: 'notifications/claude/channel',
-      params: {
-        content: event.content,
-        meta: {
-          source: 'nostr',
-          pubkey: event.pubkey,
-          npub: nip19.npubEncode(event.pubkey),
-          event_id: event.id,
-          note_id: nip19.noteEncode(event.id),
-          kind: event.kind,
-          ts: new Date(event.created_at * 1000).toISOString(),
-        },
+    notify(mcp, {
+      content: event.content,
+      meta: {
+        source: 'nostr',
+        pubkey: event.pubkey,
+        npub: nip19.npubEncode(event.pubkey),
+        event_id: event.id,
+        note_id: nip19.noteEncode(event.id),
+        kind: event.kind,
+        ts: new Date(event.created_at * 1000).toISOString(),
       },
     })
     return
@@ -217,18 +227,15 @@ async function handleNostrEvent(event: NostrEventRaw, ctx: Ctx): Promise<void> {
 
   // Allowed sender — deliver
   if (access.allowFrom.includes(event.pubkey)) {
-    void mcp.notification({
-      method: 'notifications/claude/channel',
-      params: {
-        content: plaintext,
-        meta: {
-          source: 'nostr',
-          pubkey: event.pubkey,
-          npub: nip19.npubEncode(event.pubkey),
-          event_id: event.id,
-          kind: 4,
-          ts: new Date(event.created_at * 1000).toISOString(),
-        },
+    notify(mcp, {
+      content: plaintext,
+      meta: {
+        source: 'nostr',
+        pubkey: event.pubkey,
+        npub: nip19.npubEncode(event.pubkey),
+        event_id: event.id,
+        kind: 4,
+        ts: new Date(event.created_at * 1000).toISOString(),
       },
     })
     return

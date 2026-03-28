@@ -202,10 +202,14 @@ export async function sendNote(
   pool: IRelayPool,
   replyToEventId?: string,
   replyToPubkey?: string,
+  mentionPubkeys?: string[],
 ): Promise<string> {
   const tags: string[][] = []
   if (replyToEventId) tags.push(['e', replyToEventId, '', 'reply'])
   if (replyToPubkey) tags.push(['p', replyToPubkey])
+  for (const mp of mentionPubkeys ?? []) {
+    if (mp !== replyToPubkey) tags.push(['p', mp])
+  }
   const unsigned: UnsignedEvent = {
     kind: 1,
     created_at: Math.floor(Date.now() / 1000),

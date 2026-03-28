@@ -17,7 +17,7 @@ export function handleStatus(ctx: Ctx): { content: { type: string; text: string 
     `Policy:     ${readAccess().policy}`,
     `Relays (${pool.relays.size}):`,
     ...relayLines,
-    `Subscribed kinds: 4 (DMs)${config.subscribeKinds.length ? ', ' + config.subscribeKinds.join(', ') : ''}`,
+    `Subscribed kinds: 0 (profiles), 1 (notes), 4 (DMs), 7 (reactions), 1059 (NIP-17 DMs), 9735 (zaps)${config.subscribeKinds.length ? ', ' + config.subscribeKinds.join(', ') : ''}`,
     `Messages: sent=${stats.messages.sent} failed=${stats.messages.failed}`,
   ]
   return { content: [{ type: 'text', text: lines.join('\n') }] }

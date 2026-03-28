@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 import type { RelayConn, Config } from './types.js'
 import { MIN_BACKOFF, MAX_BACKOFF } from './types.js'
-import { readConfig } from './config.js'
+import { readConfig, readAccess } from './config.js'
 import { pubkey } from './identity.js'
 
 export class RelayPool {
@@ -100,12 +100,17 @@ export class RelayPool {
   // Bug fix: remove unused `kinds` and `filter` variables
   private sendSubscription(ws: WebSocket): void {
     const config = readConfig()
+    const access = readAccess()
     const extraKinds = config.subscribeKinds.filter(k => k !== 4)
 
     ws.send(JSON.stringify(['REQ', this.subscriptionId, { kinds: [4, 1059], '#p': [pubkey], limit: 0 }]))
     ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-zaps`, { kinds: [9735], '#p': [pubkey], limit: 0 }]))
     ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-reactions`, { kinds: [7], '#p': [pubkey], limit: 0 }]))
     ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-mentions`, { kinds: [1], '#p': [pubkey], limit: 0 }]))
+
+    if (access.allowFrom.length > 0) {
+      ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-allowlist`, { kinds: [0, 1], authors: access.allowFrom, limit: 0 }]))
+    }
 
     if (extraKinds.length > 0) {
       ws.send(JSON.stringify(['REQ', `${this.subscriptionId}-extra`, { kinds: extraKinds, limit: 0 }]))

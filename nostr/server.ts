@@ -25,7 +25,7 @@ import type { Ctx } from './src/types.js'
 const cache = new EventCache()
 
 const mcp = new Server(
-  { name: 'nostr', version: '0.1.12' },
+  { name: 'nostr', version: '0.1.16' },
   {
     capabilities: {
       tools: {},

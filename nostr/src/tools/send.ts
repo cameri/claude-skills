@@ -42,7 +42,14 @@ export async function handleSend(
     const d = nip19.decode(replyToPubkey)
     if (d.type === 'npub') replyToPubkey = d.data as string
   }
-  const eventId = await sendNote(args.text as string, sk, pubkey, pool, replyToEventId, replyToPubkey)
+  const mentionPubkeys = ((args.mention_pubkeys as string[] | undefined) ?? []).map(mp => {
+    if (mp.startsWith('npub1')) {
+      const d = nip19.decode(mp)
+      return d.type === 'npub' ? (d.data as string) : mp
+    }
+    return mp
+  })
+  const eventId = await sendNote(args.text as string, sk, pubkey, pool, replyToEventId, replyToPubkey, mentionPubkeys)
   return {
     content: [{
       type: 'text',

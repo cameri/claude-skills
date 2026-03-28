@@ -51,7 +51,41 @@ Current commit is always `@`:
 
 ## Automatic Snapshotting
 
-Every `jj` command auto-snapshots. Use `jj op log`, `jj undo`, or `jj op restore <id>` for time travel.
+Every `jj` command auto-snapshots the working copy into an unnamed commit. The operation log records every action ever taken:
+
+```bash
+jj op log              # Full operation history with timestamps
+jj op show <op-id>     # What changed in a specific operation
+jj undo                # Undo last operation
+jj op restore <op-id>  # Time-travel to any point in history
+```
+
+Unlike `git reflog`, the operation log captures *everything*: rebases, merges, edits, conflict resolutions — not just branch pointer movements.
+
+## First-Class Conflicts
+
+jj stores conflicts *inside commits* rather than blocking operations. A conflicted state is just another commit you can describe, stack on, or resolve later.
+
+```bash
+jj rebase -s <source> -d <dest>  # May produce a conflicted commit — doesn't block
+jj log -r 'conflicts()'          # List all commits with unresolved conflicts
+jj resolve <file>                # Resolve a conflict interactively
+jj diff -r <rev>                 # Inspect a conflicted commit's content
+```
+
+**In practice:** after a rebase that produces conflicts, work continues normally. You can create new commits on top of the conflicted one and resolve it whenever convenient — there is no forced stop like `git merge`.
+
+## Parallel Changes
+
+Create independent lines of work from the same base and rebase them together later:
+
+```bash
+jj new main -m "feature A"           # New change branching from main
+jj new main -m "feature B"           # Another change from same base (parallel)
+jj rebase -s <change-b> -d <change-a>  # Stack B on top of A
+```
+
+This is the jj equivalent of working in multiple branches simultaneously, without needing separate worktrees. Conflicts from the rebase are recorded in the commit, not blocking.
 
 ## When to Suggest Commands
 

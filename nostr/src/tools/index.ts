@@ -47,6 +47,7 @@ export function registerTools(ctx: Ctx): void {
             text: { type: 'string', description: 'Note content' },
             reply_to_event_id: { type: 'string', description: 'Event ID (hex or note1) to reply to' },
             reply_to_pubkey: { type: 'string', description: 'Author pubkey (hex or npub) to tag in reply' },
+            mention_pubkeys: { type: 'array', items: { type: 'string' }, description: 'Pubkeys (hex or npub) to mention — adds p-tags without making it a reply' },
           },
           required: ['text'],
         },
