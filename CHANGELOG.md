@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [technitium-dns 0.2.1] - 2026-03-28
+
+### Changed
+- Renamed `configure-technitium` skill to `access` to follow the standard plugin naming convention
+
 ## [home-assistant 0.1.0] - 2026-03-28
 
 ### Added

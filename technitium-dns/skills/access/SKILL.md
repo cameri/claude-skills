@@ -1,5 +1,5 @@
 ---
-name: configure-technitium
+name: access
 description: Set up Technitium DNS Server credentials — save the server URL and API token (or username/password). Use when the user wants to configure Technitium DNS, connect to an instance, asks "how do I set this up," or wants to check connection status.
 user-invocable: true
 allowed-tools:
@@ -16,13 +16,13 @@ Writes Technitium DNS Server credentials to `~/.claude/channels/technitium-dns/{
 </objective>
 
 <quick_start>
-Save with token: `/technitium-dns:configure-technitium url=<URL> token=<TOKEN>`
+Save with token: `/technitium-dns:access url=<URL> token=<TOKEN>`
 
-Save with user/pass: `/technitium-dns:configure-technitium url=<URL> user=<USER> password=<PASS>`
+Save with user/pass: `/technitium-dns:access url=<URL> user=<USER> password=<PASS>`
 
-Check status: `/technitium-dns:configure-technitium` (no args)
+Check status: `/technitium-dns:access` (no args)
 
-Guided setup: `/technitium-dns:configure-technitium setup`
+Guided setup: `/technitium-dns:access setup`
 </quick_start>
 
 <context>
@@ -69,7 +69,7 @@ Read `~/.claude/channels/technitium-dns/${ENV}.env` (missing = not configured) a
    - Failure: show error message and suggest which credential is wrong.
 5. **What next** — concrete next step:
    - No file or missing URL → show setup command syntax and ask for values.
-   - Configured but connection failed → *"Run `/technitium-dns:configure-technitium` again after correcting the failing credential."*
+   - Configured but connection failed → *"Run `/technitium-dns:access` again after correcting the failing credential."*
    - All set, connection OK → *"Ready. You can now use `/technitium-dns:manage-dns-zones`, `/technitium-dns:manage-dns-records`, and `/technitium-dns:query-dns-stats`."*
 6. **Available environments** — list all `*.env` files in `~/.claude/channels/technitium-dns/`, stripping `.env` suffix. Display `.env` as "(default)".
 
@@ -85,7 +85,7 @@ Read `~/.claude/channels/technitium-dns/${ENV}.env` (missing = not configured) a
    - **TECHNITIUM_USER** / **TECHNITIUM_PASSWORD**: Web Console credentials (session token obtained per-request, expires per session timeout, default 30 min).
 2. Ask user to run the explicit form once they have values (omit `env=` for default):
    ```
-   /technitium-dns:configure-technitium url=<URL> token=<TOKEN>
+   /technitium-dns:access url=<URL> token=<TOKEN>
    ```
 
 **Explicit save — `url=<URL> token=<TOKEN>` or `url=<URL> user=<USER> password=<PASS>`:**

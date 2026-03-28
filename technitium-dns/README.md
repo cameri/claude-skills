@@ -6,7 +6,7 @@ Claude Code plugin for managing [Technitium DNS Server](https://technitium.com/d
 
 | Skill | Command | Description |
 |---|---|---|
-| configure | `/technitium-dns:configure` | Save server URL and API token (or username/password), test connection |
+| access | `/technitium-dns:access` | Save server URL and API token (or username/password), test connection |
 | zone | `/technitium-dns:zone` | List, create, delete, enable, or disable DNS zones |
 | record | `/technitium-dns:record` | Add, get, update, or delete DNS records (A, AAAA, CNAME, MX, TXT, SRV, …) |
 | query | `/technitium-dns:query` | View dashboard stats, top clients/domains, cache info, flush cache |
