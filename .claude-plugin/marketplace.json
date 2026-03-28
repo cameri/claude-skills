@@ -146,6 +146,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./netshoot"
+    },
+    {
+      "name": "home-assistant",
+      "description": "Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./home-assistant"
     }
   ]
 }
