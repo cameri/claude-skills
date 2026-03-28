@@ -6,7 +6,7 @@ Claude Code plugin for interacting with a self-hosted [Actual Budget](https://ac
 
 | Skill | Command | Description |
 |---|---|---|
-| configure | `/actual-budget:configure` | Save server URL and password, test connection |
+| access | `/actual-budget:access` | Save server URL and password, test connection |
 | budget | `/actual-budget:budget` | List accounts, balances, transactions, and budget vs actual |
 | add-transaction | `/actual-budget:add-transaction` | Log a transaction in natural language |
 

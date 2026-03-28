@@ -1,5 +1,5 @@
 ---
-name: configure-actual
+name: access
 description: Set up Actual Budget credentials — save the server URL and password. Use when the user wants to configure Actual Budget, connect to their instance, or check connection status.
 user-invocable: true
 allowed-tools:
@@ -18,11 +18,11 @@ Manages connection settings for the user's self-hosted Actual Budget instance. C
 </objective>
 
 <quick_start>
-Save credentials: `/actual-budget:configure-actual ACTUAL_SERVER_URL=https://budget.example.com`
+Save credentials: `/actual-budget:access ACTUAL_SERVER_URL=https://budget.example.com`
 
-Check status: `/actual-budget:configure-actual` (no args)
+Check status: `/actual-budget:access` (no args)
 
-Guided setup: `/actual-budget:configure-actual setup`
+Guided setup: `/actual-budget:access setup`
 </quick_start>
 
 <context>
@@ -40,7 +40,7 @@ Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from 
 **No arguments — status check:**
 
 1. Check if `~/.claude/channels/actual-budget/${ENV}.env` exists.
-2. If not: tell the user no credentials are saved and suggest running `/actual-budget:configure-actual setup`.
+2. If not: tell the user no credentials are saved and suggest running `/actual-budget:access setup`.
 3. If yes: load the file, show `ACTUAL_SERVER_URL` (mask the password), then test the connection:
    ```bash
    curl -s -o /dev/null -w "%{http_code}" -X POST "$ACTUAL_SERVER_URL/account/login" \
