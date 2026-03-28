@@ -1,0 +1,6 @@
+{
+  "name": "home-assistant",
+  "description": "Interact with Home Assistant via the REST API — get entity states, call services, fire events, render templates, and query history.",
+  "version": "0.1.0",
+  "keywords": ["home-assistant", "hass", "iot", "automation", "smart-home"]
+}

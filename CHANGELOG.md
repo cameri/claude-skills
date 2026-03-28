@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [home-assistant 0.1.0] - 2026-03-28
+
+### Added
+- Initial release: interact with Home Assistant via REST API using httpie
+- `access` skill: configure HA_URL and HA_TOKEN, test connection
+- `get-state` skill: get single entity state or list all entities (with domain filter)
+- `call-service` skill: call HA services to control devices and trigger automations
+- `set-state` skill: create or update entity state directly in HA state machine
+- `fire-event` skill: fire custom HA events for automation triggers
+- `render-template` skill: render Jinja2 templates for testing and debugging
+- `query-history` skill: query state history and logbook with time range filters
+
 ## [autoresearch 0.1.1] - 2026-03-28
 
 ### Added
