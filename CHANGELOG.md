@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [autoresearch 0.1.1] - 2026-03-28
+
+### Added
+- Initial release: autonomously optimize Claude Code skills using binary evals, prompt mutation, and iterative improvement loops
+
+## [docker-maintenance 0.2.0] - 2026-03-28
+
+### Added
+- Initial release: update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log changes
+
+## [netshoot 0.1.0] - 2026-03-28
+
+### Added
+- Initial release: network troubleshooting inside Docker container networks using nicolaka/netshoot
+
 ## [elevenlabs 0.1.1] - 2026-03-28
 
 ### Added

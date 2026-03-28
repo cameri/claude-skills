@@ -1,0 +1,6 @@
+{
+  "name": "docker-maintenance",
+  "description": "Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
+  "version": "0.2.0",
+  "keywords": ["docker", "compose", "containers", "maintenance", "updates"]
+}

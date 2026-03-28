@@ -1,0 +1,6 @@
+{
+  "name": "netshoot",
+  "description": "Network troubleshooting inside Docker container networks using nicolaka/netshoot.",
+  "version": "0.1.0",
+  "keywords": ["docker", "network", "troubleshooting", "netshoot", "diagnostics"]
+}

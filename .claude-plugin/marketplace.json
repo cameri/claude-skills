@@ -116,6 +116,36 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./webhooks"
+    },
+    {
+      "name": "autoresearch",
+      "description": "Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./autoresearch"
+    },
+    {
+      "name": "docker-maintenance",
+      "description": "Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./docker-maintenance"
+    },
+    {
+      "name": "netshoot",
+      "description": "Network troubleshooting inside Docker container networks using nicolaka/netshoot.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./netshoot"
     }
   ]
 }

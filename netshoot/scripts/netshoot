@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Netshoot Docker Container Helper Script
+# Usage: ./scripts/netshoot <command> [args...]
+#
+# This script runs commands inside a nicolaka/netshoot container with access
+# to the Docker networks for network troubleshooting and testing.
+#
+# Examples:
+#   ./scripts/netshoot curl http://forgejo:3000
+#   ./scripts/netshoot ping gatus
+# Run this script with no arguments to see a list of available commands.
+
+# Default to gatus network if no network specified
+NETWORK="${NETSHOOT_NETWORK:-host}"
+
+# Check if any arguments provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <command> [args...]"
+    echo ""
+    echo "Available network troubleshooting commands:"
+    echo "  Network: ping, fping, arping, traceroute, tracepath, mtr"
+    echo "  DNS: dig, nslookup, drill, host"
+    echo "  HTTP: curl, wget, httpie, ab (apache bench)"
+    echo "  TCP/UDP: nc (netcat), socat, telnet, tcpdump, termshark, tshark, ss, netstat"
+    echo "  Performance: iperf, iperf3, tcptraceroute, speedtest-cli, iftop, iptraf-ng"
+    echo "  Security: nmap, nping, openssl, ngrep"
+    echo "  Network Info: ip, ifconfig, route, arp, ethtool"
+    echo "  Firewall: iptables, nftables, ipset"
+    echo "  Protocol: grpcurl, websocat, swaks (SMTP)"
+    echo "  Monitoring: ctop, bird, net-snmp-tools"
+    echo "  System: nsenter, strace, ltrace"
+    echo "  Packet Analysis: scapy, conntrack-tools"
+    echo "  Utilities: jq, whois, dhcping, file, vim, git"
+    echo ""
+    echo "Examples:"
+    echo "  $0 curl http://forgejo:3000"
+    echo "  $0 ping gatus"
+    echo "  $0 dig forgejo"
+    echo "  $0 nslookup immich-server"
+    echo "  $0 nc -zv 10.0.6.2 5432"
+    echo "  $0 ss -tuln"
+    echo "  $0 nmap -p 3000 forgejo"
+    echo "  $0 ctop"
+    echo "  $0 termshark -i any"
+    echo "  $0 nsenter -t 1 -n -p ps aux"
+    echo "  $0 speedtest-cli"
+    echo "  $0 grpcurl -plaintext localhost:9090 list"
+    echo "  $0 websocat ws://echo.websocket.org"
+    echo ""
+    echo "Network Examples:"
+    echo "  NETSHOOT_NETWORK=containers_gatus $0 ping gatus"
+    echo "  NETSHOOT_NETWORK=container:gatus $0 ss -tuln"
+    echo "  NETSHOOT_NETWORK=host $0 ip route show"
+    echo ""
+    echo "Set NETSHOOT_NETWORK environment variable to use a different network:"
+    echo "  host (default) - Use host networking"
+    echo "  container:name - Share network with specific container"
+    echo "  network-name - Connect to specific Docker network"
+    echo "Current network: $NETWORK"
+    exit 1
+fi
+
+# Run the command in netshoot container
+exec docker run --rm --privileged --network "$NETWORK" -v /var/run/docker.sock:/var/run/docker.sock --cap-add=NET_ADMIN --cap-add=NET_RAW --env-file .env nicolaka/netshoot "$@"
