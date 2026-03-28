@@ -257,7 +257,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
           isError: true,
         };
       }
-      const id = randomUUID().slice(0, 8);
+      const id = randomUUID();
       const defaultHeader =
         authMode === "hmac_sha256" ? "X-Signature-256" :
         authMode === "header"      ? "X-Webhook-Secret" :
@@ -468,9 +468,22 @@ app.post("/webhook/:id", async (req, res) => {
   }).catch(err => process.stderr.write(`webhooks: notification failed: ${err.message}\n`));
 });
 
-app.listen(config.port, () => {
-  process.stderr.write(`webhooks: Express listening on port ${config.port}\n`);
-});
+function startServer(port: number, attemptsLeft = 5): void {
+  const server = app.listen(port, () => {
+    process.stderr.write(`webhooks: Express listening on port ${port}\n`);
+  });
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE" && attemptsLeft > 0) {
+      process.stderr.write(`webhooks: port ${port} in use, retrying in 1s (${attemptsLeft} attempts left)\n`);
+      setTimeout(() => startServer(port, attemptsLeft - 1), 1000);
+    } else {
+      process.stderr.write(`webhooks: failed to bind port ${port}: ${err.message}\n`);
+      process.exit(1);
+    }
+  });
+}
+
+startServer(config.port);
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
