@@ -1,0 +1,6 @@
+{
+  "name": "technitium-dns",
+  "description": "Manage Technitium DNS Server instances — zones, records, blocking, and stats via the HTTP API.",
+  "version": "0.2.0",
+  "keywords": ["technitium", "dns", "adblock", "self-hosted"]
+}

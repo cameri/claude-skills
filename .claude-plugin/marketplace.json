@@ -29,7 +29,7 @@
     },
     {
       "name": "technitium-dns",
-      "description": "Manage Technitium DNS Server instances — configure, query records, manage zones via the HTTP API.",
+      "description": "Manage Technitium DNS Server instances — configure, query stats, manage zones and records, and control DNS blocking with per-domain allow/block overrides and block list URLs.",
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",

@@ -10,6 +10,7 @@ Claude Code plugin for managing [Technitium DNS Server](https://technitium.com/d
 | zone | `/technitium-dns:zone` | List, create, delete, enable, or disable DNS zones |
 | record | `/technitium-dns:record` | Add, get, update, or delete DNS records (A, AAAA, CNAME, MX, TXT, SRV, …) |
 | query | `/technitium-dns:query` | View dashboard stats, top clients/domains, cache info, flush cache |
+| manage-blocking | `/technitium-dns:manage-blocking` | Check if a domain is blocked/allowed, add/remove allow or block overrides, manage block list URLs |
 
 ## Credentials
 
