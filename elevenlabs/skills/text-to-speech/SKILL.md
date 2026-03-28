@@ -67,13 +67,16 @@ curl -X POST "https://api.elevenlabs.io/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb" 
 
 ## Voice IDs
 
-Use pre-made voices or create custom voices in the dashboard.
+Use premade voices (free, no extra charge) or create custom voices in the dashboard.
+See [references/premade-voices.md](references/premade-voices.md) for the full list of 45 premade voices with IDs, gender, accent, and use case.
 
-**Popular voices:**
-- `JBFqnCBsd6RMkjVDRZzb` - George (male, narrative)
-- `EXAVITQu4vr4xnSDxMaL` - Sarah (female, soft)
-- `onwK4e9ZLuTAKqWW03F9` - Daniel (male, authoritative)
-- `XB0fDUnXU5powFXDhCwa` - Charlotte (female, conversational)
+**Commonly used premade voices:**
+- `JBFqnCBsd6RMkjVDRZzb` - George (male, British, raspy, narration)
+- `EXAVITQu4vr4xnSDxMaL` - Sarah (female, American, soft, news)
+- `onwK4e9ZLuTAKqWW03F9` - Daniel (male, British, deep, news presenter)
+- `XB0fDUnXU5powFXDhCwa` - Charlotte (female, English-Swedish, conversational)
+- `21m00Tcm4TlvDq8ikWAM` - Rachel (female, American, calm, narration)
+- `nPczCjzI2devNBz1zQrb` - Brian (male, American, deep, narration)
 
 ```python
 voices = client.voices.get_all()
@@ -219,8 +222,16 @@ audio = response.parse()
 print(f"Characters used: {response.headers.get('x-character-count')}")
 ```
 
+## Credit Conservation
+
+ElevenLabs charges per character synthesized. Keep generated text concise:
+- Avoid filler phrases, padding, or redundant sentences
+- Don't add "Hello!", "Sure!", or similar openers to TTS output
+- Prefer shorter paraphrases over verbatim long-form text when possible
+
 ## References
 
 - [Installation Guide](references/installation.md)
 - [Streaming Audio](references/streaming.md)
 - [Voice Settings](references/voice-settings.md)
+- [Premade Voices](references/premade-voices.md)

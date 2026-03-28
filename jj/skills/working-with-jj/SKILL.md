@@ -77,6 +77,16 @@ Every `jj` command auto-snapshots. Use `jj op log`, `jj undo`, or `jj op restore
 - `/jj:squash [revision]` - Merge commits
 - `/jj:cleanup` - Remove empty workspaces
 
+## Git Submodules
+
+**jj does not support git submodules.** When working inside a git submodule or managing submodule operations, use `git` directly:
+
+- `git submodule add <url>` — add a submodule
+- `git submodule update --init --recursive` — initialize/update submodules
+- `git -C <submodule-path> <command>` — run git commands inside a submodule
+
+Use jj only for the parent repository (non-submodule paths).
+
 ## Git Translation
 
 Repository blocks git write commands via hook. Prefer jj equivalents:
@@ -86,8 +96,17 @@ Repository blocks git write commands via hook. Prefer jj equivalents:
 - `git log` → `jj log`
 - `git checkout` → `jj new`
 
+## `jj restore` — Use With Care
+
+`jj restore --from <rev> -- <path>` replaces the target path's content with the state from `<rev>`. **Any file present in `--to` but absent in `--from` will be deleted.** This has caused accidental mass-deletions when the source revision didn't include recently added files.
+
+Before running `jj restore`:
+1. Check what exists in the source: `jj diff -r <rev> -- <path>`
+2. Check what would change: `jj diff --from <rev> -- <path>` (dry-run view)
+3. After restoring, run `jj diff --summary` to verify no unexpected deletions
+
 ## Best Practices
 
 **Do:** Stack commits, describe clearly (what/why), use plan-driven workflow, leverage `jj op log`, split mixed concerns
 
-**Don't:** Mix git/jj, leave work undescribed, create monolithic commits, forget everything is undoable
+**Don't:** Mix git/jj (except for submodules), leave work undescribed, create monolithic commits, forget everything is undoable
