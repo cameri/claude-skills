@@ -1,6 +1,6 @@
 ---
 name: manage-blocking
-description: Manage DNS blocking on a Technitium DNS Server — check if a domain is blocked or allowed, add/remove per-domain block or allow overrides, and manage block list URLs. Use when the user wants to block a domain, whitelist a domain, check filter status, or manage block lists.
+description: Block or allow domains on Technitium DNS — check status, add/remove domain overrides, manage block list URLs.
 user-invocable: true
 allowed-tools:
   - Read

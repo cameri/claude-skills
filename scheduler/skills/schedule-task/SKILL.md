@@ -1,6 +1,6 @@
 ---
 name: schedule-task
-description: Schedule a task using natural language — "every 3 minutes", "every weekday at 9am", "once in 5 minutes". Use when the user says "schedule X", "remind me to X every Y", "run X once in Y", "/schedule", or wants a recurring or one-time task trigger. When a scheduled task fires, a channel notification arrives — execute the task described in it.
+description: Schedule recurring or one-time tasks. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/schedule". When a task fires as a channel notification, execute it.
 user-invocable: true
 allowed-tools:
   - mcp__plugin_scheduler_scheduler__add_schedule

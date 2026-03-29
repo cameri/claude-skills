@@ -1,6 +1,6 @@
 ---
 name: optimize-skill
-description: Autonomously optimize a Claude Code SKILL.md using Karpathy's autoresearch methodology — runs the skill against test tasks, evaluates against binary yes/no evals, mutates the prompt, and iterates until pass rate improves. Use when a skill has reliability issues, falls back to wrong behaviors, or needs quality improvement.
+description: Improve a SKILL.md using binary evals and iterative prompt mutation. Use when a skill has reliability issues or produces inconsistent results.
 ---
 
 <essential_principles>

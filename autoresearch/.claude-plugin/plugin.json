@@ -1,6 +1,6 @@
 {
   "name": "autoresearch",
   "description": "Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "keywords": ["autoresearch", "skill-optimization", "evals", "prompt-engineering", "autonomous"]
 }

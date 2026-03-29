@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [autoresearch 0.1.2] - 2026-03-29
+## [docker-maintenance 0.2.1] - 2026-03-29
+## [elevenlabs 0.1.3] - 2026-03-29
+## [nats 0.0.5] - 2026-03-29
+## [scheduler 0.0.2] - 2026-03-29
+## [technitium-dns 0.2.2] - 2026-03-29
+
+### Changed
+- Trimmed skill descriptions to reduce context token usage — removed verbose preamble and redundant examples while preserving semantic triggers
+
 ## [elevenlabs 0.1.2] - 2026-03-29
 ## [nats 0.0.4] - 2026-03-29
 ## [nostr 0.1.17] - 2026-03-29

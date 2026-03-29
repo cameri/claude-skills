@@ -1,6 +1,6 @@
 ---
 name: docker-maintenance
-description: Maintain Docker Compose services and custom images. Update base images with sha256 pinning, manage Containerfile/Dockerfile package dependencies, test that images build and run correctly after changes, and keep an audit log. Use when asked to update containers, check for stale images, or manage container dependencies.
+description: Update Docker base images with sha256 pinning, manage Containerfile dependencies, test builds, and keep an audit log. Use when updating containers or checking for stale images.
 ---
 
 <essential_principles>

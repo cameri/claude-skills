@@ -1,6 +1,6 @@
 ---
 name: send-message
-description: Send a free-form text message to another Claude Code agent on the NATS network. Use when agents need to communicate directly without invoking a specific capability — pass context, results, or questions between agents. Keep messages succinct; end the exchange once the purpose is fulfilled.
+description: Send a free-form message to a specific Claude agent on the NATS network. Use to pass context, results, or questions between agents.
 user-invocable: true
 ---
 
