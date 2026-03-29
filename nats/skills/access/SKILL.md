@@ -1,5 +1,5 @@
 ---
-name: configure-nats
+name: access
 description: Configure the NATS server URL for Claude Code agent communication. Use when the user wants to set up NATS, change the NATS server URL, check current connection settings, or says "configure nats".
 user-invocable: true
 allowed-tools:
@@ -18,11 +18,11 @@ Manages the NATS server URL for the Claude Code agent. The URL is stored in `~/.
 </objective>
 
 <quick_start>
-Save URL: `/nats:configure-nats NATS_URL=nats://nats:4222`
+Save URL: `/nats:access NATS_URL=nats://nats:4222`
 
-Check status: `/nats:configure-nats` (no args)
+Check status: `/nats:access` (no args)
 
-Guided setup: `/nats:configure-nats setup`
+Guided setup: `/nats:access setup`
 </quick_start>
 
 <context>
@@ -38,8 +38,8 @@ Parse `env=<name>` from `$ARGUMENTS` first. Strip it from remaining arguments be
 
 1. Check if `~/.claude/channels/nats/${ENV}.env` exists.
 2. If not: report no configuration for this environment and suggest:
-   - `/nats:configure-nats NATS_URL=nats://nats:4222`
-   - `/nats:configure-nats setup`
+   - `/nats:access NATS_URL=nats://nats:4222`
+   - `/nats:access setup`
 3. If yes: load the file, show `NATS_URL`, then test connectivity:
    ```bash
    nats --server "$NATS_URL" server ping 2>&1 | head -5

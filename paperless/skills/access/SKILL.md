@@ -1,5 +1,5 @@
 ---
-name: configure-paperless
+name: access
 description: Set up Paperless-ngx credentials — save the instance URL, username, and password. Use when the user wants to configure Paperless-ngx, asks to connect to an instance, asks "how do I set this up," or wants to check current connection status.
 user-invocable: true
 allowed-tools:
@@ -16,11 +16,11 @@ Writes Paperless-ngx credentials to `~/.claude/channels/paperless/.env` and veri
 </objective>
 
 <quick_start>
-Save credentials: `/paperless:configure-paperless url=<URL> username=<USER> password=<PASS>`
+Save credentials: `/paperless:access url=<URL> username=<USER> password=<PASS>`
 
-Check status: `/paperless:configure-paperless` (no args)
+Check status: `/paperless:access` (no args)
 
-Guided setup: `/paperless:configure-paperless setup`
+Guided setup: `/paperless:access setup`
 </quick_start>
 
 <credential_format>
@@ -53,7 +53,7 @@ Read `~/.claude/channels/paperless/.env` (missing = not configured) and show:
    - Failure: show the error and suggest which credential is likely wrong.
 5. **What next** — end with a concrete next step based on state:
    - No file or missing keys → show the full setup command syntax and ask the user to provide values.
-   - All set, connection failed → *"Run `/paperless:configure-paperless` again after correcting the credential that failed."*
+   - All set, connection failed → *"Run `/paperless:access` again after correcting the credential that failed."*
    - All set, connection OK → *"Ready. You can now use `/paperless:upload-document` and `/paperless:search-documents`."*
 
 **`setup` — guided setup:**
@@ -65,7 +65,7 @@ Walk the user through configuring credentials interactively:
    - **PAPERLESS_USERNAME** and **PAPERLESS_PASSWORD**: Regular Paperless-ngx login credentials (the same ones used to log into the web UI).
 2. Ask the user to run the explicit form once they have all values:
    ```
-   /paperless:configure-paperless url=<URL> username=<USER> password=<PASS>
+   /paperless:access url=<URL> username=<USER> password=<PASS>
    ```
 
 **`url=<URL> username=<USER> password=<PASS>` — explicit save:**

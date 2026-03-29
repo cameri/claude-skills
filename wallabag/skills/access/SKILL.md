@@ -1,5 +1,5 @@
 ---
-name: configure-wallabag
+name: access
 description: Set up Wallabag credentials — save the instance URL, OAuth client ID/secret, and user credentials. Use when the user wants to configure Wallabag, asks to connect to a Wallabag instance, asks "how do I set this up," or wants to check current Wallabag connection status.
 user-invocable: true
 allowed-tools:
@@ -16,11 +16,11 @@ Writes Wallabag credentials to `~/.claude/channels/wallabag/{env}.env` and verif
 </objective>
 
 <quick_start>
-Save credentials: `/wallabag:configure-wallabag url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>`
+Save credentials: `/wallabag:access url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>`
 
-Check status: `/wallabag:configure-wallabag` (no args)
+Check status: `/wallabag:access` (no args)
 
-Guided setup: `/wallabag:configure-wallabag setup`
+Guided setup: `/wallabag:access setup`
 </quick_start>
 
 <context>
@@ -63,7 +63,7 @@ Read `~/.claude/channels/wallabag/${ENV}.env` (missing = not configured) and sho
    - Failure: show the error and suggest which credential is likely wrong.
 6. **What next** — concrete next step:
    - No file or missing keys → show full setup command syntax and ask for values.
-   - All set, connection failed → *"Run `/wallabag:configure-wallabag env=$ENV` again after correcting the failing credential."*
+   - All set, connection failed → *"Run `/wallabag:access env=$ENV` again after correcting the failing credential."*
    - All set, connection OK → *"Ready. You can now use Wallabag tools to save and manage articles."*
 7. **Available environments** — list all `*.env` files in `~/.claude/channels/wallabag/`, stripping `.env` suffix. Display `.env` as "(default)".
 
@@ -75,7 +75,7 @@ Read `~/.claude/channels/wallabag/${ENV}.env` (missing = not configured) and sho
    - **WALLABAG_USERNAME** and **WALLABAG_PASSWORD**: Regular Wallabag login credentials.
 2. Ask user to run the explicit form once they have all values:
    ```
-   /wallabag:configure-wallabag env=$ENV url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>
+   /wallabag:access env=$ENV url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>
    ```
 
 **Explicit save — `url=<URL> client_id=<ID> client_secret=<SECRET> username=<USER> password=<PASS>`:**
