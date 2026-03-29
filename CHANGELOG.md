@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [wallabag 0.0.2] - 2026-03-29
 
 ### Changed
-- Renamed credential skill to `access` to follow the standard plugin naming convention (elevenlabs: setup-api-key, nats: configure-nats, nostr: configure, paperless: configure-paperless, telegram: configure, wallabag: configure-wallabag)
+- Renamed credential skill to `access` to follow the standard plugin naming convention: elevenlabs (setup-api-key), nats (configure-nats), paperless (configure-paperless), wallabag (configure-wallabag)
+- nostr and telegram retain `configure` — both already have a distinct `access` skill for pairing/allowlist management
 
 ## [actual-budget 0.1.1] - 2026-03-28
 
