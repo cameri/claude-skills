@@ -37,6 +37,7 @@ Environment:
   ELEVENLABS_API_KEY  Required API key
 
 Note: Requires ffmpeg for audio format conversion.
+      Requires uv (https://github.com/astral-sh/uv).
       First run will create .venv/ and install dependencies.
 EOF
     exit 0
@@ -58,9 +59,9 @@ log() {
     fi
 }
 
-# Check Python availability
-if ! command -v python3 &> /dev/null; then
-    echo "Error: python3 not found. Please install Python 3.8+." >&2
+# Check uv availability
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv not found. Install it from https://github.com/astral-sh/uv" >&2
     exit 1
 fi
 
@@ -79,7 +80,7 @@ fi
 setup_venv() {
     if [[ ! -d "$VENV_DIR" ]]; then
         log "Setting up virtual environment..."
-        python3 -m venv "$VENV_DIR"
+        uv venv "$VENV_DIR"
     fi
 
     # Activate venv
@@ -88,8 +89,7 @@ setup_venv() {
     # Check if dependencies need to be installed
     if [[ ! -f "$VENV_DIR/.installed" ]] || [[ "$REQUIREMENTS" -nt "$VENV_DIR/.installed" ]]; then
         log "Installing dependencies..."
-        pip install -q --upgrade pip
-        pip install -q -r "$REQUIREMENTS"
+        uv pip install -q -r "$REQUIREMENTS"
         touch "$VENV_DIR/.installed"
     fi
 }
