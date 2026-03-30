@@ -156,6 +156,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./home-assistant"
+    },
+    {
+      "name": "github-manager",
+      "description": "Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts across managed repos.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./github-manager"
     }
   ]
 }
