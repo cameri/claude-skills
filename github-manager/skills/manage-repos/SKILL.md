@@ -35,6 +35,8 @@ All other actors are **external**: send a Telegram notification and ask the user
 | `payload.member` present | Collaborator change |
 | `payload.pusher` or `payload.commits` present | Push |
 | `payload.alert` present | Security alert |
+| `payload.projects_v2` present | Project created/updated/closed/deleted |
+| `payload.projects_v2_item` present | Project item changed |
 | `payload.zen` present | Ping |
 </essential_principles>
 
@@ -49,6 +51,7 @@ Always read `references/gh-cli.md` before executing any GitHub or Telegram opera
 | Discussion | `references/discussions.md` |
 | Check suite / Workflow run / Workflow job | `references/ci-checks.md` |
 | Security alert / Collaborator change / Push / Ping | `references/alerts-and-admin.md` |
+| Project / Project item | `references/projects.md` |
 </routing>
 
 <reference_index>
@@ -57,5 +60,6 @@ Always read `references/gh-cli.md` before executing any GitHub or Telegram opera
 - `references/discussions.md` — Discussion monitoring and escalation
 - `references/ci-checks.md` — CI failure alerts, check suite deduplication
 - `references/alerts-and-admin.md` — Security alerts, collaborator changes, noise suppression
+- `references/projects.md` — GitHub Projects v2 event handling and item management
 - `references/gh-cli.md` — GitHub CLI commands and Telegram notification rules
 </reference_index>
