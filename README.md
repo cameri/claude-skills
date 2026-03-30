@@ -101,7 +101,6 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej√
 | Command | Description |
 |---|---|
 | `/create-skill` | Scaffold a new Claude Code skill plugin from scratch |
-| `/improve-skill` | Audit and improve an existing skill against the `/create-skill` design principles |
 | `/dontforget` | Consolidate `remember/` notes into the persistent memory system |
 | `/forget` | Triage and prune stale entries from `remember/` |
 | `/unsubscribe` | Unsubscribe from a newsletter or mailing list using an unsubscribe URL |

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [commands] - 2026-03-30
+
+### Removed
+- `/improve-skill` — superseded by the `audit-skill` workflow in the `create-agent-skills` skill (taches-cc-resources), which now includes severity tiers and degrees-of-freedom checks
+
 ## [github-manager 0.2.1] - 2026-03-30
 
 ### Changed
