@@ -3,16 +3,7 @@ name: manage-repos
 description: Handle GitHub webhook events for managed repositories — triage issues, manage PRs, respond to discussions, monitor CI, and escalate external activity via Telegram.
 user-invocable: false
 allowed-tools:
-  - mcp__plugin_github_github__issue_read
-  - mcp__plugin_github_github__issue_write
-  - mcp__plugin_github_github__list_issues
-  - mcp__plugin_github_github__add_issue_comment
-  - mcp__plugin_github_github__get_label
-  - mcp__plugin_github_github__pull_request_read
-  - mcp__plugin_github_github__list_pull_requests
-  - mcp__plugin_github_github__pull_request_review_write
-  - mcp__plugin_github_github__update_pull_request
-  - mcp__plugin_github_github__merge_pull_request
+  - Bash
   - mcp__plugin_telegram_telegram__reply
 ---
 
@@ -213,9 +204,24 @@ No action.
 
 Send notifications using `mcp__plugin_telegram_telegram__reply` to the user's Telegram chat. Use the chat ID from prior Telegram context in the session. If no chat ID is available in the current session context, skip the notification and log it as a comment in your response.
 
+## GitHub CLI Reference
+
+Use `gh` CLI (via `Bash`) for all GitHub operations:
+
+| Operation | Command |
+|---|---|
+| View issue | `gh issue view {number} --repo {owner}/{repo}` |
+| Add issue comment | `gh issue comment {number} --repo {owner}/{repo} --body "..."` |
+| Edit issue labels | `gh issue edit {number} --repo {owner}/{repo} --add-label "..."` |
+| List labels | `gh label list --repo {owner}/{repo}` |
+| View PR | `gh pr view {number} --repo {owner}/{repo}` |
+| Approve PR | `gh pr review {number} --repo {owner}/{repo} --approve` |
+| Merge PR (squash) | `gh pr merge {number} --repo {owner}/{repo} --squash --delete-branch` |
+| Close PR | `gh pr close {number} --repo {owner}/{repo}` |
+
 ## Notes
 
 - Always verify the repo is one of the four managed repos before acting. Ignore events from other repos.
 - Do not merge PRs that have failing CI (check `check_suite.conclusion` or `workflow_run.conclusion`).
-- When approving Dependabot PRs, use `pull_request_review_write` with `event: APPROVE` before calling `merge_pull_request`.
-- Use `squash` merge method for Dependabot PRs to keep history clean.
+- When approving Dependabot PRs, run `gh pr review --approve` before `gh pr merge --squash`.
+- Use `--squash --delete-branch` for Dependabot PRs to keep history clean.
