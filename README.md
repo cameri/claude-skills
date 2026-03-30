@@ -8,6 +8,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
+| [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
 | [scheduler](./scheduler/) | Schedule tasks using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
@@ -22,6 +23,17 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/actual-budget:configure` | Set up Actual Budget credentials — save the server URL and password |
 | `/actual-budget:budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
 | `/actual-budget:add-transaction` | Add a transaction — spending, income, or any financial event |
+
+### github-manager
+
+| Skill | Description |
+|---|---|
+| `github-manager:manage-issues` | Handles GitHub issue events; triages labels, prompts for details, escalates external issues via Telegram |
+| `github-manager:manage-pull-requests` | Handles GitHub PR events; auto-merges Dependabot patches, escalates external PRs via Telegram |
+| `github-manager:manage-discussions` | Handles GitHub discussion events; silently monitors trusted users, escalates external discussions via Telegram |
+| `github-manager:manage-ci` | Handles GitHub CI events; alerts on failures via Telegram |
+| `github-manager:manage-projects` | Handles GitHub Projects v2 events; notifies on lifecycle changes, escalates external activity via Telegram |
+| `github-manager:manage-admin` | Handles GitHub security alerts, collaborator changes, pushes, and admin events |
 
 ### elevenlabs
 
@@ -132,6 +144,7 @@ Run this once inside any Claude Code session:
 ```
 /plugin install actual-budget@claude-skills
 /plugin install elevenlabs@claude-skills
+/plugin install github-manager@claude-skills
 /plugin install nats@claude-skills
 /plugin install paperless@claude-skills
 /plugin install scheduler@claude-skills

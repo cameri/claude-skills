@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [github-manager 0.2.1] - 2026-03-30
+
+### Changed
+- Trimmed all skill descriptions for token efficiency — removed boilerplate preamble while preserving trigger conditions and behavior summaries
+
 ## [autoresearch 0.1.2] - 2026-03-29
 ## [docker-maintenance 0.2.1] - 2026-03-29
 ## [elevenlabs 0.1.3] - 2026-03-29
