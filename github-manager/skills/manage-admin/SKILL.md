@@ -1,6 +1,6 @@
 ---
 name: manage-admin
-description: Autonomous handler for GitHub security, collaborator, and administrative webhook events on managed repositories. Fires when a webhook payload contains payload.alert (security), payload.member (collaborator change), payload.pusher/payload.commits (push), or payload.zen (ping).
+description: Handles GitHub security alerts, collaborator changes, pushes, and admin webhook events. Fires on payload.alert, payload.member, push, or ping.
 user-invocable: false
 allowed-tools:
   - mcp__plugin_telegram_telegram__reply

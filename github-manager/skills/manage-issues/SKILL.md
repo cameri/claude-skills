@@ -1,6 +1,6 @@
 ---
 name: manage-issues
-description: Autonomous handler for GitHub issue webhook events on managed repositories. Fires when a webhook payload contains payload.issue without payload.pull_request — triages labels, prompts for details, and escalates external issues via Telegram.
+description: Handles GitHub issue webhook events; triages labels, prompts for details, escalates external issues via Telegram. Fires on payload.issue (without payload.pull_request).
 user-invocable: false
 allowed-tools:
   - Bash

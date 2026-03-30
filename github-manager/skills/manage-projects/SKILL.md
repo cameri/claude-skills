@@ -1,6 +1,6 @@
 ---
 name: manage-projects
-description: Autonomous handler for GitHub Projects v2 webhook events on managed repositories. Fires when a webhook payload contains payload.projects_v2 or payload.projects_v2_item — notifies on project lifecycle changes and escalates external activity via Telegram.
+description: Handles GitHub Projects v2 webhook events; notifies on lifecycle changes, escalates external activity via Telegram. Fires on payload.projects_v2 or projects_v2_item.
 user-invocable: false
 allowed-tools:
   - Bash

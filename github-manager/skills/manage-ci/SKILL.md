@@ -1,6 +1,6 @@
 ---
 name: manage-ci
-description: Autonomous handler for GitHub CI and check suite webhook events on managed repositories. Fires when a webhook payload contains payload.check_suite, payload.workflow_run, or payload.workflow_job — alerts on CI failures via Telegram.
+description: Handles GitHub CI webhook events; alerts on failures via Telegram. Fires on payload.check_suite, workflow_run, or workflow_job.
 user-invocable: false
 allowed-tools:
   - mcp__plugin_telegram_telegram__reply

@@ -1,6 +1,6 @@
 ---
 name: manage-discussions
-description: Autonomous handler for GitHub discussion webhook events on managed repositories. Fires when a webhook payload contains payload.discussion — monitors trusted activity silently and escalates external discussions via Telegram.
+description: Handles GitHub discussion webhook events; silently monitors trusted users, escalates external discussions via Telegram. Fires on payload.discussion.
 user-invocable: false
 allowed-tools:
   - mcp__plugin_telegram_telegram__reply

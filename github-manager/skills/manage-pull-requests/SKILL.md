@@ -1,6 +1,6 @@
 ---
 name: manage-pull-requests
-description: Autonomous handler for GitHub pull request webhook events on managed repositories. Fires when a webhook payload contains payload.pull_request — auto-merges Dependabot patches, notifies on human PRs, and escalates external PRs via Telegram.
+description: Handles GitHub PR webhook events; auto-merges Dependabot patches, escalates external PRs via Telegram. Fires on payload.pull_request.
 user-invocable: false
 allowed-tools:
   - Bash
