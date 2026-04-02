@@ -21,23 +21,15 @@ allowed-tools:
 <dependabot_opened>
 **`dependabot[bot]`, `action: opened`:**
 
-1. Parse update type:
-   - Branch matches `dependabot/*/major` or title contains "major" → **major**
-   - Otherwise → **patch/minor**
-2. **Patch/minor**: wait for CI (monitor `check_suite` events for the PR's head SHA). Once `conclusion: success`:
-   ```bash
-   gh pr review {number} --repo {owner}/{repo} --approve
-   gh pr merge {number} --repo {owner}/{repo} --squash --delete-branch
-   ```
-3. **Major**: send Telegram notification:
-   ```
-   🟡 [github-manager] Dependabot major update
-   Repo: {repo}
-   PR: {title}
-   {url}
+→ Read and follow `workflows/handle-dependabot-pr.md` exactly.
 
-   Merge, close, or ignore?
-   ```
+Key principles:
+- **One PR at a time.** Never process multiple Dependabot PRs in parallel.
+- **Test before merge.** For repos with a live service, build → start → verify logs → merge.
+- **Use docker compose.** When a `compose.yml` exists, always use `docker compose` commands
+  (not `docker run`) to stop/rebuild/start the service.
+- **Handle rebase before continuing.** After merging, wait for remaining PRs to rebase
+  (auto or manual) before processing the next one.
 </dependabot_opened>
 
 <trusted_human_opened>
@@ -71,3 +63,9 @@ What should I do? (review/approve/close/ignore)
 **Any actor, `action: closed`** (merged: true): No action.
 **Any actor, `action: synchronize` / `labeled`:** No action.
 </other_actions>
+
+<workflows_index>
+| Workflow | Purpose |
+|----------|---------|
+| handle-dependabot-pr.md | Full test→merge→rebase loop for Dependabot PRs (build, docker compose, verify logs, merge, fix conflicts) |
+</workflows_index>
