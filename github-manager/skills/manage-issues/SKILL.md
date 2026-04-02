@@ -8,12 +8,7 @@ allowed-tools:
 ---
 
 <essential_principles>
-**Managed repos** — verify before acting, ignore all others:
-- `cameri/phoenix-server`, `cameri/claude-skills`, `cameri/akkadian-agent`, `phoenix-server/taches-cc-resources`
-
-**Trusted principals** — act autonomously:
-- `cameri`, `phoenix-server`, `dependabot[bot]`, `github-actions[bot]`
-- All others are **external** → Telegram notification, ask user, do not act unilaterally
+**Managed repos and trusted principals**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others. Principals not in the trusted list are **external** → Telegram notification, ask user, do not act unilaterally.
 
 **Tools**: `gh` CLI via Bash for GitHub ops · `mcp__plugin_telegram_telegram__reply` for notifications (use `chat_id` from session; if unavailable, log in response)
 </essential_principles>

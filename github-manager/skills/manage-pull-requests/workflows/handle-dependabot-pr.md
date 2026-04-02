@@ -7,16 +7,15 @@ at a time — build, start, verify, merge — then handle remaining PRs in seque
 </context>
 
 <repo_map>
-Repos with live services and compose files:
+**Read managed repos and their configuration from this plugin's `CLAUDE.md`** (at the plugin root, one level above `skills/`).
 
-| Repo | Local path | Compose file | Service name | Health signal |
-|------|-----------|--------------|--------------|---------------|
-| `cameri/akkadian-agent` | `/workspace/projects/akkadian-agent/` | `compose.yml` | `akkadian-agent` | `"Nest application successfully started"` in logs |
+The table there lists:
+- **Repos with live services** and their compose file, service name, and health signal
+- **Repos with no live service** that can be merged directly after CI passes
 
-Repos with no live service (no build/test needed — merge directly after CI):
-- `cameri/claude-skills`
-- `cameri/phoenix-server`
-- `phoenix-server/taches-cc-resources`
+Look up `{repo}` in the CLAUDE.md table to determine:
+- If it has a live service → proceed with test/build/verify loop
+- If no live service → skip to merge step
 </repo_map>
 
 <process>
@@ -35,17 +34,19 @@ Title:  fix: bump <pkg> from X to Y
 
 ## Step 2: Check if repo has a live service
 
-Look up `{repo}` in the repo_map above.
+Look up `{repo}` in the plugin's `CLAUDE.md` (managed repos table).
 
-- **Has live service** → continue to Step 3
-- **No live service** → skip to Step 7 (merge after CI)
+- **Has live service** (listed with local path, compose file, service name, health signal) → continue to Step 3
+- **No live service** (listed under "Repos with no live service") → skip to Step 7 (merge after CI)
 
 ---
 
 ## Step 3: Check out the PR branch locally
 
+Retrieve from `CLAUDE.md`: find `{repo}` in the managed repos table, read `{local_path}`.
+
 ```bash
-cd /workspace/projects/akkadian-agent   # or the appropriate local path
+cd {local_path}   # from CLAUDE.md
 git fetch origin {head_branch}
 git checkout {head_branch}
 ```
@@ -65,14 +66,16 @@ Checking out and rebuilding...
 **Important:** The sandbox Docker builder is legacy (no BuildKit). Temporarily remove
 `--mount=type=cache` lines from Dockerfile before building, then restore after.
 
+Retrieve from `CLAUDE.md`: find `{repo}` in the managed repos table, read `{local_path}` and `{service_name}`.
+
 ```bash
-cd /workspace/projects/akkadian-agent
+cd {local_path}
 
 # 1. Strip cache mount lines
 sed -i 's/RUN --mount=type=cache,[^ ]* /RUN /g' Dockerfile
 
-# 2. Build
-docker compose build akkadian-agent
+# 2. Build (use service_name from CLAUDE.md)
+docker compose build {service_name}
 
 # 3. Restore Dockerfile from git
 git checkout Dockerfile
@@ -84,10 +87,12 @@ If `docker compose build` fails, send failure Telegram notification and stop.
 
 ## Step 5: Stop and restart the container
 
+Retrieve from `CLAUDE.md`: find `{repo}` in the managed repos table, read `{local_path}` and `{service_name}`.
+
 ```bash
-cd /workspace/projects/akkadian-agent
-docker compose stop akkadian-agent
-docker compose up -d akkadian-agent
+cd {local_path}
+docker compose stop {service_name}
+docker compose up -d {service_name}
 ```
 
 > **Note:** Run from the repo directory so compose volume paths resolve correctly.
@@ -98,12 +103,14 @@ docker compose up -d akkadian-agent
 
 ## Step 6: Verify the service started cleanly
 
+Retrieve from `CLAUDE.md`: find `{repo}` in the managed repos table, read `{service_name}` and `{health_signal}`.
+
 ```bash
 sleep 15
-docker compose logs akkadian-agent --tail 20
+docker compose logs {service_name} --tail 20
 ```
 
-Look for the health signal (e.g. `"Nest application successfully started"`).
+Look for the health signal from CLAUDE.md (e.g. the signal listed for this repo).
 
 - **Found** → proceed to Step 7
 - **Not found / error in logs** → send failure notification, restore main branch, stop
@@ -181,8 +188,10 @@ the auto-rebase will never succeed. Go to Option B.
 
 ### Option B: Manual rebase (when Dependabot can't authenticate)
 
+Retrieve from `CLAUDE.md`: find `{repo}` in the managed repos table, read `{local_path}`.
+
 ```bash
-cd /workspace/projects/akkadian-agent   # or repo path
+cd {local_path}
 git fetch origin main {head_branch}
 git checkout {head_branch}
 git rebase origin/main

@@ -7,8 +7,7 @@ allowed-tools:
 ---
 
 <essential_principles>
-**Managed repos** — verify before acting, ignore all others:
-- `cameri/phoenix-server`, `cameri/claude-skills`, `cameri/akkadian-agent`, `phoenix-server/taches-cc-resources`
+**Managed repos**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others.
 
 **Tools**: `mcp__plugin_telegram_telegram__reply` for notifications (use `chat_id` from session; if unavailable, log in response)
 
