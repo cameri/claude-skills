@@ -20,7 +20,7 @@ import { Cron } from "croner";
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
-const STATE_DIR = join(homedir(), ".claude", "channels", "scheduler");
+const STATE_DIR = join(homedir(), ".claude", "channels", "cronjobs");
 const SCHEDULES_FILE = join(STATE_DIR, "schedules.json");
 
 mkdirSync(STATE_DIR, { recursive: true });
@@ -203,7 +203,7 @@ function fireNotification(schedule: Schedule): void {
     params: {
       content: `Scheduled task fired: ${schedule.task}`,
       meta: {
-        source: "scheduler",
+        source: "cronjobs",
         schedule_id: schedule.id,
         task: schedule.task,
         type: schedule.type,
@@ -244,14 +244,14 @@ function startJob(schedule: Schedule): void {
 // ── MCP Server ────────────────────────────────────────────────────────────────
 
 mcp = new Server(
-  { name: "plugin:scheduler", version: "1.0.0" },
+  { name: "plugin:cronjobs", version: "1.0.0" },
   {
     capabilities: { tools: {}, experimental: { "claude/channel": {} } },
     instructions: [
       "You are a task scheduler. You can schedule tasks to run at specific times or intervals.",
       "When a scheduled task fires, you receive a channel notification — act on the task described.",
       "",
-      "Tools: add_schedule, list_schedules, remove_schedule, clear_schedules",
+      "Tools: add-job, list-jobs, remove-job, clear-jobs",
       "",
       "Supported schedule expressions:",
       "  once in 5 minutes       — fires once after a delay",
@@ -269,8 +269,8 @@ mcp = new Server(
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
-      name: "add_schedule",
-      description: "Schedule a task to run at a specific time or recurring interval.",
+      name: "add-job",
+      description: "Schedule a job to run at a specific time or recurring interval.",
       inputSchema: {
         type: "object",
         properties: {
@@ -281,24 +281,24 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "list_schedules",
-      description: "List all active schedules.",
+      name: "list-jobs",
+      description: "List all active jobs.",
       inputSchema: { type: "object", properties: {} },
     },
     {
-      name: "remove_schedule",
-      description: "Remove a schedule by its ID.",
+      name: "remove-job",
+      description: "Remove a job by its ID.",
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "Schedule ID to remove" },
+          id: { type: "string", description: "Job ID to remove" },
         },
         required: ["id"],
       },
     },
     {
-      name: "clear_schedules",
-      description: "Remove all active schedules.",
+      name: "clear-jobs",
+      description: "Remove all active jobs.",
       inputSchema: { type: "object", properties: {} },
     },
   ],
@@ -308,7 +308,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   const args = (req.params.arguments ?? {}) as Record<string, string>;
 
   switch (req.params.name) {
-    case "add_schedule": {
+    case "add-job": {
       const parsed = parseScheduleExpression(args.expression);
       if (!parsed) {
         return {
@@ -352,30 +352,30 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       };
     }
 
-    case "list_schedules": {
+    case "list-jobs": {
       const schedules = loadSchedules();
       if (schedules.length === 0) {
-        return { content: [{ type: "text", text: "No active schedules." }] };
+        return { content: [{ type: "text", text: "No active jobs." }] };
       }
       return { content: [{ type: "text", text: JSON.stringify(schedules, null, 2) }] };
     }
 
-    case "remove_schedule": {
+    case "remove-job": {
       stopJob(args.id);
       const before = loadSchedules();
       const after = before.filter(s => s.id !== args.id);
       if (before.length === after.length) {
-        return { content: [{ type: "text", text: `Schedule "${args.id}" not found.` }], isError: true };
+        return { content: [{ type: "text", text: `Job "${args.id}" not found.` }], isError: true };
       }
       saveSchedules(after);
-      return { content: [{ type: "text", text: `Schedule ${args.id} removed.` }] };
+      return { content: [{ type: "text", text: `Job ${args.id} removed.` }] };
     }
 
-    case "clear_schedules": {
+    case "clear-jobs": {
       for (const id of activeJobs.keys()) stopJob(id);
       const count = loadSchedules().length;
       saveSchedules([]);
-      return { content: [{ type: "text", text: `Cleared ${count} schedule(s).` }] };
+      return { content: [{ type: "text", text: `Cleared ${count} job(s).` }] };
     }
 
     default:
@@ -394,7 +394,7 @@ for (const s of existing) {
   startJob(s);
   loaded++;
 }
-process.stderr.write(`scheduler: ${loaded} schedule(s) loaded\n`);
+process.stderr.write(`cronjobs: ${loaded} job(s) loaded\n`);
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 
