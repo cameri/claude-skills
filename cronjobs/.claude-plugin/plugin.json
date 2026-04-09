@@ -2,5 +2,5 @@
   "name": "cronjobs",
   "description": "Schedule jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes'. Fires channel notifications when jobs are due.",
   "version": "0.0.3",
-  "keywords": ["cronjobs", "cron", "scheduler", "schedule", "job", "reminder"]
+  "keywords": ["cronjobs", "cron", "job", "reminder"]
 }
