@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 /**
- * Claude Code Scheduler Channel Server
+ * Claude Code Cronjobs Channel Server
  *
- * MCP server that manages scheduled tasks and notifies Claude when they fire.
+ * MCP server that manages cron jobs and notifies Claude when they fire.
  * Supports natural language schedule expressions:
  *   "every 3 minutes", "every weekday at 3am", "once in 5 minutes"
  *
- * State: ~/.claude/channels/scheduler/schedules.json
+ * State: ~/.claude/channels/cronjobs/jobs.json
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -21,11 +21,11 @@ import { Cron } from "croner";
 // ── State ─────────────────────────────────────────────────────────────────────
 
 const STATE_DIR = join(homedir(), ".claude", "channels", "cronjobs");
-const SCHEDULES_FILE = join(STATE_DIR, "schedules.json");
+const JOBS_FILE = join(STATE_DIR, "jobs.json");
 
 mkdirSync(STATE_DIR, { recursive: true });
 
-interface Schedule {
+interface Job {
   id: string;
   task: string;
   expression: string; // cron string or ISO timestamp for once
@@ -34,16 +34,16 @@ interface Schedule {
   nextRun?: string;
 }
 
-function loadSchedules(): Schedule[] {
+function loadJobs(): Job[] {
   try {
-    return JSON.parse(readFileSync(SCHEDULES_FILE, "utf-8"));
+    return JSON.parse(readFileSync(JOBS_FILE, "utf-8"));
   } catch {
     return [];
   }
 }
 
-function saveSchedules(schedules: Schedule[]): void {
-  writeFileSync(SCHEDULES_FILE, JSON.stringify(schedules, null, 2));
+function saveJobs(jobs: Job[]): void {
+  writeFileSync(JOBS_FILE, JSON.stringify(jobs, null, 2));
 }
 
 // ── Natural language parser ───────────────────────────────────────────────────
@@ -71,7 +71,7 @@ const DAY_NAMES: Record<string, string> = {
   sun: "0", mon: "1", tue: "2", wed: "3", thu: "4", fri: "5", sat: "6",
 };
 
-export function parseScheduleExpression(expr: string): Parsed | null {
+export function parseExpression(expr: string): Parsed | null {
   const e = expr.trim().toLowerCase();
 
   let m: RegExpMatchArray | null;
@@ -197,47 +197,45 @@ function stopJob(id: string): void {
   activeJobs.delete(id);
 }
 
-function fireNotification(schedule: Schedule): void {
+function fireNotification(job: Job): void {
   void mcp.notification({
     method: "notifications/claude/channel",
     params: {
-      content: `Scheduled task fired: ${schedule.task}`,
+      content: `Job fired: ${job.task}`,
       meta: {
         source: "cronjobs",
-        schedule_id: schedule.id,
-        task: schedule.task,
-        type: schedule.type,
-        ...(schedule.type === "cron" ? { expression: schedule.expression } : {}),
+        job_id: job.id,
+        task: job.task,
+        type: job.type,
+        ...(job.type === "cron" ? { expression: job.expression } : {}),
         fired_at: new Date().toISOString(),
       },
     },
   });
 }
 
-function startJob(schedule: Schedule): void {
-  stopJob(schedule.id);
+function startJob(job: Job): void {
+  stopJob(job.id);
 
-  if (schedule.type === "once") {
-    const fireAt = new Date(schedule.expression).getTime();
+  if (job.type === "once") {
+    const fireAt = new Date(job.expression).getTime();
     const delay = fireAt - Date.now();
     if (delay <= 0) {
       // Already past — clean up
-      const schedules = loadSchedules().filter(s => s.id !== schedule.id);
-      saveSchedules(schedules);
+      saveJobs(loadJobs().filter(j => j.id !== job.id));
       return;
     }
     const timer = setTimeout(() => {
-      fireNotification(schedule);
-      const schedules = loadSchedules().filter(s => s.id !== schedule.id);
-      saveSchedules(schedules);
-      activeJobs.delete(schedule.id);
+      fireNotification(job);
+      saveJobs(loadJobs().filter(j => j.id !== job.id));
+      activeJobs.delete(job.id);
     }, delay);
-    activeJobs.set(schedule.id, { stop: () => clearTimeout(timer) });
+    activeJobs.set(job.id, { stop: () => clearTimeout(timer) });
   } else {
-    const job = new Cron(schedule.expression, { timezone: "UTC" }, () => {
-      fireNotification(schedule);
+    const cron = new Cron(job.expression, { timezone: "UTC" }, () => {
+      fireNotification(job);
     });
-    activeJobs.set(schedule.id, job);
+    activeJobs.set(job.id, cron);
   }
 }
 
@@ -248,8 +246,8 @@ mcp = new Server(
   {
     capabilities: { tools: {}, experimental: { "claude/channel": {} } },
     instructions: [
-      "You are a task scheduler. You can schedule tasks to run at specific times or intervals.",
-      "When a scheduled task fires, you receive a channel notification — act on the task described.",
+      "You are a cron job manager. You can schedule jobs to run at specific times or intervals.",
+      "When a job fires, you receive a channel notification — act on the task described.",
       "",
       "Tools: add-job, list-jobs, remove-job, clear-jobs",
       "",
@@ -274,7 +272,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
-          task: { type: "string", description: "What to do when the schedule fires (shown in the channel notification)" },
+          task: { type: "string", description: "What to do when the job fires (shown in the channel notification)" },
           expression: { type: "string", description: "Natural language schedule: 'every 3 minutes', 'every weekday at 3am', 'once in 5 minutes'; or a raw 5-field cron expression" },
         },
         required: ["task", "expression"],
@@ -309,16 +307,16 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 
   switch (req.params.name) {
     case "add-job": {
-      const parsed = parseScheduleExpression(args.expression);
+      const parsed = parseExpression(args.expression);
       if (!parsed) {
         return {
-          content: [{ type: "text", text: `Cannot parse schedule expression: "${args.expression}". Try "every 3 minutes", "every weekday at 3am", or "once in 5 minutes".` }],
+          content: [{ type: "text", text: `Cannot parse expression: "${args.expression}". Try "every 3 minutes", "every weekday at 3am", or "once in 5 minutes".` }],
           isError: true,
         };
       }
 
       const id = randomUUID().slice(0, 8);
-      const schedule: Schedule = {
+      const job: Job = {
         id,
         task: args.task,
         expression: parsed.value,
@@ -331,50 +329,50 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
           const probe = new Cron(parsed.value, { paused: true });
           const next = probe.nextRun();
           probe.stop();
-          if (next) schedule.nextRun = next.toISOString();
+          if (next) job.nextRun = next.toISOString();
         } catch (e) {
           return { content: [{ type: "text", text: `Invalid cron expression: ${(e as Error).message}` }], isError: true };
         }
       } else {
-        schedule.nextRun = parsed.value;
+        job.nextRun = parsed.value;
       }
 
-      const schedules = loadSchedules();
-      schedules.push(schedule);
-      saveSchedules(schedules);
-      startJob(schedule);
+      const jobs = loadJobs();
+      jobs.push(job);
+      saveJobs(jobs);
+      startJob(job);
 
       return {
         content: [{
           type: "text",
-          text: JSON.stringify({ id, task: args.task, expression: args.expression, cronExpression: parsed.value, type: parsed.type, nextRun: schedule.nextRun }, null, 2),
+          text: JSON.stringify({ id, task: args.task, expression: args.expression, cronExpression: parsed.value, type: parsed.type, nextRun: job.nextRun }, null, 2),
         }],
       };
     }
 
     case "list-jobs": {
-      const schedules = loadSchedules();
-      if (schedules.length === 0) {
+      const jobs = loadJobs();
+      if (jobs.length === 0) {
         return { content: [{ type: "text", text: "No active jobs." }] };
       }
-      return { content: [{ type: "text", text: JSON.stringify(schedules, null, 2) }] };
+      return { content: [{ type: "text", text: JSON.stringify(jobs, null, 2) }] };
     }
 
     case "remove-job": {
       stopJob(args.id);
-      const before = loadSchedules();
-      const after = before.filter(s => s.id !== args.id);
+      const before = loadJobs();
+      const after = before.filter(j => j.id !== args.id);
       if (before.length === after.length) {
         return { content: [{ type: "text", text: `Job "${args.id}" not found.` }], isError: true };
       }
-      saveSchedules(after);
+      saveJobs(after);
       return { content: [{ type: "text", text: `Job ${args.id} removed.` }] };
     }
 
     case "clear-jobs": {
       for (const id of activeJobs.keys()) stopJob(id);
-      const count = loadSchedules().length;
-      saveSchedules([]);
+      const count = loadJobs().length;
+      saveJobs([]);
       return { content: [{ type: "text", text: `Cleared ${count} job(s).` }] };
     }
 
@@ -386,12 +384,12 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 // Connect MCP transport before starting any jobs (no notifications are lost).
 await mcp.connect(new StdioServerTransport());
 
-// Load and start persisted schedules.
-const existing = loadSchedules();
+// Load and start persisted jobs.
+const existing = loadJobs();
 let loaded = 0;
-for (const s of existing) {
-  if (s.type === "once" && new Date(s.expression) <= new Date()) continue; // expired
-  startJob(s);
+for (const j of existing) {
+  if (j.type === "once" && new Date(j.expression) <= new Date()) continue; // expired
+  startJob(j);
   loaded++;
 }
 process.stderr.write(`cronjobs: ${loaded} job(s) loaded\n`);

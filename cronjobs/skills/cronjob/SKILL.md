@@ -1,6 +1,6 @@
 ---
-name: schedule-task
-description: Schedule recurring or one-time tasks. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/schedule". When a task fires as a channel notification, execute it.
+name: cronjob
+description: Schedule recurring or one-time jobs. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/cronjob". When a job fires as a channel notification, execute it.
 user-invocable: true
 allowed-tools:
   - mcp__plugin_cronjobs_cronjobs__add-job

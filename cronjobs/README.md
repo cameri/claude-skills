@@ -1,21 +1,21 @@
-# scheduler
+# cronjobs
 
-Schedule tasks using natural language. The scheduler runs as a background MCP channel server and fires Claude channel notifications when tasks are due.
+Schedule jobs using natural language. The plugin runs as a background MCP channel server and fires Claude channel notifications when jobs are due.
 
 ## Skills
 
 | Skill | Description |
 |---|---|
-| `schedule` | Add, list, and remove scheduled tasks |
+| `cronjob` | Add, list, and remove cron jobs |
 
 ## Example usage
 
 ```
-/schedule check email every 1 hour
-/schedule send daily standup summary every weekday at 9am
-/schedule remind me to drink water once in 30 minutes
-/schedule list
-/schedule remove abc12345
+/cronjob check email every 1 hour
+/cronjob send daily standup summary every weekday at 9am
+/cronjob remind me to drink water once in 30 minutes
+/cronjob list
+/cronjob remove abc12345
 ```
 
 ## Supported schedule expressions
@@ -36,21 +36,21 @@ All times are UTC.
 ## Install
 
 ```
-/plugin install scheduler@claude-skills
+/plugin install cronjobs@claude-skills
 /reload-plugins
 ```
 
 Then start Claude with the channel flag:
 
 ```sh
-claude --dangerously-load-development-channels plugin:scheduler@claude-skills
+claude --dangerously-load-development-channels plugin:cronjobs@claude-skills
 ```
 
 > **Note:** `--dangerously-load-development-channels` requires interactive approval the first time. Once channels are generally available, use `--channels` instead.
 
 ## State
 
-Schedules persist across restarts in `~/.claude/channels/scheduler/schedules.json`.
+Jobs persist across restarts in `~/.claude/channels/cronjobs/jobs.json`.
 
 ## License
 

@@ -26,6 +26,19 @@ Act autonomously for events from these actors. All others are **external** → T
 - `dependabot[bot]`
 - `github-actions[bot]`
 
+## Token Scope Management
+
+If the gh CLI token lacks required scopes for operations like workflow file management, you can add scopes with:
+
+```bash
+gh auth refresh -s <scope> -h github.com
+```
+
+Replace `<scope>` with the needed scope (e.g., `workflow` for CI workflow management). This will prompt for device authorization via https://github.com/login/device. Common scopes:
+- `workflow` — manage GitHub Actions workflows
+- `repo` — full repository access
+- `admin:org_hook` — manage organization webhooks
+
 ## nostream-specific Rules
 
 `cameri/nostream` is a public repo with community contributors (including Summer of Bitcoin 2026 students). Special rules apply:
