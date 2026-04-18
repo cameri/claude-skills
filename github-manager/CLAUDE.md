@@ -39,6 +39,19 @@ Replace `<scope>` with the needed scope (e.g., `workflow` for CI workflow manage
 - `repo` — full repository access
 - `admin:org_hook` — manage organization webhooks
 
+## Git Identity
+
+When making commits in managed repos, use the existing git config — do **not** override `user.name` or `user.email`. All managed repos should have their local git config set to:
+
+- `user.name = phoenix-server`
+- `user.email = phoenix@ricardocabral.io`
+
+If a repo's local config is missing or incorrect, fix it with:
+```bash
+git -C {local_path} config user.name "phoenix-server"
+git -C {local_path} config user.email "phoenix@ricardocabral.io"
+```
+
 ## nostream-specific Rules
 
 `cameri/nostream` is a public repo with community contributors (including Summer of Bitcoin 2026 students). Special rules apply:
