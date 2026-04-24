@@ -21,4 +21,4 @@ Stored in `~/.claude/channels/actual-budget/.env` (chmod 600):
 
 ## License
 
-Apache-2.0
+MIT

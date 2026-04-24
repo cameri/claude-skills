@@ -96,4 +96,4 @@ Agent cache is stored at `~/.claude/channels/nats/agents.json`.
 
 ## License
 
-Apache-2.0
+MIT

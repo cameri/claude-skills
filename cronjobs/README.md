@@ -54,4 +54,4 @@ Jobs persist across restarts in `~/.claude/channels/cronjobs/jobs.json`.
 
 ## License
 
-Apache-2.0
+MIT

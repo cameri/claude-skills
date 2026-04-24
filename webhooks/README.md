@@ -73,4 +73,4 @@ Server configuration persists in `~/.claude/channels/webhooks/config.json`.
 
 ## License
 
-Apache-2.0
+MIT

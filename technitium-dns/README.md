@@ -29,4 +29,4 @@ To create an API token via the Web Console: **Administration → API Tokens → 
 
 ## License
 
-Apache-2.0
+MIT

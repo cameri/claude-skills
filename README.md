@@ -161,4 +161,4 @@ After reloading, all plugin skills are available (e.g. `/paperless:configure`, `
 
 ## License
 
-Apache-2.0
+MIT

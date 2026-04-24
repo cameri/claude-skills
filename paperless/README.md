@@ -43,4 +43,4 @@ Unresolvable IDs are stored as `"?"` so they are not re-fetched.
 
 ## License
 
-Apache-2.0
+MIT

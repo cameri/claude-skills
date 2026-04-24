@@ -25,4 +25,4 @@ Stored in `~/.claude/channels/home-assistant/.env` (chmod 600):
 
 ## License
 
-Apache-2.0
+MIT

@@ -41,4 +41,4 @@ Wallabag uses OAuth2 password grant. You need:
 
 ## License
 
-Apache-2.0
+MIT
