@@ -31,10 +31,10 @@ mkdirSync(STATE_DIR, { recursive: true });
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface WebhookAuth {
-  mode: "none" | "hmac_sha256" | "header";
+  mode: "none" | "hmac_sha256" | "header" | "svix";
   /** HMAC secret or direct header value */
   secret?: string;
-  /** Header name: X-Signature-256 (hmac) or X-Webhook-Secret (header) */
+  /** Header name: X-Signature-256 (hmac) or X-Webhook-Secret (header) or Svix-Signature (svix) */
   header?: string;
   /** For hmac_sha256: whether signature has "sha256=" prefix. Default: true */
   hmacPrefix?: boolean;
@@ -123,6 +123,49 @@ function verifyHmac(
   }
 }
 
+function verifySvix(
+  messageId: string,
+  timestamp: string,
+  rawBody: Buffer,
+  secret: string,
+  signature: string,
+): boolean {
+  try {
+    // Svix secret format: whsec_<base64_encoded_key>
+    // Strip the whsec_ prefix and decode from base64
+    const secretWithoutPrefix = secret.startsWith("whsec_") ? secret.slice(6) : secret;
+    const secretBytes = Buffer.from(secretWithoutPrefix, "base64");
+
+    // Message to sign: {id}.{timestamp}.{body}
+    const msgToSign = `${messageId}.${timestamp}.${rawBody.toString("utf-8")}`;
+
+    // Compute HMAC-SHA256
+    const computedSignature = createHmac("sha256", secretBytes)
+      .update(msgToSign)
+      .digest("base64");
+
+    // Expected format in header: t=<timestamp>,v1=<signature>
+    // Extract the v1 signature part
+    const parts = signature.split(",");
+    let expectedSignature = "";
+    for (const part of parts) {
+      if (part.startsWith("v1=")) {
+        expectedSignature = part.slice(3);
+        break;
+      }
+    }
+
+    if (!expectedSignature) {
+      return false;
+    }
+
+    // Timing-safe comparison
+    return timingSafeEqual(Buffer.from(computedSignature), Buffer.from(expectedSignature));
+  } catch {
+    return false;
+  }
+}
+
 // ── MCP Server ────────────────────────────────────────────────────────────────
 
 // Declared here so the BullMQ worker can reference it after connect().
@@ -142,6 +185,7 @@ mcp = new Server(
       "  none        — accept any request",
       "  hmac_sha256 — verify HMAC-SHA256 signature header (e.g. X-Signature-256: sha256=<hex>)",
       "  header      — require exact match of a secret in a header (e.g. X-Webhook-Secret)",
+      "  svix        — verify Svix signature (whsec_<secret>, Svix-Signature header with t= and v1= parts)",
       "",
       "Run get_config to see the current port and Redis URL.",
       "Changes to config take effect on next server restart.",
@@ -167,8 +211,8 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
           auth_mode: {
             type: "string",
-            enum: ["none", "hmac_sha256", "header"],
-            description: "Security mode. 'none' = open, 'hmac_sha256' = HMAC-SHA256 signature, 'header' = direct secret header.",
+            enum: ["none", "hmac_sha256", "header", "svix"],
+            description: "Security mode. 'none' = open, 'hmac_sha256' = HMAC-SHA256 signature, 'header' = direct secret header, 'svix' = Svix signature verification.",
           },
           secret: {
             type: "string",
@@ -201,7 +245,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           name: { type: "string" },
           enabled: { type: "boolean", description: "Enable or disable this webhook without deleting it" },
           allowed_ips: { type: "array", items: { type: "string" } },
-          auth_mode: { type: "string", enum: ["none", "hmac_sha256", "header"] },
+          auth_mode: { type: "string", enum: ["none", "hmac_sha256", "header", "svix"] },
           secret: { type: "string" },
           auth_header: { type: "string" },
           hmac_prefix: { type: "boolean" },
@@ -261,6 +305,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       const defaultHeader =
         authMode === "hmac_sha256" ? "X-Signature-256" :
         authMode === "header"      ? "X-Webhook-Secret" :
+        authMode === "svix"        ? "Svix-Signature" :
         undefined;
       const webhook: WebhookConfig = {
         id,
@@ -409,6 +454,21 @@ app.post("/webhook/:id", async (req, res) => {
     const value = req.headers[secretHeader.toLowerCase()] as string | undefined;
     if (!value || value !== webhook.auth.secret) {
       res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+  } else if (webhook.auth.mode === "svix") {
+    const sigHeader = webhook.auth.header ?? "Svix-Signature";
+    const signature = req.headers[sigHeader.toLowerCase()] as string | undefined;
+    const msgId = req.headers["svix-id"] as string | undefined;
+    const timestamp = req.headers["svix-timestamp"] as string | undefined;
+
+    if (!signature || !msgId || !timestamp) {
+      res.status(401).json({ error: "Missing Svix headers" });
+      return;
+    }
+
+    if (!verifySvix(msgId, timestamp, rawBody, webhook.auth.secret!, signature)) {
+      res.status(401).json({ error: "Invalid Svix signature" });
       return;
     }
   }
