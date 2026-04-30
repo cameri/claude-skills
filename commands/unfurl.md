@@ -82,15 +82,14 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
 
 7. **Report results**
 
-   Show:
-   - The full redirect chain (each hop's URL and status code)
-   - The final clean URL (tracking params stripped)
-   - Any tracking parameters that were removed
+   Output only the final clean URL — nothing else. No redirect chain, no labels,
+   no tracking parameter notes. Just the bare URL on a single line.
+
+   If invoked from Telegram, reply with the bare URL.
 </process>
 
 <success_criteria>
-- Full redirect chain shown with status codes at each hop
 - Final destination URL identified correctly
 - Common tracking parameters stripped from the result
-- Clean URL ready to copy/share
+- Only the clean URL is output — no extra text
 </success_criteria>
