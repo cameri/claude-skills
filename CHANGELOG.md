@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [github-manager 0.3.0] - 2026-05-01
+
+### Added
+- `create-stories` skill — parses a PRD and batch-creates a parent-child GitHub issue hierarchy (stories + sub-issues) with milestone assignment and project board integration
+
 ## [commands] - 2026-03-30
 
 ### Removed
