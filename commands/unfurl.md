@@ -25,7 +25,19 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
    If `$ARGUMENTS` is empty, ask:
    > Please paste the URL you want to unfurl.
 
-2. **Follow all HTTP redirects via gluetun**
+2. **Handle AWS SES tracking URLs (awstrack.me)**
+
+   If the URL matches `*.awstrack.me/L0/<embedded-url>/...`, extract the embedded
+   URL directly without making any HTTP requests:
+
+   ```bash
+   echo "$URL" | grep -oP '(?<=/L0/)(https?://.*?)(?=/\d+/[0-9a-f\-]{8,})'
+   ```
+
+   If a match is found, use that extracted URL as `$URL` and continue from step 3.
+   This avoids the AWS redirect hop entirely.
+
+3. **Follow all HTTP redirects via gluetun**
 
    Use wget with server-response output to trace the full redirect chain:
 
@@ -35,7 +47,7 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
 
    This prints each hop's status code and `Location:` header, giving the full chain.
 
-3. **Handle JavaScript-redirect pages (HubSpot, some email trackers)**
+4. **Handle JavaScript-redirect pages (HubSpot, some email trackers)**
 
    If the first request returns `200 OK` instead of a `3xx` redirect, the page likely
    uses JavaScript to redirect. These pages usually embed a `<noscript>` fallback.
@@ -51,7 +63,7 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
    For HubSpot specifically, the fallback is at:
    `/events/public/v1/encoded/track/tc/...?_jss=0`
 
-4. **Handle DNS blocks**
+5. **Handle DNS blocks**
 
    If the domain fails to resolve (`Name does not resolve`), AdGuard DNS inside
    gluetun is blocking it. To bypass:
@@ -66,12 +78,12 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
 
    c. Retry. Restore original settings and recreate again when done.
 
-5. **Identify the final URL**
+6. **Identify the final URL**
 
    The last `Location:` header in the chain is the final destination. If the last
    response is `200 OK` with no further `Location:`, that URL is the answer.
 
-6. **Strip tracking parameters**
+7. **Strip tracking parameters**
 
    Remove well-known tracking query parameters from the final URL:
    - `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`
@@ -80,7 +92,7 @@ Uses the gluetun VPN container to bypass domains blocked by local DNS (AdGuard).
 
    Preserve all query parameters that affect page content (e.g. `v=` on YouTube).
 
-7. **Report results**
+8. **Report results**
 
    Output only the final clean URL — nothing else. No redirect chain, no labels,
    no tracking parameter notes. Just the bare URL on a single line.
