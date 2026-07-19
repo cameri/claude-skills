@@ -165,6 +165,34 @@ await api.updateTransaction(idB, { transfer_id: idA });
 
 > **Note:** Rules work on the resolved `payee` UUID, not on raw `notes` strings. The `imported_payee` → `payee` mapping is handled by separate pre-stage rules already in ActualBudget. Only create `stage: null` category rules here.
 
+### Direction-conditional rules for e-transfers
+
+For Interac e-Transfer payees, the category depends on direction — always create two rules per payee:
+
+```javascript
+// Incoming (receiving money) → Reimbursements & Rebates
+await api.createRule({
+  stage: null, conditionsOp: 'and',
+  conditions: [
+    { field: 'payee', op: 'is', value: payeeId, type: 'id' },
+    { field: 'amount', op: 'gt', value: 0, type: 'number' },
+  ],
+  actions: [{ field: 'category', op: 'set', value: REIMBURSEMENTS_CAT_ID, type: 'id' }],
+});
+
+// Outgoing (sending money) → Discretionary Spending
+await api.createRule({
+  stage: null, conditionsOp: 'and',
+  conditions: [
+    { field: 'payee', op: 'is', value: payeeId, type: 'id' },
+    { field: 'amount', op: 'lt', value: 0, type: 'number' },
+  ],
+  actions: [{ field: 'category', op: 'set', value: DISCRETIONARY_CAT_ID, type: 'id' }],
+});
+```
+
+Apply this pattern to any payee where direction determines category (e-transfers, cash, etc.).
+
 ---
 
 ## Step 8 — Build reconciliation report
