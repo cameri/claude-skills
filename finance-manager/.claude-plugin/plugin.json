@@ -1,6 +1,6 @@
 {
   "name": "finance-manager",
   "description": "Reconcile bank statements from paperless-ngx against ActualBudget — syncs accounts, matches transactions, and self-improves reconciliation rules.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "keywords": ["finance", "budget", "actual-budget", "reconciliation", "paperless"]
 }

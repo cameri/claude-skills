@@ -1,6 +1,6 @@
 # Workflow: self-evolve
 
-Updates `references/learned-rules.md` after each reconciliation. Run automatically at the end of every `reconcile-statement.md` execution.
+Updates `docs/finance/learned-rules.md` (workspace-local, not part of this plugin — see `SKILL.md`) after each reconciliation. Run automatically at the end of every `reconcile-statement.md` execution.
 
 ## Step 1 — Review reconciliation outcome
 
@@ -14,7 +14,7 @@ Gather from the just-completed reconciliation:
 
 ## Step 2 — Identify learnable patterns
 
-For each non-obvious match or assignment, check if a rule already exists in `references/learned-rules.md`:
+For each non-obvious match or assignment, check if a rule already exists in `docs/finance/learned-rules.md`:
 
 - If a rule already covers it: increment its `times_applied` counter and update `last_seen`
 - If no rule covers it: add a new rule entry
@@ -30,7 +30,7 @@ For each non-obvious match or assignment, check if a rule already exists in `ref
 
 ## Step 3 — Update learned-rules.md
 
-Read `references/learned-rules.md`, apply changes, write back.
+Read `docs/finance/learned-rules.md`, apply changes, write back.
 
 Rules that have been applied ≥3 times with no errors should be marked `confidence: high`.
 Rules applied once should be `confidence: low`.

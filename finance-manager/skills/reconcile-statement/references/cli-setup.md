@@ -27,10 +27,11 @@ node "$ACTUAL" accounts list --format json 2>&1 | head -5
 
 ## Troubleshooting
 
-- **decrypt-failure / missing-key**: the `ACTUAL_DATA_DIR` cache is stale. Delete the budget subdirectory inside it and let the CLI re-download.
+- **decrypt-failure / missing-key**: the `ACTUAL_DATA_DIR` cache is stale. Delete your budget's cache subdirectory inside it and let the CLI re-download.
   ```bash
-  rm -rf "$ACTUAL_DATA_DIR"/My-Finances-*
+  ls "$ACTUAL_DATA_DIR"                    # find your budget's cache dir name
+  rm -rf "$ACTUAL_DATA_DIR"/<your-budget-name>-*
   node "$ACTUAL" accounts list --format json
   ```
-- **sync-id not found**: ensure `ACTUAL_SYNC_ID` is the groupId (`5207407b-d8c9-49b6-b60d-bc4b7e4b12a6`), not the cloudFileId.
+- **sync-id not found**: ensure `ACTUAL_SYNC_ID` is set to the budget's groupId, not its cloudFileId — these are different identifiers in ActualBudget's sync protocol.
 - **Lock timeout**: another CLI process is running. Wait or use `--no-lock` with care.

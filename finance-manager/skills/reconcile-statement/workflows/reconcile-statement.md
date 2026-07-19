@@ -43,9 +43,9 @@ Key fields: `title`, `correspondent` name, `created`, `document_type`.
 
 ## Step 3 — Identify the ActualBudget account
 
-Look up `references/account-map.md` using the correspondent name AND title pattern (last-4 digits where applicable).
+Look up `docs/finance/account-map.md` (workspace-local, not part of this plugin — see `SKILL.md`) using the correspondent name AND title pattern (last-4 digits where applicable).
 
-If no match is found, ask the user to identify the account and update `references/account-map.md`.
+If no match is found, ask the user to identify the account and update `docs/finance/account-map.md`.
 
 ---
 
@@ -69,7 +69,7 @@ Extract from the statement text:
 - **Closing balance**: to-the-cent (e.g. `$1,234.56` → `123456` in cents)
 - **Transaction list**: date, description, amount, running balance per line
 
-Use `references/learned-rules.md` heuristics to help parse payee names.
+Use `docs/finance/learned-rules.md` heuristics to help parse payee names.
 
 ---
 

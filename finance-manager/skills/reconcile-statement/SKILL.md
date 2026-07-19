@@ -8,7 +8,7 @@ Ask the user to select one of:
 
 1. **Process incoming statement** — provide the paperless document ID or webhook payload
 2. **Reconcile a specific account manually** — provide the account name and statement period
-3. **Review/update learned rules** — view or edit `references/learned-rules.md`
+3. **Review/update learned rules** — view or edit `docs/finance/learned-rules.md`
 
 ## Core principles
 
@@ -24,13 +24,20 @@ Ask the user to select one of:
 |--------|----------|
 | Incoming webhook / document ID | `workflows/reconcile-statement.md` |
 | Manual reconciliation request | `workflows/reconcile-statement.md` |
-| Review/update rules | Open `references/learned-rules.md` for editing |
+| Review/update rules | Open `docs/finance/learned-rules.md` for editing |
 
 ## References
 
-- `references/account-map.md` — paperless correspondent + title pattern → ActualBudget account ID
-- `references/learned-rules.md` — self-updating heuristics for payee matching and categorization
 - `references/cli-setup.md` — how to bootstrap the `$ACTUAL` binary and env vars
+
+## Personal configuration (not shipped with this plugin)
+
+This skill is portable — it ships with no account IDs, budget-specific rules, or transaction data. Each user provides their own, kept outside the plugin in their workspace's `docs/finance/`:
+
+- `docs/finance/account-map.md` — paperless correspondent + title pattern → ActualBudget account ID
+- `docs/finance/learned-rules.md` — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`)
+
+If these files don't exist yet in your workspace, create them before reconciling — ask the user for their correspondent → account mapping to seed `account-map.md`, and start `learned-rules.md` empty.
 
 ## Dependencies
 
