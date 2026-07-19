@@ -166,6 +166,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./github-manager"
+    },
+    {
+      "name": "finance-manager",
+      "description": "Reconcile bank statements from paperless-ngx against ActualBudget — syncs accounts, matches transactions, and self-improves reconciliation rules.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./finance-manager"
     }
   ]
 }
