@@ -127,6 +127,46 @@ Match statement lines to ActualBudget transactions:
 
 ---
 
+## Step 7b — Categorize and create rules
+
+After matching, for any transaction that needs a category:
+
+1. **Look up existing rules** using `@actual-app/api` `getRules()` — check if a rule already covers this payee → category mapping.
+
+2. **Assign the category** on the transaction using `updateTransaction({ category: catId })`.
+
+3. **Create a rule if none exists** — for every new payee → category assignment, immediately create a rule so future transactions are auto-categorized:
+
+```javascript
+// Only set transfer_id — do NOT set transfer_acct (it is derived, not stored)
+await api.createRule({
+  stage: null,
+  conditionsOp: 'and',
+  conditions: [{ field: 'payee', op: 'is', value: payeeId, type: 'id' }],
+  actions: [{ field: 'category', op: 'set', value: categoryId, type: 'id' }],
+});
+```
+
+4. **Check for rule before creating** — avoid duplicates:
+```javascript
+const rules = await api.getRules();
+const alreadyExists = rules.some(r =>
+  r.conditions.some(c => c.field === 'payee' && c.op === 'is' && c.value === payeeId) &&
+  r.actions.some(a => a.field === 'category' && a.value === categoryId)
+);
+if (!alreadyExists) await api.createRule({ ... });
+```
+
+5. **For transfer linkages** — link transactions using only `transfer_id` (NOT `transfer_acct`):
+```javascript
+await api.updateTransaction(idA, { transfer_id: idB });
+await api.updateTransaction(idB, { transfer_id: idA });
+```
+
+> **Note:** Rules work on the resolved `payee` UUID, not on raw `notes` strings. The `imported_payee` → `payee` mapping is handled by separate pre-stage rules already in ActualBudget. Only create `stage: null` category rules here.
+
+---
+
 ## Step 8 — Build reconciliation report
 
 Format:
