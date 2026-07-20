@@ -53,6 +53,8 @@ If any of these are true, automatically invoke `finance-manager:manage-paperless
 
 Either way, reconciliation continues using whatever correspondent/document-type/account was resolved manually for this run — a fixed workflow only helps documents processed after it, per Paperless's `DOCUMENT_UPDATED` trigger semantics (see Task 7's live test for confirmation this actually applies going forward).
 
+If it's unclear *why* a document is untriaged, or a document's extracted content looks wrong/scrambled and you're deciding whether to recommend reprocessing it, see `finance-manager:manage-paperless-workflows`'s `references/troubleshooting.md` for how to read the paperless-ngx container logs and a document's history API to diagnose it before guessing.
+
 ---
 
 ## Step 3 — Identify the ActualBudget account

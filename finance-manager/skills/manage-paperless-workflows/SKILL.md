@@ -20,6 +20,7 @@ Gather:
 ## References
 
 - `references/workflow-template.md` — generic trigger/action pattern (portable, no concrete IDs)
+- `references/troubleshooting.md` — how to read paperless-ngx container logs and a document's history API to diagnose whether a workflow fired, whether a reprocess actually changed anything, and whether an extraction-quality issue is a stale-processing artifact or inherent to the current processor. Use when a document seems untriaged/mis-tagged for no obvious reason, or before recommending a document be reprocessed.
 
 ## Personal configuration (not shipped with this plugin)
 

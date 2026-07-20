@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.3.0] - 2026-07-20
+
+### Added
+- `manage-paperless-workflows/references/troubleshooting.md` — how to read paperless-ngx container logs and a document's history API (`/api/documents/<id>/history/`) to diagnose whether a workflow fired, whether a `reprocess` bulk-edit action actually changed a document's content, and whether an extraction-quality issue (e.g. scrambled table layouts) is a stale-processing artifact or inherent to the currently configured processor. Linked from `reconcile-statement.md`'s untriaged-document detection step.
+
 ## [finance-manager 0.2.1] - 2026-07-19
 
 ### Changed
