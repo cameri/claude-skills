@@ -35,7 +35,7 @@ Fetch the sample document's content via the `paperless:view-content` skill (pref
 
 ```bash
 http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/workflows/" "Authorization:Token $TOKEN" \
-  | python3 -c "import sys,json; [print(w['id'], w['name']) for w in json.load(sys.stdin)]"
+  | python3 -c "import sys,json; [print(w['id'], w['name']) for w in json.load(sys.stdin)['results']]"
 ```
 
 If one already targets this correspondent/document-type combination (by name or by inspecting its actions' `assign_correspondent`), this is a **fix** — edit its trigger `match` field. Otherwise this is a **create** — build a new workflow from `references/workflow-template.md`.
@@ -52,6 +52,7 @@ python3 "$SIMULATE" "<candidate match text>" <sample_document_id>
 
 - Exit `0` → this candidate is safe to use, proceed to Step 4.
 - Exit `1` → try a different candidate (drop the word it named as missing, or pick different words entirely).
+- Exit `2` → the script itself failed (bad arguments, missing credentials, network/API error) — this is not a 'no match' result; fix the underlying problem before treating any candidate as tried.
 - If every reasonable candidate fails: **abort. Do not write anything.** Report: "Could not find a reliable match for `<correspondent>` statements — document `<sample_document_id>` needs manual review" (to the caller, or Telegram chat `7175022` if headless). This is the one case that still needs a human.
 
 ---
@@ -64,11 +65,11 @@ INBOX_TAG_ID=$(http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/tags/?page_siz
 import sys, json
 tags = json.load(sys.stdin)['results']
 inbox = [t for t in tags if t.get('is_inbox_tag')]
-print(inbox[0]['id'] if inbox else '')
+print(inbox[0]['id'] if inbox else 'NONE')
 ")
 ```
 
-If empty, this instance has no inbox tag configured — skip the `remove_tags` part of the Removal action.
+If `NONE`, this instance has no inbox tag configured — skip the `remove_tags` part of the Removal action.
 
 ---
 
