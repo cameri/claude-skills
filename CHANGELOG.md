@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [actual-budget 0.1.3] - 2026-07-19
+
+### Fixed
+- CLI setup snippet now uses `set -a` around `source`ing the credential `.env` file, so `ACTUAL_DATA_DIR` and `ACTUAL_ENCRYPTION_PASSWORD` (and any future keys) are actually exported to the CLI subprocess. Previously only `ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, and `ACTUAL_SYNC_ID` were exported, so any budget with a custom data directory or E2E encryption enabled would fail to load with a cryptic "unknown problem opening" / `missing-key` error.
+
 ## [github-manager 0.3.0] - 2026-05-01
 
 ### Added
