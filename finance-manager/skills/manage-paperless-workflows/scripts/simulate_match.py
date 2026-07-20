@@ -15,6 +15,7 @@ import json
 import os
 import re
 import sys
+import urllib.error
 import urllib.request
 
 
@@ -57,21 +58,53 @@ def get_document_content(url: str, token: str, document_id: int) -> str:
     return json.load(urllib.request.urlopen(req)).get("content") or ""
 
 
+def _get_env(name: str) -> str:
+    try:
+        return os.environ[name]
+    except KeyError:
+        raise EnvironmentError(name) from None
+
+
 def main() -> int:
-    if len(sys.argv) != 3:
-        print("usage: simulate_match.py <match_text> <document_id>", file=sys.stderr)
+    args = sys.argv[1:]
+    case_sensitive = "--case-sensitive" in args
+    positional = [a for a in args if a != "--case-sensitive"]
+
+    if len(positional) != 2:
+        print(
+            "usage: simulate_match.py <match_text> <document_id> [--case-sensitive]",
+            file=sys.stderr,
+        )
         return 2
 
-    match_text, document_id = sys.argv[1], int(sys.argv[2])
-    url = os.environ["PAPERLESS_URL"].rstrip("/")
-    token = get_token(
-        url,
-        os.environ["PAPERLESS_USERNAME"],
-        os.environ["PAPERLESS_PASSWORD"],
-    )
-    content = get_document_content(url, token, document_id)
+    match_text, document_id_arg = positional
 
-    matched, failed_word = simulate_match_all(match_text, content, is_insensitive=True)
+    try:
+        document_id = int(document_id_arg)
+    except ValueError:
+        print(f"ERROR: document_id must be an integer, got {document_id_arg!r}", file=sys.stderr)
+        return 2
+
+    try:
+        url = _get_env("PAPERLESS_URL").rstrip("/")
+        username = _get_env("PAPERLESS_USERNAME")
+        password = _get_env("PAPERLESS_PASSWORD")
+    except EnvironmentError as exc:
+        print(f"ERROR: missing required environment variable {exc}", file=sys.stderr)
+        return 2
+
+    try:
+        token = get_token(url, username, password)
+        content = get_document_content(url, token, document_id)
+    except (urllib.error.URLError, urllib.error.HTTPError) as exc:
+        print(f"ERROR: request to paperless-ngx failed: {exc}", file=sys.stderr)
+        return 2
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"ERROR: unexpected failure communicating with paperless-ngx: {exc}", file=sys.stderr)
+        return 2
+
+    is_insensitive = not case_sensitive
+    matched, failed_word = simulate_match_all(match_text, content, is_insensitive=is_insensitive)
     if matched:
         print(f"MATCH: all words in {match_text!r} found in document {document_id}")
         return 0
