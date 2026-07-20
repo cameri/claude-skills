@@ -27,6 +27,8 @@ http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/correspondents/?name__iexact=
   "Authorization:Token $TOKEN"
 ```
 
+**Never infer or guess a correspondent, document-type, or tag ID from a document's title or content.** These IDs must come from `docs/finance/account-map.md`, `docs/finance/paperless-workflow-ids.md`, an explicit user-provided value, or a Paperless API lookup by exact name (e.g. `GET /api/correspondents/?name__iexact=<name>`, using the *known* institution name — not text extracted/inferred from the document). If the correspondent, document type, or tag can't be resolved this way, **abort and ask the user** — the "no confirmation" behavior in Step 5 applies to *applying an already-correct, already-validated configuration*, not to *deciding what that configuration should be*.
+
 Fetch the sample document's content via the `paperless:view-content` skill (preferred — reuses the existing plugin) rather than a raw API call.
 
 ---
@@ -34,11 +36,11 @@ Fetch the sample document's content via the `paperless:view-content` skill (pref
 ## Step 2 — Check for an existing workflow
 
 ```bash
-http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/workflows/" "Authorization:Token $TOKEN" \
+http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/workflows/?page_size=200" "Authorization:Token $TOKEN" \
   | python3 -c "import sys,json; [print(w['id'], w['name']) for w in json.load(sys.stdin)['results']]"
 ```
 
-If one already targets this correspondent/document-type combination (by name or by inspecting its actions' `assign_correspondent`), this is a **fix** — edit its trigger `match` field. Otherwise this is a **create** — build a new workflow from `references/workflow-template.md`.
+If one already targets this correspondent/document-type combination by name (or you fetch `GET /api/workflows/<id>/` for a specific candidate to inspect its `actions`), this is a **fix** — edit its trigger `match` field. Otherwise this is a **create** — build a new workflow from `references/workflow-template.md`.
 
 ---
 
@@ -119,8 +121,10 @@ python3 "$SIMULATE" "<validated match text>" <sample_document_id>
 echo "exit: $?"   # must be 0
 ```
 
+If the workflow's trigger has `is_insensitive: false`, pass `--case-sensitive` to the verification command below to match its actual behavior.
+
 ---
 
 ## Step 7 — Report
 
-State what was created/changed: workflow name and ID, trigger match text, actions. Send to the caller directly, or via Telegram chat `7175022` if invoked headless from a reconciliation report. This is the transparency mechanism in place of a confirmation step — automatic does not mean silent.
+State what was created/changed: workflow name and ID, trigger match text, and the exact correspondent/document-type/tag IDs assigned, with their resolved names (e.g. "correspondent 355 (Tangerine), document_type 194 (Financial), tag 77 (statement)") — so an incorrect ID is visible in the report, not just applied silently. Send to the caller directly, or via Telegram chat `7175022` if invoked headless from a reconciliation report. This is the transparency mechanism in place of a confirmation step — automatic does not mean silent.
