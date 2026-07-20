@@ -1,6 +1,6 @@
 {
   "name": "finance-manager",
-  "description": "Reconcile bank statements from paperless-ngx against ActualBudget — syncs accounts, matches transactions, and self-improves reconciliation rules.",
-  "version": "0.1.3",
+  "description": "An evolving financial-planning system with an accountant's and financial planner's mindset — reconciles bank statements against ActualBudget today, and grows toward full financial-state understanding across accumulation and decumulation phases. See VISION.md.",
+  "version": "0.1.4",
   "keywords": ["finance", "budget", "actual-budget", "reconciliation", "paperless"]
 }

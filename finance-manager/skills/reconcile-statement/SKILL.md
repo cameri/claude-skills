@@ -12,6 +12,8 @@ Ask the user to select one of:
 
 ## Core principles
 
+Operate with an accountant's rigor and a financial planner's judgment — see `../../VISION.md` for the full mindset this plugin is built around.
+
 - Never delete or modify transactions marked as reconciled/cleared with prior approval
 - For on-budget accounts: closing balance MUST match statement to the cent — no rounding
 - For off-budget accounts: best-effort approximation is acceptable
@@ -36,6 +38,7 @@ This skill is portable — it ships with no account IDs, budget-specific rules, 
 
 - `docs/finance/account-map.md` — paperless correspondent + title pattern → ActualBudget account ID
 - `docs/finance/learned-rules.md` — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`)
+- `docs/finance/financial-profile.md` — life-phase and other profile facts (accumulation vs. decumulation) that inform planning-oriented skills
 
 If these files don't exist yet in your workspace, create them before reconciling — ask the user for their correspondent → account mapping to seed `account-map.md`, and start `learned-rules.md` empty.
 
