@@ -121,7 +121,7 @@ python3 "$SIMULATE" "<validated match text>" <sample_document_id>
 echo "exit: $?"   # must be 0
 ```
 
-If the workflow's trigger has `is_insensitive: false`, pass `--case-sensitive` to the verification command below to match its actual behavior.
+If the workflow's trigger has `is_insensitive: false`, pass `--case-sensitive` to the verification command above to match its actual behavior.
 
 ---
 
