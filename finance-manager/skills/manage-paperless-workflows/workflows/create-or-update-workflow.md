@@ -87,7 +87,8 @@ If that 403s (as it did historically — the paperless user may only have `chang
 **Creating a new workflow** — `POST` to `${PAPERLESS_URL}/api/workflows/`:
 
 ```bash
-http --ignore-stdin -b POST "${PAPERLESS_URL%/}/api/workflows/" "Authorization:Token $TOKEN" <<'JSON'
+# Note: no `--ignore-stdin` here — this command's body comes via the heredoc on stdin, and `--ignore-stdin` would silently drop it (confirmed live: produces `Content-Length: 0` and a 400 error).
+http -b POST "${PAPERLESS_URL%/}/api/workflows/" "Authorization:Token $TOKEN" <<'JSON'
 {
   "name": "<Institution> Statement",
   "order": 1,
