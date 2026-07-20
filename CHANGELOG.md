@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.2.1] - 2026-07-19
+
+### Changed
+- `reconcile-statement` workflow: added a "transfers take priority over categories" step — payees like "Online Banking Transfer", "BR to BR", "Payment", or "Payment Adjustment" must never be categorized as fees/income by default; always search other tracked accounts for a matching transaction and link as a transfer instead. Added an explicit certainty bar for categorization (only categorize with an existing rule or fully consistent payee history — never guess).
+- Generalized the "direction-conditional rules" guidance beyond Interac e-transfers to any payee that can plausibly appear on both sides of the ledger (e.g. an employer who is also paid for a separate service) — a flat payee→category rule silently mis-categorizes the first transaction on the untested direction.
+
+### Fixed
+- `references/cli-setup.md`: documented the `encrypt-failure`/`missing-key` sync-push bug on E2E-encrypted budgets — write commands apply locally but fail to push, and every subsequent command fails until the queue is flushed with an explicit `budgets download --encryption-password` after each individual write.
+
+## [actual-budget 0.1.4] - 2026-07-19
+
+### Fixed
+- `references/cli-setup.md`: documented the same `encrypt-failure`/`missing-key` sync-push issue found while using this CLI from finance-manager — the fix is to flush with `budgets download --encryption-password` after every mutating command, one at a time.
+
 ## [actual-budget 0.1.3] - 2026-07-19
 
 ### Fixed

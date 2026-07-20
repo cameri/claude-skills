@@ -25,4 +25,13 @@ export ACTUAL_DATA_DIR="${ACTUAL_DATA_DIR:-$DATA_DIR}"
 export ACTUAL_ENCRYPTION_PASSWORD="${ACTUAL_ENCRYPTION_PASSWORD:-$ENCRYPTION_PASSWORD}"
 ACTUAL="<base_dir>/../../../node_modules/.bin/actual"
 ```
+
+## Troubleshooting
+
+- **encrypt-failure / missing-key after a write command** (`transactions update`, `transactions add`, `rules create`, `rules delete`) on an E2E-encrypted budget — confirmed 2026-07-19: `ACTUAL_ENCRYPTION_PASSWORD` (env var or `--encryption-password` flag) is not honored by the generic sync-push path those commands use. The local write still applies — you'll often see `{"success": true}` in the output even though the process then prints `Error: We had an unknown problem opening "<budget>"` — but the change sits stuck in an unpushed queue, and every subsequent command fails at load time trying to flush that backlog first.
+  - Fix: after **every single** mutating command, immediately flush with:
+    ```bash
+    $ACTUAL budgets download "$ACTUAL_SYNC_ID" --encryption-password "$ACTUAL_ENCRYPTION_PASSWORD"
+    ```
+  - Do this one write at a time. Batching several writes before flushing only applies the first one — every command after it fails to even open the budget until you flush.
 </cli_setup>

@@ -143,6 +143,17 @@ Match statement lines to ActualBudget transactions:
 
 ## Step 7b — Categorize and create rules
 
+### Transfers take priority over categories
+
+Before assigning any category, check whether the transaction is actually a transfer between two of the user's own accounts. Payees like "Online Banking Transfer", "Online Transfer", "BR to BR", generic "Payment" / "Payment - Thank You", or "Payment Adjustment" are **never** fees or income by default — they are money movements between accounts. Search the *other* tracked accounts for a transaction with a matching (or near-matching, ±few days for settlement lag) amount and opposite sign around the same date:
+
+- **Found**: link the pair as a transfer (see "For transfer linkages" below) — never assign a spending/income category to either side, and clear any category that may already be sitting on one side from a prior mis-categorization.
+- **Not found in any tracked account**: do not guess. Add the transaction (the statement is the source of truth) using a neutral, non-transfer payee, leave its category unset, and flag it in the reconciliation report so the user can identify the source — it may be an account not yet tracked in ActualBudget (see Step 3) or a paper/cash movement.
+
+### Certainty bar for categorization
+
+Only assign a category when certain: either an existing rule already covers the payee, or the *same* payee has a fully consistent category across all its prior transactions in the ledger (not just one instance). A single prior instance, or inconsistent history, is not certain enough — leave the category unset and note it in the report rather than guess.
+
 After matching, for any transaction that needs a category:
 
 1. **Look up existing rules** using `@actual-app/api` `getRules()` — check if a rule already covers this payee → category mapping.
@@ -179,9 +190,9 @@ await api.updateTransaction(idB, { transfer_id: idA });
 
 > **Note:** Rules work on the resolved `payee` UUID, not on raw `notes` strings. The `imported_payee` → `payee` mapping is handled by separate pre-stage rules already in ActualBudget. Only create `stage: null` category rules here.
 
-### Direction-conditional rules for e-transfers
+### Direction-conditional rules for e-transfers (and any dual-role payee)
 
-For Interac e-Transfer payees, the category depends on direction — always create two rules per payee:
+For Interac e-Transfer payees, the category depends on direction — always create two rules per payee. The same applies to any payee that can plausibly appear on both sides of the ledger — most commonly an employer the user (or their spouse/partner) also pays for a separate service (e.g. an employer who is also paid for professional supervision, contracting, or rent). Before creating a flat payee→category rule, check: could this payee ever send money *and* receive money? If so, split into direction-conditional rules from the start, even if only one direction has prior history yet — a flat rule will silently mis-categorize the first transaction that comes in on the other side (e.g. tagging a salary deposit as spending).
 
 ```javascript
 // Incoming (receiving money) → Reimbursements & Rebates
