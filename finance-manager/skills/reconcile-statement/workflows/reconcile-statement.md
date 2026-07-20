@@ -39,6 +39,20 @@ http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/documents/<id>/" \
 
 Key fields: `title`, `correspondent` name, `created`, `document_type`.
 
+### Detect untriaged documents
+
+A document was left untriaged by any workflow if any of:
+- it still carries Paperless's inbox tag (resolve dynamically — `GET /api/tags/?page_size=200`, filter client-side for `is_inbox_tag: true` — never hardcode the tag ID)
+- `correspondent` is `null`
+- `document_type` is `null`
+
+If any of these are true, automatically invoke `finance-manager:manage-paperless-workflows` (no need to ask first) to create or fix the workflow that should have tagged this document, using this document as the sample. Note the outcome inline in the reconciliation report:
+
+- If it created/fixed a workflow: `🔧 no workflow had tagged this document — created/fixed workflow "<name>" automatically`
+- If it aborted (no safe match found): `⚠️ no workflow had tagged this document, and no reliable match text was found — flagging for manual review`
+
+Either way, reconciliation continues using whatever correspondent/document-type/account was resolved manually for this run — a fixed workflow only helps documents processed after it, per Paperless's `DOCUMENT_UPDATED` trigger semantics (see Task 7's live test for confirmation this actually applies going forward).
+
 ---
 
 ## Step 3 — Identify the ActualBudget account
