@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.5.0] - 2026-07-22
+
+### Added
+- New skill `query-mempool`: CLI (`scripts/mempool_cli.py`) wrapping the public mempool.space
+  REST API — look up a transaction by txid, an address's balance/history, or aggregate
+  balance/history across a wallet descriptor (single-sig or multisig, including BIP389
+  multipath descriptors like Bitkey's `wsh(sortedmulti(2, ...))`) via bdkpython-driven
+  address derivation with gap-limit scanning. Table output by default, `--json` for
+  structured output. Every list-returning command (`address`'s tx history, `descriptor`'s
+  used-addresses list) is paginated at 25/page via `--page`. Built for the deferred Bitkey
+  ↔ mempool.space reconciliation work (`docs/finance/bitkey-mempool-reconciliation-todo.md`
+  in the workspace repo) — this skill only adds the mempool.space lookup capability itself,
+  not the reconciliation logic.
+- Discovered live (docs were misleading): mempool.space's confirmed-address-history
+  pagination cursor is a **path** segment (`GET
+  /address/:address/txs/chain/:last_seen_txid`), not the `?after_txid=` query parameter the
+  reference docs' phrasing suggested — the query-param form is silently accepted but
+  ignored and just returns page 1 again.
+
 ## [finance-manager 0.4.2] - 2026-07-22
 
 ### Changed
