@@ -141,20 +141,39 @@ Match statement lines to ActualBudget transactions:
 - Best-effort matching only; balance discrepancies are acceptable
 - Note any discrepancy in the reconciliation report
 
+### Backfilling multiple consecutive periods
+
+When reconciling more than one statement in sequence for the same account (a gap spanning several months, not a single incoming statement), verify the *chain*, not just each period in isolation — see `references/backfill-verification.md` for the full method (running-balance verification, catching transcription sign errors, avoiding duplicates at a live-sync boundary, and OCR table-parsing pitfalls specific to multi-line/scrambled statement layouts). The short version: confirm each statement's own closing balance equals the next statement's opening balance *before* inserting anything, and re-derive amount and sign from the balance delta between consecutive lines rather than trusting which column a number appears to sit in.
+
 ---
 
 ## Step 7b — Categorize and create rules
 
+### Rule out a fee reversal before treating a credit as a mystery
+
+A small, unexplained credit landing a few days after a same-amount fee/charge is very often the institution reversing that exact charge, not new income or an unlinked transfer. Before searching other accounts for a transfer match, check the account's own recent history for a matching-amount debit shortly before the credit in question. If found, treat it as a fee reversal/rebate: reuse (or create once, then reuse) a payee dedicated to this pattern, and categorize it as a reimbursement/rebate rather than income or a transfer.
+
 ### Transfers take priority over categories
 
-Before assigning any category, check whether the transaction is actually a transfer between two of the user's own accounts. Payees like "Online Banking Transfer", "Online Transfer", "BR to BR", generic "Payment" / "Payment - Thank You", or "Payment Adjustment" are **never** fees or income by default — they are money movements between accounts. Search the *other* tracked accounts for a transaction with a matching (or near-matching, ±few days for settlement lag) amount and opposite sign around the same date:
+Before assigning any category, check whether the transaction is actually a transfer between two of the user's own accounts. Payees like "Online Banking Transfer", "Online Transfer", generic "Payment" / "Payment - Thank You", or "Payment Adjustment" are **never** fees or income by default — they are money movements between accounts. Search the *other* tracked accounts for a transaction with a matching (or near-matching, ±few days for settlement lag) amount and opposite sign around the same date:
 
 - **Found**: link the pair as a transfer (see "For transfer linkages" below) — never assign a spending/income category to either side, and clear any category that may already be sitting on one side from a prior mis-categorization.
-- **Not found in any tracked account**: do not guess. Add the transaction (the statement is the source of truth) using a neutral, non-transfer payee, leave its category unset, and flag it in the reconciliation report so the user can identify the source — it may be an account not yet tracked in ActualBudget (see Step 3) or a paper/cash movement.
+- **Not found in any tracked account**: before giving up, if the statement text shows a reference number for the transfer, try searching the document store directly for that reference number across *all* correspondents/institutions — the counterpart may sit in an account that itself has an unnoticed sync gap (its statements exist but were never reconciled), which a same-account-only search won't surface.
+- **Still not found**: do not guess. Add the transaction (the statement is the source of truth) using a neutral, non-transfer payee, leave its category unset, flag it in the reconciliation report, and **record it in the unlinked-transfers registry** (see below) so it gets retried automatically as more accounts get backfilled — it may be an account not yet tracked in ActualBudget (see Step 3) or a paper/cash movement.
+
+### Unlinked-transfers registry
+
+Every account reconciliation happens at a point in time, but coverage grows over time as more accounts get backfilled. A transfer counterpart that doesn't exist *yet* isn't necessarily unresolvable — it may simply live in an account that hasn't been reconciled/backfilled yet. Don't let "not found today" become a permanent dead end.
+
+- Maintain a persistent list of every transaction left unlinked for this reason (see `docs/finance/learned-rules.md`'s `unlinked_transfer` entries — format defined in `workflows/self-evolve.md`). Each entry needs enough to re-match later: account, transaction id, date, amount, and description/payee text.
+- Whenever an account is reconciled or backfilled (this one or any other), before finishing check the registry for entries whose date/amount could now match something in the account just touched (see Step 7c).
+- When a match is found, link it as a normal transfer and remove the entry from the registry — the goal is to shrink this list over time, not just grow it.
 
 ### Certainty bar for categorization
 
 Only assign a category when certain: either an existing rule already covers the payee, or the *same* payee has a fully consistent category across all its prior transactions in the ledger (not just one instance). A single prior instance, or inconsistent history, is not certain enough — leave the category unset and note it in the report rather than guess.
+
+When checking for precedent, search **across the whole budget, not just the account being reconciled**. A payee or pattern with no history on this account may already have an established rule or consistent categorization on a different account (a shared payee like a joint biller, or the same institution's fee showing up in more than one place). Missing that precedent produces the same real-world thing categorized two different ways depending on which account happened to record it first — check budget-wide before concluding "no history."
 
 After matching, for any transaction that needs a category:
 
@@ -219,6 +238,18 @@ await api.createRule({
 ```
 
 Apply this pattern to any payee where direction determines category (e-transfers, cash, etc.).
+
+---
+
+## Step 7c — Retry previously unlinked transfers
+
+The account just reconciled may itself be the missing counterpart for a transfer some *other* account gave up on earlier. Read the unlinked-transfers registry in `docs/finance/learned-rules.md` and check each entry against the transactions just fetched in Step 6:
+
+- Same matching rule as Step 7b (same/near date ±few days, opposite sign, matching amount).
+- On a match: link the pair as a transfer, clear any stray category, and mark the registry entry resolved (self-evolve removes it — see Step 9).
+- No match: leave the entry in place for next time.
+
+This step costs little (the data is already in memory) and is how the registry actually shrinks — do not skip it just because this reconciliation "isn't about" the account that originally logged the entry.
 
 ---
 

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.4.0] - 2026-07-22
+
+### Added
+- Unlinked-transfers registry: when a transfer counterpart isn't found in any currently-tracked account, the transaction is now recorded in a persistent worklist (`unlinked_transfer` entries in `docs/finance/learned-rules.md`) instead of just being flagged and forgotten. New `reconcile-statement.md` Step 7c retries every open entry against the account just reconciled/backfilled, since the missing counterpart often turns out to live in an account that simply hadn't been backfilled yet. Entries are removed once linked. `self-evolve.md` maintains the registry (add/remove) each run.
+- `references/backfill-verification.md` — technique reference for reconciling a multi-period gap: verifying the running-balance chain across every statement before inserting anything, deriving transaction sign from balance deltas rather than OCR column position (catches transcription sign errors that pass a local "looks plausible" check), two recurring OCR table-parsing pitfalls (header/data column misalignment, multi-row blocks disguised as single blocks), a derived-expectation validation method for accounts whose absolute ledger balance has drifted from real statement figures for reasons predating the current backfill, and avoiding duplicate inserts at a live-sync boundary.
+- `reconcile-statement.md`: before searching other accounts for a transfer counterpart, check for a same-account fee-reversal pattern first (a same-amount credit shortly after a matching charge is very often the institution reversing that exact fee, not new income or a transfer).
+- `reconcile-statement.md`: the categorization certainty-bar check now searches for payee/pattern precedent budget-wide, not just on the account being reconciled — a payee can have established history on a different account.
+
+### Changed
+- Removed one bank-specific transfer-payee example from `reconcile-statement.md` in favor of only the generic ones, keeping the guidance portable.
+
 ## [finance-manager 0.3.0] - 2026-07-20
 
 ### Added

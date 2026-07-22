@@ -27,6 +27,22 @@ For each non-obvious match or assignment, check if a rule already exists in `doc
 | Category assignment | Payee or description pattern → ActualBudget category ID |
 | Date offset | Bank settlement lag for a specific account (e.g. Visa posts 1 day after purchase) |
 | Amount quirk | Rounding or sign convention specific to an institution |
+| Unlinked transfer | A transaction added without a transfer link because no counterpart was found *yet* — see below |
+
+## Step 2b — Maintain the unlinked-transfers registry
+
+This registry (`unlinked_transfer` entries in `docs/finance/learned-rules.md`) exists because transfer counterparts often live in accounts that simply haven't been backfilled yet — "not found" is frequently "not found *so far*," not "doesn't exist." Two things happen here every run:
+
+- **Add**: for every transaction Step 7b left unlinked this run (no counterpart found in any tracked account), add an entry: account, transaction id, date, amount, and description/payee text. One line is enough — this is a worklist, not a report.
+- **Remove**: for every entry Step 7c successfully linked this run, delete it from the registry. A shrinking registry is the signal this mechanism is working; a growing one that never shrinks means retries (Step 7c) aren't actually being run — check that they are, not that the registry format is wrong.
+
+Suggested entry format:
+
+```
+## Unlinked transfers (revisit as more accounts get backfilled)
+
+- **<Account>, <date>, <amount>** (`<txn id>`, "<description/payee text>"): no counterpart found as of <date first flagged>.
+```
 
 ## Step 3 — Update learned-rules.md
 

@@ -31,13 +31,14 @@ Operate with an accountant's rigor and a financial planner's judgment — see `.
 ## References
 
 - `references/cli-setup.md` — how to bootstrap the `$ACTUAL` binary and env vars
+- `references/backfill-verification.md` — reconciling a multi-period gap: running-balance chain verification, avoiding OCR sign-transcription errors, table-parsing pitfalls, and handling accounts whose absolute balance won't reconcile against statement figures
 
 ## Personal configuration (not shipped with this plugin)
 
 This skill is portable — it ships with no account IDs, budget-specific rules, or transaction data. Each user provides their own, kept outside the plugin in their workspace's `docs/finance/`:
 
 - `docs/finance/account-map.md` — paperless correspondent + title pattern → ActualBudget account ID
-- `docs/finance/learned-rules.md` — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`)
+- `docs/finance/learned-rules.md` — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`). Includes an `unlinked_transfer` registry — transactions left unlinked because no counterpart existed yet, retried automatically as more accounts get backfilled (see Step 7c in `workflows/reconcile-statement.md`).
 - `docs/finance/financial-profile.md` — life-phase and other profile facts (accumulation vs. decumulation) that inform planning-oriented skills
 
 If these files don't exist yet in your workspace, create them before reconciling — ask the user for their correspondent → account mapping to seed `account-map.md`, and start `learned-rules.md` empty.
