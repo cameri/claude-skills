@@ -46,7 +46,9 @@ account list against:
 
 Present the merged candidate list. For each, confirm/ask: ownership (`personal`/`joint`),
 owner(s) from Step 2's household list, and (if not already implied by account-map.md) which
-`reconciliation_mode` applies — `statement` or `bank_sync_only` (see Step 6).
+`reconciliation_mode` applies — `statement`, `bank_sync_only`, or `manual_csv` for
+institutions with neither a paperless correspondent nor a live bank-sync connector (e.g.
+crypto exchanges, custodial loan accounts) (see Step 6).
 
 **Step 4: Anything not yet discovered?** Ask if there are other banking institutions,
 accounts, or hot/cold wallets not covered by Step 3. For each new one: institution/wallet
@@ -62,7 +64,8 @@ name, ownership, owners. For a new wallet, get the descriptor and write it to
 **Step 6: Reconciliation mode per account** (skip wallets — they use `query-mempool`/
 `reconcile-bitcoin-wallet` instead, not paperless). For each account without a mode already
 set from Step 3: will documents (statements/transaction reports) be received via paperless
-for this account, or does Actual Budget's own bank sync fully cover it? If statement-based
+for this account, does Actual Budget's own bank sync fully cover it, or is it backfilled
+from manual CSV/export data with neither of those (`manual_csv`)? If statement-based
 and no existing paperless correspondent/title-pattern is known, ask for them (or defer —
 `manage-paperless-workflows` can resolve these later against a real sample document). The
 last-4/5 digits from Step 1 are exactly what a title pattern usually keys off.

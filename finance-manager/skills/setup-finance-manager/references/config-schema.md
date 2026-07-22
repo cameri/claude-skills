@@ -53,8 +53,11 @@ back and diff-check → `os.replace` atomic rename). `credentials.json` is `chmo
 
 Field notes:
 - `reconciliation_mode`: `"statement"` (paperless + MarkItDown extraction feeds
-  `reconcile-statement`) or `"bank_sync_only"` (Actual Budget's own SimpleFin/bank-sync is
-  the only source — no paperless workflow needed for this account).
+  `reconcile-statement`), `"bank_sync_only"` (Actual Budget's own SimpleFin/bank-sync is
+  the only source — no paperless workflow needed), or `"manual_csv"` (no paperless
+  correspondent and no live bank-sync connector exists for this institution — e.g. crypto
+  exchanges like ShakePay, or a custodial loan account like Ledn — backfilled from
+  manually-obtained CSV/statement exports instead).
 - `paperless_correspondent_id` / `paperless_title_pattern`: only present when
   `reconciliation_mode` is `"statement"`. Same fields `account-map.md` used to hold.
 - `sync_job_id`: the `cronjobs` plugin job ID if a periodic sync exists for this

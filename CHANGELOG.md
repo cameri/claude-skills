@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [finance-manager 0.6.1] - 2026-07-22
+## [finance-manager 0.6.2] - 2026-07-22
+
+### Changed
+- `reconcile-statement` and `manage-paperless-workflows` now read account/correspondent
+  mappings from `~/.claude/channels/finance-manager/config.json` instead of
+  `docs/finance/account-map.md` — the migration this workspace's first
+  `setup-finance-manager` run actually performed. `account-map.md` stays on disk as a
+  historical record but is no longer read by either workflow.
+- `setup-finance-manager`: added `manual_csv` as a third `reconciliation_mode` (alongside
+  `statement` and `bank_sync_only`) for institutions with neither a paperless correspondent
+  nor a live bank-sync connector (crypto exchanges, custodial loan accounts) — needed once
+  real accounts (ShakePay, Ledn) were run through first-run setup.
+
+### Fixed
+- `first-run-setup.md`'s discovery step used to imply only two `reconciliation_mode` values
+  existed; corrected to reflect the three actually supported.
 
 ### Changed
 - `setup-finance-manager/workflows/first-run-setup.md`: reordered so Step 1 now connects

@@ -35,13 +35,13 @@ Operate with an accountant's rigor and a financial planner's judgment — see `.
 
 ## Personal configuration (not shipped with this plugin)
 
-This skill is portable — it ships with no account IDs, budget-specific rules, or transaction data. Each user provides their own, kept outside the plugin in their workspace's `docs/finance/`:
+This skill is portable — it ships with no account IDs, budget-specific rules, or transaction data. Each user provides their own:
 
-- `docs/finance/account-map.md` — paperless correspondent + title pattern → ActualBudget account ID
-- `docs/finance/learned-rules.md` — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`). Includes an `unlinked_transfer` registry — transactions left unlinked because no counterpart existed yet, retried automatically as more accounts get backfilled (see Step 7c in `workflows/reconcile-statement.md`).
-- `docs/finance/financial-profile.md` — life-phase and other profile facts (accumulation vs. decumulation) that inform planning-oriented skills
+- `~/.claude/channels/finance-manager/config.json` — correspondent/title-pattern → ActualBudget account ID, ownership, and reconciliation mode per account. Written by `finance-manager:setup-finance-manager` (run that skill first if this file doesn't exist yet). Supersedes the older `docs/finance/account-map.md` (kept as a historical record, no longer read by this workflow).
+- `docs/finance/learned-rules.md` (workspace-local, outside the plugin) — self-updating heuristics for payee matching and categorization (created empty; grows via `workflows/self-evolve.md`). Includes an `unlinked_transfer` registry — transactions left unlinked because no counterpart existed yet, retried automatically as more accounts get backfilled (see Step 7c in `workflows/reconcile-statement.md`).
+- `docs/finance/financial-profile.md` (workspace-local) — life-phase and other profile facts (accumulation vs. decumulation) that inform planning-oriented skills
 
-If these files don't exist yet in your workspace, create them before reconciling — ask the user for their correspondent → account mapping to seed `account-map.md`, and start `learned-rules.md` empty.
+If `config.json` doesn't exist yet, run `finance-manager:setup-finance-manager` before reconciling rather than asking ad hoc.
 
 ## Dependencies
 

@@ -59,9 +59,13 @@ If it's unclear *why* a document is untriaged, or a document's extracted content
 
 ## Step 3 — Identify the ActualBudget account
 
-Look up `docs/finance/account-map.md` (workspace-local, not part of this plugin — see `SKILL.md`) using the correspondent name AND title pattern (last-4 digits where applicable).
+Look up `~/.claude/channels/finance-manager/config.json`'s `accounts` array using the
+correspondent name (`institution` or `paperless_correspondent_id`) AND title pattern
+(`paperless_title_pattern`, last-4/5 digits where applicable) — see `SKILL.md`.
 
-If no match is found, ask the user to identify the account and update `docs/finance/account-map.md`.
+If no match is found, ask the user to identify the account, then use
+`finance-manager:setup-finance-manager`'s add-account workflow to record it rather than
+editing `config.json` by hand.
 
 ---
 

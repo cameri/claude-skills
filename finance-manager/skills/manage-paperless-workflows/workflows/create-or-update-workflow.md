@@ -20,14 +20,14 @@ TOKEN=$(http --ignore-stdin -b POST "${PAPERLESS_URL%/}/api/token/" \
 
 Need: correspondent id/name, document_type id/name, processed tag id/name, and at least one sample document ID (an existing untriaged document is ideal — same correspondent, still missing document_type or still carrying the inbox tag).
 
-Check `docs/finance/account-map.md` and `docs/finance/paperless-workflow-ids.md` first. Resolve anything missing by name:
+Check `~/.claude/channels/finance-manager/config.json`'s `accounts` array (`paperless_correspondent_id`/`paperless_title_pattern`) and `docs/finance/paperless-workflow-ids.md` first. Resolve anything missing by name:
 
 ```bash
 http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/correspondents/?name__iexact=<name>" \
   "Authorization:Token $TOKEN"
 ```
 
-**Never infer or guess a correspondent, document-type, or tag ID from a document's title or content.** These IDs must come from `docs/finance/account-map.md`, `docs/finance/paperless-workflow-ids.md`, an explicit user-provided value, or a Paperless API lookup by exact name (e.g. `GET /api/correspondents/?name__iexact=<name>`, using the *known* institution name — not text extracted/inferred from the document). If the correspondent, document type, or tag can't be resolved this way, **abort and ask the user** — the "no confirmation" behavior in Step 5 applies to *applying an already-correct, already-validated configuration*, not to *deciding what that configuration should be*.
+**Never infer or guess a correspondent, document-type, or tag ID from a document's title or content.** These IDs must come from `~/.claude/channels/finance-manager/config.json`, `docs/finance/paperless-workflow-ids.md`, an explicit user-provided value, or a Paperless API lookup by exact name (e.g. `GET /api/correspondents/?name__iexact=<name>`, using the *known* institution name — not text extracted/inferred from the document). If the correspondent, document type, or tag can't be resolved this way, **abort and ask the user** — the "no confirmation" behavior in Step 5 applies to *applying an already-correct, already-validated configuration*, not to *deciding what that configuration should be*.
 
 Fetch the sample document's content via the `paperless:view-content` skill (preferred — reuses the existing plugin) rather than a raw API call.
 
