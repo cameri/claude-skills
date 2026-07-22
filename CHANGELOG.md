@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.6.0] - 2026-07-22
+
+### Added
+- New skill `setup-finance-manager`: onboards the plugin for first use (household members,
+  bank accounts, hot/cold wallets, ownership, connecting Actual Budget and Paperless-ngx,
+  per-account reconciliation mode, periodic sync jobs), and on later runs reviews/adds/
+  removes tracked accounts and wallets. Introduces
+  `~/.claude/channels/finance-manager/config.json` (structure/status) and
+  `~/.claude/channels/finance-manager/credentials.json` (wallet descriptors — never in the
+  plugin dir or `docs/finance/`), both written exclusively through
+  `scripts/write_config.py`'s write-temp → validate → atomic-replace pattern so a crash
+  mid-write can't corrupt the config. Includes a `references/markitdown-setup.md` reference
+  for offering MarkItDown PDF-parser setup when connecting a fresh paperless-ngx instance.
+  First run offers to import existing `docs/finance/account-map.md` rows as candidate
+  accounts rather than re-asking from scratch (actual migration/consolidation happens the
+  first time the new skill is run, not as part of this release).
+
 ## [finance-manager 0.5.0] - 2026-07-22
 
 ### Added
