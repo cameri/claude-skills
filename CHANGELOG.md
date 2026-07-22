@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.4.2] - 2026-07-22
+
+### Changed
+- `reconcile-statement.md`: refined the 0.4.1 transfer-linking danger warning after same-day follow-up testing — the deletion only reproduces when *both* sides of the pair are already live bank-synced (non-null `imported_id`). Linking one bank-synced side to one manually-inserted backfill transaction is safe and was used successfully for 7 more links later the same day. Updated guidance: only avoid the CLI update pattern when both sides are already-synced data; test a single pair with a balance check first if you must.
+
 ## [finance-manager 0.4.1] - 2026-07-22
 
 ### Fixed
