@@ -78,3 +78,11 @@ user asked (e.g. "add my new Questrade account" clearly means option 1).
 - Existing `docs/finance/account-map.md` data is offered for import, not silently ignored,
   on first run
 </success_criteria>
+
+<dependencies>
+- `~/.claude/channels/actual-budget/.env` — via `actual-budget:access`
+- `~/.claude/channels/paperless/.env` — via `paperless:access`
+- `../reconcile-statement/references/cli-setup.md` — `$ACTUAL` CLI bootstrap and the
+  mutating-command flush requirement (renaming accounts needs both)
+- `cronjobs` plugin — periodic sync job creation/removal
+</dependencies>

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.6.1] - 2026-07-22
+
+### Changed
+- `setup-finance-manager/workflows/first-run-setup.md`: reordered so Step 1 now connects
+  Actual Budget and lists real accounts *before* asking anything else (grounds later
+  questions in real data instead of asking blind). Added account-name standardization: for
+  any account without an existing identifying suffix, ask for the last 4-5 digits and rename
+  it via `accounts update <id> --name "..."` (skipping wallets/exchanges, which aren't
+  numbered bank accounts) — flushing via `budgets download` after each rename per the
+  existing encrypted-budget CLI mutating-command requirement in
+  `reconcile-statement/references/cli-setup.md`.
+
 ## [finance-manager 0.6.0] - 2026-07-22
 
 ### Added
