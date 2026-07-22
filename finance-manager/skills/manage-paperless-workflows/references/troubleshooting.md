@@ -37,6 +37,16 @@ http --ignore-stdin OPTIONS "${PAPERLESS_URL%/}/api/documents/bulk_edit/" \
 
 **Important**: a `reprocess` call can return `{"result":"OK"}` and complete in the logs within 1-2 seconds — don't assume nothing happened just because the document's `content` field or `modified` timestamp look unchanged when you check immediately after. Check the logs first; if the processor line shows the same character count as before, the content is genuinely identical (confirmed via the document history endpoint below, not just eyeballing the text), and reprocessing will not produce a better result — the extraction quality issue is inherent to how the current processor handles that document's layout, not a stale-cache artifact.
 
+**`reprocess` does not retroactively apply workflows.** Confirmed live: `reprocess` only re-runs content extraction — it does not re-evaluate workflow triggers, so a document that predates a newly-created or newly-fixed workflow stays untagged even after reprocessing (correspondent/document_type/tags unchanged). There is no `run_workflows` (or similar) bulk-edit method in this API version — check `OPTIONS` on `bulk_edit/` to confirm what's available on the instance you're working with. To retroactively apply a workflow to pre-existing documents, `PATCH` a real field on each document instead (updating `title` to its own current value works and has no side effects):
+
+```bash
+http --ignore-stdin -b PATCH "${PAPERLESS_URL%/}/api/documents/<id>/" \
+  "Authorization:Token $TOKEN" "Accept:application/json; version=6" \
+  title="<the document's own current title>"
+```
+
+This fires the "Document Updated" (`type: 3`) workflow trigger asynchronously — verify via a follow-up `GET` a few seconds later, not immediately. Test on one document before batch-applying to the rest.
+
 ## Reading a document's history
 
 Every Paperless document has a full audit log, independent of the container logs:

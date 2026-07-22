@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.6.3] - 2026-07-22
+
+### Fixed
+- `manage-paperless-workflows/references/troubleshooting.md`: documented that the
+  `documents/bulk_edit/` `reprocess` method does **not** retroactively re-evaluate workflow
+  triggers (only re-runs content extraction) — discovered while backfilling Amex/CIBC/
+  Tangerine statements that predated their workflows. `PATCH`-ing a real field (e.g. `title`
+  to its own value) reliably fires the "Document Updated" trigger instead; there is no
+  dedicated `run_workflows` bulk-edit method in this API version.
+
+### Changed
+- Completed a full statement backfill this session (executed live, not shipped as plugin
+  code): 19 Amex, 13 CIBC, and 26 Tangerine (Chequing/Line of Credit/Mastercard) documents
+  tagged and reconciled. Surfaced and corrected a real gap in the "safe to link transfers"
+  guidance in `docs/finance/learned-rules.md` — "both sides manual = safe" was disproven by
+  a live deletion during the Tangerine LOC↔Chequing linking attempt; the working rule is now
+  "don't rely on either side's sync status as a safety guarantee, snapshot before linking."
+
 ## [finance-manager 0.6.2] - 2026-07-22
 
 ### Changed
