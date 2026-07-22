@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.4.1] - 2026-07-22
+
+### Fixed
+- `reconcile-statement.md`: added a hard warning against linking transfers via `updateTransaction({ transfer_id })` when either side has a non-null `imported_id` (live bank-synced) — reproduced today: two real, cleared, bank-synced transactions were silently *deleted* (not just left unlinked) by this exact pattern, confirmed by the account balance dropping by their combined amount. A fresh bank-sync on the affected account restored them safely. Every transfer link made on manually-inserted (non-bank-synced) transactions during today's backfills was unaffected — the risk is specific to linking already-live-synced transactions this way.
+
 ## [finance-manager 0.4.0] - 2026-07-22
 
 ### Added
