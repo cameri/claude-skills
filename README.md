@@ -159,6 +159,36 @@ Run this once inside any Claude Code session:
 
 After reloading, all plugin skills are available (e.g. `/paperless:configure`, `/actual-budget:budget`).
 
+## Alternative: install via `npx skills`
+
+[vercel-labs/skills](https://github.com/vercel-labs/skills) is a separate community CLI that installs Claude Code skills straight from a GitHub repo, without registering a plugin marketplace. It works against this repo too.
+
+Install every skill in this repo:
+
+```bash
+npx skills add cameri/claude-skills
+```
+
+Install a specific plugin's skill directly (skills live at `<plugin>/skills/<skill-name>`):
+
+```bash
+npx skills add https://github.com/cameri/claude-skills/tree/main/actual-budget/skills/access
+```
+
+Or pick skills by name out of the whole repo:
+
+```bash
+npx skills add cameri/claude-skills -s access query-budget add-transaction
+```
+
+Useful flags: `--list` to see what's available before installing, `-g`/`--global` to install to your user directory instead of the current project, `--copy` to copy files instead of symlinking, and `-a claude-code` to target Claude Code if you have other supported agents installed. You can also run a skill without installing it:
+
+```bash
+npx skills use cameri/claude-skills --skill access --agent claude-code
+```
+
+See the [vercel-labs/skills README](https://github.com/vercel-labs/skills) for the full command reference (`list`, `find`, `update`, `remove`, `init`).
+
 ## License
 
 MIT
