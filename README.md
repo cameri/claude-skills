@@ -8,6 +8,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
+| [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
@@ -23,6 +24,15 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/actual-budget:configure` | Set up Actual Budget credentials — save the server URL and password |
 | `/actual-budget:budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
 | `/actual-budget:add-transaction` | Add a transaction — spending, income, or any financial event |
+
+### finance-manager
+
+| Skill | Description |
+|---|---|
+| `/finance-manager:setup` | Onboard the plugin for first use (household, accounts, hot/cold wallets, ownership, connecting Actual Budget/Paperless-ngx) or review/add/remove tracked entries and periodic sync jobs |
+| `/finance-manager:reconcile-statement` | Reconcile a bank statement against ActualBudget — syncs accounts, matches transactions, self-improves reconciliation rules |
+| `/finance-manager:paperless-workflows` | Create or fix Paperless-ngx workflows so bank statement documents auto-tag correctly |
+| `/finance-manager:query-mempool` | Look up Bitcoin transactions, addresses, and wallet descriptor (single-sig or multisig) balances/history via the mempool.space API |
 
 ### github-manager
 
