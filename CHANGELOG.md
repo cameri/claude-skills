@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.3.0] - 2026-07-23
+
+### Added
+- `exit-session` skill: fires automatically on an `/exit` channel message; sends `/exit` +
+  Enter to the tmux pane, ending the process. Relies on something outside the pane (a
+  supervisor or container restart policy) to bring it back — confirmed viable in this
+  deployment since `containers/claude-sandboxed/compose.yml` runs with `restart: unless-stopped`.
+- `rename-session` skill: fires on a `/rename <name>` channel message; sends `/rename <name>` +
+  Enter to name the current session.
+- `resume-session` skill: fires on a `/resume <name>` channel message; sends `/resume <name>` +
+  Enter to switch the pane to a different, previously named session. Always requires a name —
+  a bare `/resume` opens an interactive picker that can't be driven by scripted keystrokes.
+- `branch-session` skill: fires automatically on a `/branch` channel message; sends `/branch` +
+  Enter to fork the conversation at the current point without disturbing the original.
+- `export-session` skill: fires on an `/export <path>` (or bare `/export`) channel message;
+  sends `/export <path>` + Enter to write the conversation to a file. With no path given,
+  defaults to `docs/<slug>`, where `<slug>` is generated from a summary of the conversation
+  before the script runs.
+- `rename-session`, `resume-session`, and `export-session` send user-supplied text via
+  `tmux send-keys -l` so it can't be misread as tmux key names.
+
+### Deferred
+- A `/background` skill (send the session to the background, freeing the terminal) was
+  requested but not implemented: in this deployment the container's PID 1 is literally
+  `tmux attach -t claude` (see `containers/claude-sandboxed/compose.yml`), so detaching that
+  client — or suspending the `claude` process, which has no wrapping shell in the pane to
+  later run `fg` from — tears down or freezes the whole sandbox instead of just freeing the
+  terminal. Needs a decision on how to handle this before it can be built safely.
+
 ## [sandbox-manager 0.2.0] - 2026-07-23
 
 ### Added
