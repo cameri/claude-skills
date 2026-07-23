@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.2.0] - 2026-07-23
+
+### Added
+- `manage-plugins` skill: adds/removes marketplaces and installs/updates/enables/disables/
+  uninstalls plugins via the non-interactive `claude plugin ...` CLI (synchronous, no polling
+  needed), then runs `scripts/reload-plugins.sh` to send `/reload-plugins` to this session's own
+  tmux pane so the change applies without a full restart — `/reload-plugins` has no CLI
+  equivalent, unlike marketplace/install/update/enable/disable/uninstall.
+
 ## [sandbox-manager 0.1.0] - 2026-07-23
 
 ### Added
