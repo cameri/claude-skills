@@ -176,6 +176,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./finance-manager"
+    },
+    {
+      "name": "sandbox-manager",
+      "description": "Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./sandbox-manager"
     }
   ]
 }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.1.0] - 2026-07-23
+
+### Added
+- New plugin: manages the Claude Code sandbox itself.
+- `restart-session` skill: fires automatically on a `/clear` channel message (e.g. Telegram);
+  runs `scripts/restart-session.sh`, which auto-discovers the current tmux pane, verifies it's
+  actually running Claude Code, and sends `/clear` + Enter to reset the session on remote request.
+
 ## [finance-manager 0.6.3] - 2026-07-22
 
 ### Fixed

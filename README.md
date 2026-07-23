@@ -12,6 +12,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
+| [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane |
 | [scheduler](./scheduler/) | Schedule tasks using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache |
 | [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
@@ -77,6 +78,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/paperless:upload` | Upload a local file with optional metadata |
 | `/paperless:content` | Display the full OCR-extracted text of a document by ID |
 | `/paperless:view` | Download the archived PDF; when called from Telegram, sends the file to chat |
+
+### sandbox-manager
+
+| Skill | Description |
+|---|---|
+| `sandbox-manager:restart-session` | Fires automatically on a `/clear` channel message; sends `/clear` + Enter to the tmux pane running this Claude Code session |
 
 ### scheduler
 
