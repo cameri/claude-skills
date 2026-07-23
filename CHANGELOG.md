@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.4.0] - 2026-07-23
+
+### Added
+- `background-session` skill: fires automatically on a `/background` channel message; sends
+  `/background` + Enter, which hands the current work off to a background agent and frees
+  the interactive pane. Confirmed with cameri that `/background` is a real Claude Code
+  command (not Ctrl-Z/`bg`/`fg`), which is why the entry below was initially deferred.
+
 ## [sandbox-manager 0.3.0] - 2026-07-23
 
 ### Added

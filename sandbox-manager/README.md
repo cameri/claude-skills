@@ -12,6 +12,7 @@ Lets Claude Code manage its own sandbox — restarting or exiting its own sessio
 | `resume-session` | Fires on a channel message like `/resume <name>`. Sends `/resume <name>` + Enter to switch the pane to a different, previously named session. Always requires a name — a bare `/resume` opens an interactive picker that can't be scripted. |
 | `branch-session` | Fires automatically when a connected channel sends `/branch`. Sends `/branch` + Enter to fork the conversation at the current point without disturbing the original. |
 | `export-session` | Fires on a channel message like `/export <path>` (or bare `/export`). Sends `/export <path>` + Enter to write the conversation to a file; with no path given, defaults to `docs/<slug>` using a summary of the conversation. |
+| `background-session` | Fires automatically when a connected channel sends `/background`. Sends `/background` + Enter to hand the current work off to a background agent, freeing the interactive pane. |
 | `manage-plugins` | Adds/removes marketplaces and installs/updates/enables/disables/uninstalls plugins via the non-interactive `claude plugin` CLI, then reloads this running session by sending `/reload-plugins` to its own tmux pane. |
 
 ## How it works
