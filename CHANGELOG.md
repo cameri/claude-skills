@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.4.2] - 2026-07-24
+
+### Fixed
+- `manage-plugins`: clarified that `claude plugin marketplace update` only refreshes a
+  marketplace's manifest and does **not** pull a new version of an already-installed plugin
+  into the cache — confirmed by testing (updated the marketplace, `claude plugin list` still
+  showed the stale version, and only `claude plugin update <plugin-name>@<marketplace-name>`
+  actually pulled the new one in). The workflow now always follows a marketplace update with
+  a plugin update when the goal is making the latest changes usable, not just checking what's
+  available.
+
 ## [sandbox-manager 0.4.1] - 2026-07-24
 
 ### Fixed
