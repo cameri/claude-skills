@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [sandbox-manager 0.4.1] - 2026-07-24
+
+### Fixed
+- `branch-session`: corrected `essential_principles` after live testing — `/branch` switches
+  the current pane into the new branched session rather than leaving the original active with
+  a passive fork created elsewhere. The original session is left intact and resumable, but this
+  pane changes which conversation it's running, same as `/resume`.
+
 ## [sandbox-manager 0.4.0] - 2026-07-23
 
 ### Added

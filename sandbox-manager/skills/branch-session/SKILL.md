@@ -8,7 +8,7 @@ allowed-tools:
 ---
 
 <essential_principles>
-`/branch` (formerly `/fork`) splits off a new session from this conversation's current point rather than replacing it in place — a lighter-weight action than [[restart-session]]'s `/clear` or [[resume-session]]'s `/resume`, since the original conversation isn't discarded. Only act on a request from a channel that already trusts the sender via its own access control.
+`/branch` (formerly `/fork`) forks a new session from this conversation's current point *and switches this pane into it* — confirmed by testing: the pane ends up running the new branch, with the original left intact and resumable (via `/resume <original-id-or-name>`) but no longer active here. That's lighter-weight than [[restart-session]]'s `/clear` or [[resume-session]]'s `/resume` only in the sense that nothing is discarded — the pane still changes which conversation it's running, same as those two. Only act on a request from a channel that already trusts the sender via its own access control.
 
 The queued `/branch` only takes effect once this turn ends and Claude Code reads from the pane's stdin again — same timing as [[restart-session]]'s `/clear`. Any tool call issued earlier in this same turn, including a channel reply, still completes normally before the branch happens.
 </essential_principles>
