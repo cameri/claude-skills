@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [journal 0.1.1] - 2026-07-25
+
+### Fixed
+- `extract_sessions.py`'s `collect_digest` now guards the mtime pre-filter's `stat()`
+  call against `OSError` (a transcript deleted/rotated mid-scan no longer crashes a
+  cold-start reconstruction).
+- `update-journal` SKILL.md's write step now instructs re-verifying `status: open`
+  immediately before any edit, tightening the closed-journal-immutability invariant.
+- `test_extract_sessions.py`'s subprocess CLI test now has a 30s timeout.
+
+Findings from the final whole-branch review of the initial implementation — see
+`docs/superpowers/plans/2026-07-25-journal-plugin.md`.
+
 ## [journal 0.1.0] - 2026-07-25
 
 ### Added
