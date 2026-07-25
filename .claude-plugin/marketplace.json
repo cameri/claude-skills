@@ -186,6 +186,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./sandbox-manager"
+    },
+    {
+      "name": "journal",
+      "description": "Keeps a series of narrative journals about what the user has been doing, written from Claude's own perspective by reading session history across every project on this machine plus the memory system.",
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./journal"
     }
   ]
 }

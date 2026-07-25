@@ -10,6 +10,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
+| [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
 | [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane |
@@ -45,6 +46,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `github-manager:manage-ci` | Handles GitHub CI events; alerts on failures via Telegram |
 | `github-manager:manage-projects` | Handles GitHub Projects v2 events; notifies on lifecycle changes, escalates external activity via Telegram |
 | `github-manager:manage-admin` | Handles GitHub security alerts, collaborator changes, pushes, and admin events |
+
+### journal
+
+| Skill | Description |
+|---|---|
+| `journal:update-journal` | Reads session activity since the last update across every project on this machine plus the memory system, judges whether it continues the current journal's cycle or starts a new one, and writes/closes entries accordingly |
 
 ### elevenlabs
 

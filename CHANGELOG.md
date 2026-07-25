@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [journal 0.1.0] - 2026-07-25
+
+### Added
+- New `journal` plugin: `update-journal` skill keeps a series of narrative journals
+  at `docs/journal/` in the workspace repo, written from Claude's own perspective by
+  reading session transcripts across every project on this machine (via the new
+  dependency-free `extract_sessions.py`) plus the memory system. Journals are
+  manually invoked, cycle-boundary judgment is a per-run call (not a fixed
+  schedule), and a closed journal is never edited again.
+
 ## [sandbox-manager 0.4.2] - 2026-07-24
 
 ### Fixed
