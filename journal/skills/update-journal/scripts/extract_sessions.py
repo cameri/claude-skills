@@ -45,3 +45,63 @@ def extract_text_blocks(content) -> list[str]:
                     texts.append(text)
         return texts
     return []
+
+
+@dataclass
+class DigestEntry:
+    timestamp: datetime
+    project: str
+    session_id: str
+    role: str
+    text: str
+
+
+def parse_transcript_file(path: Path, since: datetime | None) -> list[DigestEntry]:
+    """Parse one session's JSONL transcript into digest entries.
+
+    Skips malformed lines, non-user/assistant record types, subagent
+    sidechain turns, and (if `since` is given) anything at or before it.
+    """
+    entries: list[DigestEntry] = []
+    project = path.parent.name
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return entries
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if record.get("type") not in ("user", "assistant"):
+            continue
+        if record.get("isSidechain"):
+            continue
+
+        timestamp_raw = record.get("timestamp")
+        if not timestamp_raw:
+            continue
+        try:
+            timestamp = datetime.fromisoformat(timestamp_raw.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if since is not None and timestamp <= since:
+            continue
+
+        message = record.get("message") or {}
+        for text in extract_text_blocks(message.get("content")):
+            entries.append(
+                DigestEntry(
+                    timestamp=timestamp,
+                    project=project,
+                    session_id=record.get("sessionId", "unknown"),
+                    role=record["type"],
+                    text=text,
+                )
+            )
+    return entries
