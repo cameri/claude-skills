@@ -115,13 +115,17 @@ Next update's section.
    (`opened: <date the next section's material starts>`, `status: open`) and
    continue.
 
-8. **Write.** For material that continues the open journal (no boundary crossed):
-   append one `## <date>` section per calendar date represented in the material,
-   with prose covering what happened — first person for Claude's own observations,
-   third person about the user. Follow the redaction stance: describe *what kind* of
-   thing happened (a financial reconciliation, a health-related task, a
-   disagreement), never the exact dollar amount, account/wallet identifier, or
-   health specifics.
+8. **Write.** Before editing any journal file in this step (including the
+   close-and-open writes in step 7), re-read its frontmatter one more time and
+   confirm it still says `status: open` — this is the one hard invariant in this
+   whole process, and re-checking immediately before the edit is cheap insurance
+   against acting on a stale read. For material that continues the open journal
+   (no boundary crossed): append one `## <date>` section per calendar date
+   represented in the material, with prose covering what happened — first person
+   for Claude's own observations, third person about the user. Follow the
+   redaction stance: describe *what kind* of thing happened (a financial
+   reconciliation, a health-related task, a disagreement), never the exact dollar
+   amount, account/wallet identifier, or health specifics.
 
 9. Update `last_synced` on whichever journal file ends the run in `status: open` to
    the timestamp of the newest entry incorporated. (There is always exactly one open

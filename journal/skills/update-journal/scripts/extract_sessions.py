@@ -131,8 +131,12 @@ def format_digest(entries: list[DigestEntry]) -> str:
 def collect_digest(projects_dir: Path, since: datetime | None) -> str:
     entries: list[DigestEntry] = []
     for path in discover_transcript_files(projects_dir):
-        if since is not None and file_mtime(path) < since:
-            continue
+        if since is not None:
+            try:
+                if file_mtime(path) < since:
+                    continue
+            except OSError:
+                continue
         entries.extend(parse_transcript_file(path, since))
     return format_digest(entries)
 

@@ -283,6 +283,7 @@ class TestMainCli(unittest.TestCase):
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=30,
             )
             self.assertIn("wrote the journal plan", result.stdout)
             self.assertIn("--- digest: 1 entries,", result.stdout)
