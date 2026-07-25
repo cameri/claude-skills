@@ -105,3 +105,56 @@ def parse_transcript_file(path: Path, since: datetime | None) -> list[DigestEntr
                 )
             )
     return entries
+
+
+def discover_transcript_files(projects_dir: Path) -> list[Path]:
+    """Every session transcript one level under each project directory."""
+    return sorted(projects_dir.glob("*/*.jsonl"))
+
+
+def file_mtime(path: Path) -> datetime:
+    return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+
+
+def format_digest(entries: list[DigestEntry]) -> str:
+    """Chronological, project-tagged digest with a trailing size summary."""
+    ordered = sorted(entries, key=lambda e: e.timestamp)
+    lines = [
+        f"[{e.timestamp.isoformat()}] ({e.project}/{e.session_id}) {e.role}: {e.text}"
+        for e in ordered
+    ]
+    digest = "\n".join(lines)
+    summary = f"--- digest: {len(ordered)} entries, {len(digest)} chars ---"
+    return summary if not ordered else f"{digest}\n{summary}"
+
+
+def collect_digest(projects_dir: Path, since: datetime | None) -> str:
+    entries: list[DigestEntry] = []
+    for path in discover_transcript_files(projects_dir):
+        if since is not None and file_mtime(path) < since:
+            continue
+        entries.extend(parse_transcript_file(path, since))
+    return format_digest(entries)
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--projects-dir",
+        type=Path,
+        default=Path.home() / ".claude" / "projects",
+        help="Directory containing one subdirectory per Claude Code project (default: ~/.claude/projects)",
+    )
+    parser.add_argument(
+        "--since",
+        type=str,
+        default=None,
+        help="ISO 8601 timestamp; only include entries strictly after this",
+    )
+    args = parser.parse_args(argv)
+    print(collect_digest(args.projects_dir, parse_since(args.since)))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -7,7 +9,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from extract_sessions import DigestEntry, extract_text_blocks, parse_since, parse_transcript_file
+from extract_sessions import (
+    DigestEntry,
+    collect_digest,
+    discover_transcript_files,
+    extract_text_blocks,
+    file_mtime,
+    format_digest,
+    parse_since,
+    parse_transcript_file,
+)
 
 
 class TestParseSince(unittest.TestCase):
@@ -157,6 +168,124 @@ class TestParseTranscriptFile(unittest.TestCase):
         entries = parse_transcript_file(self.path, since=since)
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0].text, "new message")
+
+
+class TestFormatDigest(unittest.TestCase):
+    def test_sorts_chronologically_across_projects_and_appends_summary(self):
+        entries = [
+            DigestEntry(
+                timestamp=datetime(2026, 7, 20, 12, 0, tzinfo=timezone.utc),
+                project="-workspace",
+                session_id="s2",
+                role="user",
+                text="second, later",
+            ),
+            DigestEntry(
+                timestamp=datetime(2026, 7, 20, 9, 0, tzinfo=timezone.utc),
+                project="-akkadian-agent",
+                session_id="s1",
+                role="user",
+                text="first, earlier",
+            ),
+        ]
+        digest = format_digest(entries)
+        first_line_pos = digest.index("first, earlier")
+        second_line_pos = digest.index("second, later")
+        self.assertLess(first_line_pos, second_line_pos)
+        self.assertIn("-akkadian-agent/s1", digest)
+        self.assertIn("--- digest: 2 entries,", digest)
+
+    def test_empty_entries_returns_just_the_summary(self):
+        digest = format_digest([])
+        self.assertEqual(digest, "--- digest: 0 entries, 0 chars ---")
+
+
+class TestDiscoverAndCollect(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmpdir.cleanup)
+        self.projects_dir = Path(self.tmpdir.name)
+
+    def test_discover_finds_jsonl_one_level_under_each_project(self):
+        proj_a = self.projects_dir / "-workspace"
+        proj_a.mkdir()
+        (proj_a / "session-1.jsonl").write_text("")
+        proj_b = self.projects_dir / "-akkadian-agent"
+        proj_b.mkdir()
+        (proj_b / "session-2.jsonl").write_text("")
+        # nested subdirectories (e.g. sidechain dirs) are not top-level session files
+        nested = proj_a / "subdir"
+        nested.mkdir()
+        (nested / "ignored.jsonl").write_text("")
+
+        found = discover_transcript_files(self.projects_dir)
+        self.assertEqual(
+            sorted(p.name for p in found), ["session-1.jsonl", "session-2.jsonl"]
+        )
+
+    def test_collect_digest_skips_files_older_than_since_by_mtime(self):
+        proj = self.projects_dir / "-workspace"
+        proj.mkdir()
+        stale = proj / "stale.jsonl"
+        _write_jsonl(
+            stale,
+            [
+                {
+                    "type": "user",
+                    "sessionId": "stale",
+                    "timestamp": "2020-01-01T00:00:00Z",
+                    "message": {"role": "user", "content": "ancient"},
+                }
+            ],
+        )
+        old_time = datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp()
+        os.utime(stale, (old_time, old_time))
+
+        fresh = proj / "fresh.jsonl"
+        _write_jsonl(
+            fresh,
+            [
+                {
+                    "type": "user",
+                    "sessionId": "fresh",
+                    "timestamp": "2026-07-20T00:00:00Z",
+                    "message": {"role": "user", "content": "recent"},
+                }
+            ],
+        )
+
+        since = parse_since("2026-01-01T00:00:00Z")
+        digest = collect_digest(self.projects_dir, since)
+        self.assertIn("recent", digest)
+        self.assertNotIn("ancient", digest)
+
+
+class TestMainCli(unittest.TestCase):
+    def test_end_to_end_prints_digest_and_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            projects_dir = Path(tmp) / "projects"
+            proj = projects_dir / "-workspace"
+            proj.mkdir(parents=True)
+            _write_jsonl(
+                proj / "session-1.jsonl",
+                [
+                    {
+                        "type": "user",
+                        "sessionId": "session-1",
+                        "timestamp": "2026-07-20T00:00:00Z",
+                        "message": {"role": "user", "content": "wrote the journal plan"},
+                    }
+                ],
+            )
+            script = Path(__file__).resolve().parent / "extract_sessions.py"
+            result = subprocess.run(
+                [sys.executable, str(script), "--projects-dir", str(projects_dir)],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            self.assertIn("wrote the journal plan", result.stdout)
+            self.assertIn("--- digest: 1 entries,", result.stdout)
 
 
 if __name__ == "__main__":
