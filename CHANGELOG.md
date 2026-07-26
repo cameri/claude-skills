@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.7.3] - 2026-07-26
+
+### Added
+- `reconcile-statement` workflow and `backfill-verification.md` now capture three
+  more lessons from a second same-day reconciliation (RBC Mastercard, ~6-month
+  payment-sync gap): (1) a confirmed hypothesis about *which* transaction type
+  stopped syncing can mask a second, smaller dropout of a different type in the
+  same months — diff every statement line regardless; (2) prefer linking an
+  already-synced-but-unlinked counterpart transaction found in another tracked
+  account over inserting a fresh transfer pair; (3) the transfer-linking danger
+  note now cross-references the CLI's flush-after-every-write requirement, since
+  linking one pair takes two sequential `transactions update` calls and it's easy
+  to batch them without flushing between. Also documents that reconciling against
+  a live (not-yet-statemented) "current balance" only supports spot-checking, not
+  chain verification — small residuals from pending/uncleared transactions are
+  expected there, not reconciliation errors.
+
 ## [finance-manager 0.7.2] - 2026-07-26
 
 ### Added
