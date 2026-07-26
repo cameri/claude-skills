@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.7.2] - 2026-07-26
+
+### Added
+- `reconcile-statement`'s `backfill-verification.md` now documents diagnosing
+  scattered drift on an already-live-synced account (sync silently dropping
+  specific transactions in specific months, not a clean multi-month gap): find a
+  self-consistent checkpoint boundary instead of assuming a backfill must reach
+  account inception, then diff each period's own net change against
+  ActualBudget's to pinpoint exactly which months need attention before touching
+  any data. Derived from a real reconciliation (RBC Chequing Arturo, 2026-07-26)
+  that fixed a ~$25,500 drift this way.
+
 ## [journal 0.1.1] - 2026-07-25
 
 ### Fixed
