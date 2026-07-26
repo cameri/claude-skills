@@ -9,11 +9,13 @@ from mempool_cli import (
     MempoolRateLimitError,
     fetch_address_txs_page,
     fetch_json,
+    fetch_with_fallback,
     format_table,
     paginate,
     render_address,
     render_descriptor_result,
     render_tx,
+    resolve_api_urls,
     resolve_network,
     scan_branch,
     scan_descriptor,
@@ -67,14 +69,53 @@ def test_fetch_json_raises_not_found_on_404(monkeypatch):
         fetch_json("https://mempool.space/api/tx/doesnotexist")
 
 
-def test_fetch_json_raises_rate_limit_on_429(monkeypatch):
+def test_fetch_json_raises_rate_limit_after_exhausting_retries(monkeypatch):
+    call_count = 0
+
+    def raise_429(req, timeout=10):
+        nonlocal call_count
+        call_count += 1
+        raise urllib.error.HTTPError(req, 429, "Too Many Requests", None, io.BytesIO(b""))
+
+    monkeypatch.setattr("mempool_cli.urllib.request.urlopen", raise_429)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: None)
+
+    with pytest.raises(MempoolRateLimitError):
+        fetch_json("https://mempool.space/api/tx/abc", max_retries=2)
+
+    assert call_count == 3  # initial attempt + 2 retries
+
+
+def test_fetch_json_retries_429_then_succeeds(monkeypatch):
+    call_count = 0
+
+    def flaky(req, timeout=10):
+        nonlocal call_count
+        call_count += 1
+        if call_count < 3:
+            raise urllib.error.HTTPError(req, 429, "Too Many Requests", None, io.BytesIO(b""))
+        return _FakeResponse(b'{"txid": "abc"}')
+
+    monkeypatch.setattr("mempool_cli.urllib.request.urlopen", flaky)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: None)
+
+    assert fetch_json("https://mempool.space/api/tx/abc", max_retries=3) == {"txid": "abc"}
+    assert call_count == 3
+
+
+def test_fetch_json_backs_off_with_increasing_delay(monkeypatch):
+    sleeps = []
+
     def raise_429(req, timeout=10):
         raise urllib.error.HTTPError(req, 429, "Too Many Requests", None, io.BytesIO(b""))
 
     monkeypatch.setattr("mempool_cli.urllib.request.urlopen", raise_429)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: sleeps.append(seconds))
 
     with pytest.raises(MempoolRateLimitError):
-        fetch_json("https://mempool.space/api/tx/abc")
+        fetch_json("https://mempool.space/api/tx/abc", max_retries=3, backoff_seconds=1.0)
+
+    assert sleeps == [1.0, 2.0, 4.0]
 
 
 def test_fetch_json_raises_api_error_on_connection_failure(monkeypatch):
@@ -149,7 +190,7 @@ def test_fetch_address_txs_page_returns_page_1_with_a_single_call():
         calls.append(url)
         return pages[url]
 
-    txs, has_more = fetch_address_txs_page("https://mempool.space/api", "bc1q", page=1, fetch=fake_fetch)
+    txs, has_more = fetch_address_txs_page(["https://mempool.space/api"], "bc1q", page=1, fetch=fake_fetch)
 
     assert [tx["txid"] for tx in txs] == ["tx1", "tx2"]
     assert has_more is False
@@ -168,7 +209,7 @@ def test_fetch_address_txs_page_sequentially_cursors_to_requested_page_only():
         calls.append(url)
         return pages[url]
 
-    txs, has_more = fetch_address_txs_page("https://mempool.space/api", "bc1q", page=2, fetch=fake_fetch)
+    txs, has_more = fetch_address_txs_page(["https://mempool.space/api"], "bc1q", page=2, fetch=fake_fetch)
 
     assert [tx["txid"] for tx in txs] == ["tx25", "tx26"]
     assert has_more is False
@@ -185,7 +226,7 @@ def test_fetch_address_txs_page_reports_has_more_when_page_is_full():
     def fake_fetch(url):
         return full_page
 
-    txs, has_more = fetch_address_txs_page("https://mempool.space/api", "bc1q", page=1, fetch=fake_fetch)
+    txs, has_more = fetch_address_txs_page(["https://mempool.space/api"], "bc1q", page=1, fetch=fake_fetch)
 
     assert len(txs) == 25
     assert has_more is True
@@ -304,7 +345,7 @@ def test_scan_descriptor_aggregates_balance_and_tx_count_across_both_branches():
             return _addr_summary_with_sum(funded_sum=50000, spent_sum=0, tx_count=1)
         return _addr_summary(0)
 
-    result = scan_descriptor(descriptor_str, "mainnet", gap_limit=3, api_url="https://mempool.space/api", fetch=fake_fetch)
+    result = scan_descriptor(descriptor_str, "mainnet", gap_limit=3, api_urls=["https://mempool.space/api"], fetch=fake_fetch)
 
     assert result["confirmed_balance_sats"] == 120000  # (100000-30000) + (50000-0)
     assert result["tx_count"] == 3
@@ -375,3 +416,84 @@ def test_render_descriptor_result_shows_true_total_when_addresses_list_is_pre_sl
     output = render_descriptor_result(result, total_addresses=5)
 
     assert "5" in output  # true total, not len(result["addresses"]) == 1
+
+
+def test_resolve_api_urls_returns_primary_plus_fallback_by_default():
+    urls = resolve_api_urls("mainnet", None)
+
+    assert urls == ["https://mempool.space/api", "https://blockstream.info/api"]
+
+
+def test_resolve_api_urls_respects_network_choice():
+    urls = resolve_api_urls("testnet", None)
+
+    assert urls == ["https://mempool.space/testnet/api", "https://blockstream.info/testnet/api"]
+
+
+def test_resolve_api_urls_has_no_fallback_for_signet():
+    urls = resolve_api_urls("signet", None)
+
+    assert urls == ["https://mempool.space/signet/api"]
+
+
+def test_resolve_api_urls_override_disables_fallback():
+    urls = resolve_api_urls("mainnet", "https://my-node.local/api")
+
+    assert urls == ["https://my-node.local/api"]
+
+
+def test_fetch_with_fallback_uses_primary_when_it_succeeds():
+    calls = []
+
+    def fake_fetch(url):
+        calls.append(url)
+        return {"ok": True}
+
+    result = fetch_with_fallback(
+        "/tx/abc", ["https://mempool.space/api", "https://blockstream.info/api"], fetch=fake_fetch
+    )
+
+    assert result == {"ok": True}
+    assert calls == ["https://mempool.space/api/tx/abc"]
+
+
+def test_fetch_with_fallback_falls_through_on_rate_limit():
+    calls = []
+
+    def fake_fetch(url):
+        calls.append(url)
+        if "mempool.space" in url:
+            raise MempoolRateLimitError("rate limited")
+        return {"ok": True}
+
+    result = fetch_with_fallback(
+        "/tx/abc", ["https://mempool.space/api", "https://blockstream.info/api"], fetch=fake_fetch
+    )
+
+    assert result == {"ok": True}
+    assert calls == ["https://mempool.space/api/tx/abc", "https://blockstream.info/api/tx/abc"]
+
+
+def test_fetch_with_fallback_raises_immediately_on_404_without_trying_next_provider():
+    calls = []
+
+    def fake_fetch(url):
+        calls.append(url)
+        raise MempoolNotFoundError("not found")
+
+    with pytest.raises(MempoolNotFoundError):
+        fetch_with_fallback(
+            "/tx/doesnotexist", ["https://mempool.space/api", "https://blockstream.info/api"], fetch=fake_fetch
+        )
+
+    assert calls == ["https://mempool.space/api/tx/doesnotexist"]
+
+
+def test_fetch_with_fallback_raises_last_error_when_every_provider_fails():
+    def fake_fetch(url):
+        raise MempoolApiError(f"unreachable: {url}")
+
+    with pytest.raises(MempoolApiError, match="blockstream.info"):
+        fetch_with_fallback(
+            "/tx/abc", ["https://mempool.space/api", "https://blockstream.info/api"], fetch=fake_fetch
+        )

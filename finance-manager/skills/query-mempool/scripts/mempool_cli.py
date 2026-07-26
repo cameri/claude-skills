@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -15,6 +16,19 @@ DEFAULT_API_URLS = {
     "testnet": "https://mempool.space/testnet/api",
     "signet": "https://mempool.space/signet/api",
 }
+
+# Blockstream's Esplora is the API mempool.space's own API is derived from - same
+# endpoint shapes, no API key required. Used as an automatic fallback when the
+# primary is rate-limited or unreachable. No public Blockstream signet instance
+# exists, so signet has no fallback.
+FALLBACK_API_URLS = {
+    "mainnet": ["https://blockstream.info/api"],
+    "testnet": ["https://blockstream.info/testnet/api"],
+    "signet": [],
+}
+
+RATE_LIMIT_MAX_RETRIES = 3
+RATE_LIMIT_BACKOFF_SECONDS = 1.0
 
 
 class MempoolApiError(Exception):
@@ -29,18 +43,59 @@ class MempoolRateLimitError(MempoolApiError):
     pass
 
 
-def fetch_json(url: str, timeout: int = 10):
-    try:
-        with urllib.request.urlopen(url, timeout=timeout) as response:
-            return json.loads(response.read())
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            raise MempoolNotFoundError(f"not found: {url}") from exc
-        if exc.code == 429:
-            raise MempoolRateLimitError("rate limited by mempool.space, retry later") from exc
-        raise MempoolApiError(f"HTTP {exc.code} from {url}: {exc.reason}") from exc
-    except urllib.error.URLError as exc:
-        raise MempoolApiError(f"request to {url} failed: {exc.reason}") from exc
+def fetch_json(
+    url: str,
+    timeout: int = 10,
+    max_retries: int = RATE_LIMIT_MAX_RETRIES,
+    backoff_seconds: float = RATE_LIMIT_BACKOFF_SECONDS,
+):
+    """Fetch a single URL, retrying with exponential backoff on HTTP 429
+    (rate limited) up to `max_retries` times before giving up on this URL."""
+    attempt = 0
+    while True:
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as response:
+                return json.loads(response.read())
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                raise MempoolNotFoundError(f"not found: {url}") from exc
+            if exc.code == 429:
+                if attempt >= max_retries:
+                    raise MempoolRateLimitError(f"rate limited, retry later: {url}") from exc
+                time.sleep(backoff_seconds * (2**attempt))
+                attempt += 1
+                continue
+            raise MempoolApiError(f"HTTP {exc.code} from {url}: {exc.reason}") from exc
+        except urllib.error.URLError as exc:
+            raise MempoolApiError(f"request to {url} failed: {exc.reason}") from exc
+
+
+def resolve_api_urls(network: str, api_url_override: str | None) -> list[str]:
+    """Primary + fallback base URLs to try in order for `network`. An explicit
+    `--api-url` override (e.g. a self-hosted instance) disables fallback
+    entirely - that's assumed to be an intentional, specific choice."""
+    if api_url_override:
+        return [api_url_override]
+    return [DEFAULT_API_URLS[network], *FALLBACK_API_URLS.get(network, [])]
+
+
+def fetch_with_fallback(path: str, api_urls: list[str], fetch=fetch_json):
+    """Fetch `path` against each base URL in `api_urls` in turn, falling
+    through to the next provider if one is rate-limited (after its own
+    retries) or unreachable. A 404 is authoritative - every provider indexes
+    the same chain, so a genuinely missing resource won't appear on the next
+    one either - and is raised immediately without trying further providers."""
+    last_error: MempoolApiError | None = None
+    for base_url in api_urls:
+        try:
+            return fetch(f"{base_url}{path}")
+        except MempoolNotFoundError:
+            raise
+        except MempoolApiError as exc:
+            last_error = exc
+            continue
+    assert last_error is not None  # api_urls is never empty
+    raise last_error
 
 
 def resolve_network(name: str):
@@ -63,7 +118,7 @@ def scan_descriptor(
     descriptor_str: str,
     network_name: str,
     gap_limit: int,
-    api_url: str,
+    api_urls: list[str],
     fetch=fetch_json,
 ) -> dict:
     import bdkpython as bdk
@@ -77,7 +132,7 @@ def scan_descriptor(
             return str(branch.derive_address(index, network))
 
         def fetch_address_summary(address):
-            return fetch(f"{api_url}/address/{address}")
+            return fetch_with_fallback(f"/address/{address}", api_urls, fetch)
 
         addresses.extend(scan_branch(address_at, fetch_address_summary, gap_limit))
 
@@ -132,19 +187,19 @@ def paginate(items: list, page: int, page_size: int = 25) -> tuple[list, bool]:
     return items[start:end], end < len(items)
 
 
-def fetch_address_txs_page(api_url: str, address: str, page: int, fetch=fetch_json) -> tuple[list[dict], bool]:
+def fetch_address_txs_page(api_urls: list[str], address: str, page: int, fetch=fetch_json) -> tuple[list[dict], bool]:
     """Fetch only up to the requested page (25 txs/page) of an address's confirmed
     history - mempool.space's cursor-based pagination means reaching page N requires
     sequentially requesting pages 1..N, but this never fetches beyond that."""
-    base_url = f"{api_url}/address/{address}/txs/chain"
-    url = base_url
+    base_path = f"/address/{address}/txs/chain"
+    path = base_path
     current_page: list[dict] = []
     for page_num in range(1, page + 1):
-        current_page = fetch(url)
+        current_page = fetch_with_fallback(path, api_urls, fetch)
         if len(current_page) < ADDRESS_TXS_PAGE_SIZE:
             return current_page, False
         if page_num < page:
-            url = f"{base_url}/{current_page[-1]['txid']}"
+            path = f"{base_path}/{current_page[-1]['txid']}"
     return current_page, True
 
 
@@ -291,15 +346,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    api_url = args.api_url or DEFAULT_API_URLS[args.network]
+    api_urls = resolve_api_urls(args.network, args.api_url)
 
     try:
         if args.command == "tx":
-            tx = fetch_json(f"{api_url}/tx/{args.txid}")
+            tx = fetch_with_fallback(f"/tx/{args.txid}", api_urls)
             print(json.dumps(tx, indent=2) if args.json else render_tx(tx))
         elif args.command == "address":
-            summary = fetch_json(f"{api_url}/address/{args.address}")
-            txs, has_more = fetch_address_txs_page(api_url, args.address, args.page)
+            summary = fetch_with_fallback(f"/address/{args.address}", api_urls)
+            txs, has_more = fetch_address_txs_page(api_urls, args.address, args.page)
             if args.json:
                 print(json.dumps({**summary, "page": args.page, "has_more": has_more, "txs": txs}, indent=2))
             else:
@@ -309,7 +364,7 @@ def main(argv: list[str] | None = None) -> int:
                     print(render_tx_list(txs))
                 print(f"\nPage {args.page}" + (f" (more available - use --page {args.page + 1})" if has_more else ""))
         elif args.command == "descriptor":
-            result = scan_descriptor(args.descriptor, args.network, args.gap_limit, api_url)
+            result = scan_descriptor(args.descriptor, args.network, args.gap_limit, api_urls)
             page_addresses, has_more = paginate(result["addresses"], args.page)
             total_addresses = len(result["addresses"])
             display_result = {**result, "addresses": page_addresses}

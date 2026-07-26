@@ -25,6 +25,12 @@ python scripts/mempool_cli.py --json address <address> --page 2
 
 `--network` (`mainnet` default / `testnet` / `signet`) picks the right mempool.space
 instance automatically; override with `--api-url` for a self-hosted instance.
+
+Rate-limited (HTTP 429) requests retry with exponential backoff automatically; if
+mempool.space still won't respond (or is unreachable), mainnet/testnet requests fall
+back to Blockstream's Esplora (`blockstream.info/api`) - same API shape, no auth
+required. An explicit `--api-url` disables this fallback (you asked for one specific
+instance). Signet has no public fallback.
 </quick_start>
 
 <reference_index>

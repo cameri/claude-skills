@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.8.0] - 2026-07-26
+
+### Added
+- `query-mempool`'s `mempool_cli.py` now retries HTTP 429 (rate limited) responses
+  with exponential backoff (1s/2s/4s, 3 retries by default) before giving up on a
+  provider, and automatically falls back to Blockstream's Esplora
+  (`blockstream.info/api`) for mainnet/testnet when mempool.space is still
+  rate-limited or unreachable - same API shape, no API key needed, so it's a
+  drop-in base-URL swap. Signet has no public fallback. An explicit `--api-url`
+  disables fallback entirely (assumed to mean "use exactly this instance").
+  Prompted by hitting mempool.space's rate limit repeatedly during a real Bitkey
+  wallet reconciliation (paging through descriptor-derived addresses).
+
 ## [finance-manager 0.7.3] - 2026-07-26
 
 ### Added

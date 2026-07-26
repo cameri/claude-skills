@@ -34,10 +34,37 @@ Bitkey-specific is hardcoded.
 |---|---|---|---|
 | `--json` | all | off (table) | JSON output instead of a human-readable table |
 | `--network` | all | `mainnet` | `mainnet` \| `testnet` \| `signet` — picks the default `--api-url` and the address-derivation network |
-| `--api-url` | all | derived from `--network` | e.g. `https://mempool.space/testnet/api`; explicit value always wins over `--network`'s default |
+| `--api-url` | all | derived from `--network` | e.g. `https://mempool.space/testnet/api`; explicit value always wins over `--network`'s default, and **disables automatic fallback** (see `<retry_and_fallback>`) — an explicit URL is assumed to mean "use exactly this instance" |
 | `--gap-limit` | `descriptor` | 20 | consecutive unused addresses (per branch) before stopping the scan |
 | `--page` | `address`, `descriptor` | 1 | see `<pagination>` |
 </flags>
+
+<retry_and_fallback>
+Every request that gets HTTP 429 (rate limited) retries against the *same* provider
+with exponential backoff: 1s, 2s, 4s (3 retries by default, i.e. 4 attempts total)
+before giving up on that provider.
+
+If a provider is still rate-limited after retries, or is unreachable outright, the CLI
+falls through to the next provider in line rather than failing the whole command.
+Default provider order per network (no `--api-url` given):
+
+| Network | Providers tried in order |
+|---|---|
+| `mainnet` | `mempool.space/api` → `blockstream.info/api` |
+| `testnet` | `mempool.space/testnet/api` → `blockstream.info/testnet/api` |
+| `signet` | `mempool.space/signet/api` only (no public Blockstream signet instance) |
+
+Blockstream's Esplora is API-shape-compatible with mempool.space (mempool.space's own
+API is derived from it) — no API key, same endpoint paths — so this fallback is a
+drop-in swap of the base URL, nothing provider-specific in the request logic.
+
+A 404 (genuinely missing txid/address) is never retried or failed-over — every
+provider indexes the same chain, so if one says "not found" the others will too.
+
+An explicit `--api-url` collapses the provider list to just that one URL — no
+fallback is attempted, since specifying a URL is assumed to mean you want exactly
+that instance (e.g. a self-hosted node).
+</retry_and_fallback>
 
 <pagination>
 Every list-returning command is paginated at 25 items/page via `--page`.
@@ -64,7 +91,7 @@ trade-off to avoid an extra always-issued request per page in the common case.
 | Code | Meaning |
 |---|---|
 | 0 | success |
-| 1 | txid/address not found (HTTP 404), or rate-limited by mempool.space (HTTP 429) |
+| 1 | txid/address not found (HTTP 404), or every available provider is still rate-limited (HTTP 429) after retries and fallback |
 | 2 | network/connection failure |
 </exit_codes>
 
