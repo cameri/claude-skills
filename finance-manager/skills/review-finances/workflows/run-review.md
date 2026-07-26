@@ -30,6 +30,10 @@
 - For the Bitcoin bucket: get wallet balances via `finance-manager:query-mempool`
   (descriptor lookup) and a current BTC/CAD spot price (WebSearch or similar). Record the
   price and timestamp used — this figure is an approximation, say so in the report.
+  mempool.space public API rate-limits fairly aggressively — if the descriptor lookup
+  fails after one retry, don't block the rest of the report on it: mark the Bitcoin
+  bucket "unavailable this cycle (mempool.space rate-limited)" using last session's
+  figure from Session History as a stale-but-labeled fallback if one exists, and move on.
 - For Home Equity: read home value and mortgage principal from
   `docs/finance/financial-profile.md`. If either is still TBD, ask the user once; on
   answer, write it back into that file (Household section) via Edit so it isn't asked

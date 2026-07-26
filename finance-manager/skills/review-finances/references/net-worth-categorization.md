@@ -20,12 +20,18 @@ For each entry in `config.json`'s `accounts` array, classify by name/institution
 match (case-insensitive):
 
 1. Name contains "RRSP" or "TFSA" → Tax Shelters
-2. Name contains "Line of Credit", "LOC", or the account carries a persistent negative
-   balance funded by borrowing (not a credit card float) → Debt
-3. `on_budget: false` and name suggests a loan (e.g. "Loan") → Debt
-4. Everything else with `on_budget: true` or an obvious chequing/savings/joint-account
-   name → Liquid Cash
-5. Anything not confidently matched → ask the user once, then note the mapping in this
+2. Name contains "Line of Credit", "LOC" → Debt (report its balance as-is; per the
+   liquidity check below it should normally be $0)
+3. Name contains "Mastercard", "Visa", "Amex", "American Express", "Credit Card", or
+   otherwise identifies a revolving credit card/charge card → Debt, using its current
+   balance (usually negative = amount owed; a positive balance means a credit float, use
+   it as-is rather than flipping the sign). Credit cards are never Liquid Cash even
+   though most are `on_budget: true` — netting a card's revolving balance into Liquid
+   Cash overstates real liquidity and corrupts the emergency-fund runway calculation.
+4. `on_budget: false` and name suggests a loan (e.g. "Loan") → Debt
+5. Everything else — chequing, savings, joint accounts, EQ-style sub-accounts, goal
+   funds — → Liquid Cash
+6. Anything not confidently matched → ask the user once, then note the mapping in this
    review's report so it's consistent next time (don't silently guess indefinitely)
 
 For `config.json`'s `wallets` array: every entry is Bitcoin, regardless of its `kind`
@@ -35,7 +41,10 @@ and timestamp used in the report so the figure is auditable.
 
 Home Equity is never derived from Actual Budget. Pull current home value and mortgage
 principal remaining from `docs/finance/financial-profile.md`. If either is still marked
-TBD there, ask the user once, then write the answer back to that file.
+TBD there, ask the user once, then write the answer back to that file. A mortgage balance
+recorded there goes stale — if a `paperless:search-documents` lookup for the mortgage
+lender's name plus "statement" turns up something newer than the recorded date, use that
+figure instead and update `docs/finance/financial-profile.md`.
 </classification_heuristic>
 
 <liquidity_check>
