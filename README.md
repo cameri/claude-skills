@@ -8,7 +8,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
-| [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
+| [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
@@ -35,6 +35,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/finance-manager:reconcile-statement` | Reconcile a bank statement against ActualBudget — syncs accounts, matches transactions, self-improves reconciliation rules |
 | `/finance-manager:paperless-workflows` | Create or fix Paperless-ngx workflows so bank statement documents auto-tag correctly |
 | `/finance-manager:query-mempool` | Look up Bitcoin transactions, addresses, and wallet descriptor (single-sig or multisig) balances/history via the mempool.space API |
+| `/finance-manager:review-finances` | Run a household financial review — execution audit, net worth/liquidity check, tax/expense optimization scan, and a single-sitting report with goal tracking and up to 3 next actions |
 
 ### github-manager
 
