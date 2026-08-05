@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [executable-skepticism 0.1.0] - 2026-08-05
+
+### Added
+- New plugin: `executable-skepticism`. Verification protocol for evaluating
+  theories, papers, models, or any confident quantitative claim (including
+  Claude's own) by routing the verdict through executable, falsifiable tests
+  instead of prose — operationalize the claim, register numbered numeric
+  predictions before running any code, execute deterministically (preferring
+  the user's own hands), then adjudicate symmetrically with failures first
+  and derived-vs-installed results called out.
+
 ## [finance-manager 0.8.0] - 2026-07-26
 
 ### Added

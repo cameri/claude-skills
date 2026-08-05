@@ -196,6 +196,16 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./journal"
+    },
+    {
+      "name": "executable-skepticism",
+      "description": "A verification protocol for evaluating theories, papers, models, or any confident quantitative claim by routing the verdict through executable, falsifiable tests instead of prose.",
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./executable-skepticism"
     }
   ]
 }

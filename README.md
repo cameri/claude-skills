@@ -8,6 +8,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral MejÃ
 |---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance â€” check balances, add transactions, and query budgets |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
+| [executable-skepticism](./executable-skepticism/) | Verification protocol that turns a theory, paper, model, or confident quantitative claim into a falsifiable, runnable test instead of a debate in prose |
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager â€” handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory |
@@ -65,6 +66,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral MejÃ
 | `elevenlabs:sound-effects` | Generate sound effects, ambient sounds, and audio textures from text |
 | `elevenlabs:setup-api-key` | Configure an ElevenLabs API key (ELEVENLABS_API_KEY) |
 | `elevenlabs:elevenlabs-transcribe` | Batch or realtime audio transcription via CLI scripts |
+
+### executable-skepticism
+
+| Skill | Description |
+|---|---|
+| `executable-skepticism:executable-skepticism` | Operationalize a claim, register numeric predictions before running any code, execute deterministically, then score every prediction pass/fail â€” failures first, derived-vs-installed called out |
 
 ### nats
 
