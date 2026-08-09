@@ -16,6 +16,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
 | [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane |
 | [scheduler](./scheduler/) | Schedule tasks using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
+| [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache |
 | [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
 | [webhooks](./webhooks/) | Receive webhook events from external systems as channel notifications — HMAC-SHA256, IP allowlisting, BullMQ processing |
@@ -105,6 +106,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Skill | Description |
 |---|---|
 | `/scheduler:schedule` | Schedule a task using natural language; fires channel notifications when due |
+
+### simple-english
+
+| Skill | Description |
+|---|---|
+| `simple-english:simple-english` | Write or rewrite technical text per ASD-STE100 — classifies procedural vs. descriptive, applies the 53-rule catalog, runs a mandatory self-check before delivering |
 
 ### technitium-dns
 

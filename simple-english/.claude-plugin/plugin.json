@@ -1,0 +1,13 @@
+{
+  "name": "simple-english",
+  "description": "Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop.",
+  "version": "1.0.0",
+  "keywords": [
+    "writing",
+    "documentation",
+    "ste",
+    "asd-ste100",
+    "technical-writing",
+    "editing"
+  ]
+}

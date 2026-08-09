@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [simple-english 1.0.0] - 2026-08-09
+
+### Added
+- New plugin: `simple-english`. Writes and rewrites technical text with
+  ASD-STE100 Simplified Technical English — classifies text as procedural or
+  descriptive, applies the standard's 53-rule catalog (20/25-word sentence
+  limits, one word one meaning, simple tenses, active voice, condition
+  before command), and runs a mandatory self-check before delivering.
+  Promoted from the workspace-level `.agents/skills/simple-english` skill
+  into the marketplace so it's available as a portable plugin.
+
 ## [executable-skepticism 0.1.0] - 2026-08-05
 
 ### Added
