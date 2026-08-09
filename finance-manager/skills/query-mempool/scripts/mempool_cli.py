@@ -10,6 +10,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from email.utils import parsedate_to_datetime
 
 DEFAULT_API_URLS = {
     "mainnet": "https://mempool.space/api",
@@ -29,6 +30,17 @@ FALLBACK_API_URLS = {
 
 RATE_LIMIT_MAX_RETRIES = 3
 RATE_LIMIT_BACKOFF_SECONDS = 1.0
+# Hard ceiling on any single sleep, including a server-supplied Retry-After -
+# a misbehaving or malicious response should never be able to hang the CLI
+# for an unbounded amount of time.
+RATE_LIMIT_MAX_SLEEP_SECONDS = 60.0
+
+# Proactive pacing between successive descriptor-scan requests. mempool.space
+# does not publish its rate-limit thresholds ("if you have to ask you'll hit
+# them" - project maintainers), so this is a conservative default meant to
+# avoid tripping 429s in the first place during a wide gap-limit scan, not a
+# number derived from documented limits. Override with --request-delay.
+DEFAULT_REQUEST_DELAY_SECONDS = 0.5
 
 
 class MempoolApiError(Exception):
@@ -41,6 +53,35 @@ class MempoolNotFoundError(MempoolApiError):
 
 class MempoolRateLimitError(MempoolApiError):
     pass
+
+
+def _retry_delay_seconds(exc: urllib.error.HTTPError, fallback: float) -> float:
+    """Honor a 429 response's Retry-After header when present (either the
+    delta-seconds form or an HTTP-date), else fall back to the caller's own
+    exponential-backoff value. Neither mempool.space nor Blockstream document
+    sending this header, but respecting it when a provider does is strictly
+    safer than guessing - and costs nothing when it's absent. Always bounded
+    by RATE_LIMIT_MAX_SLEEP_SECONDS so a hostile or malformed value can't hang
+    the CLI indefinitely."""
+    raw = exc.headers.get("Retry-After") if exc.headers is not None else None
+    delay = fallback
+    if raw is not None:
+        raw = raw.strip()
+        if raw.isdigit():
+            delay = float(raw)
+        else:
+            try:
+                when = parsedate_to_datetime(raw)
+            except (TypeError, ValueError):
+                when = None
+            if when is not None:
+                from datetime import datetime, timezone
+
+                now = datetime.now(timezone.utc)
+                if when.tzinfo is None:
+                    when = when.replace(tzinfo=timezone.utc)
+                delay = max(0.0, (when - now).total_seconds())
+    return min(max(delay, 0.0), RATE_LIMIT_MAX_SLEEP_SECONDS)
 
 
 def fetch_json(
@@ -62,7 +103,7 @@ def fetch_json(
             if exc.code == 429:
                 if attempt >= max_retries:
                     raise MempoolRateLimitError(f"rate limited, retry later: {url}") from exc
-                time.sleep(backoff_seconds * (2**attempt))
+                time.sleep(_retry_delay_seconds(exc, backoff_seconds * (2**attempt)))
                 attempt += 1
                 continue
             raise MempoolApiError(f"HTTP {exc.code} from {url}: {exc.reason}") from exc
@@ -120,6 +161,8 @@ def scan_descriptor(
     gap_limit: int,
     api_urls: list[str],
     fetch=fetch_json,
+    request_delay: float = DEFAULT_REQUEST_DELAY_SECONDS,
+    start_index: int = 0,
 ) -> dict:
     import bdkpython as bdk
 
@@ -127,6 +170,7 @@ def scan_descriptor(
     branches = split_branches(bdk.Descriptor(descriptor_str, network_kind))
 
     addresses: list[dict] = []
+    last_scanned_index = start_index - 1
     for branch in branches:
         def address_at(index, branch=branch):
             return str(branch.derive_address(index, network))
@@ -134,7 +178,11 @@ def scan_descriptor(
         def fetch_address_summary(address):
             return fetch_with_fallback(f"/address/{address}", api_urls, fetch)
 
-        addresses.extend(scan_branch(address_at, fetch_address_summary, gap_limit))
+        branch_addresses, branch_last_index = scan_branch(
+            address_at, fetch_address_summary, gap_limit, request_delay, start_index
+        )
+        addresses.extend(branch_addresses)
+        last_scanned_index = max(last_scanned_index, branch_last_index)
 
     confirmed_balance = 0
     unconfirmed_delta = 0
@@ -152,6 +200,15 @@ def scan_descriptor(
         "unconfirmed_delta_sats": unconfirmed_delta,
         "total_balance_sats": confirmed_balance + unconfirmed_delta,
         "tx_count": tx_count,
+        # Highest address index actually scanned across all branches this run.
+        # Persist this and pass it back as --start-index next run to resume
+        # from here instead of re-deriving every address from 0 - a wallet
+        # that never reuses addresses only ever grows past its last known
+        # used index, so re-scanning the already-confirmed-empty prefix on
+        # every run is pure waste. Applies the same start_index to every
+        # branch (receive/change may differ slightly in real depth); the
+        # worst case is a few extra harmless re-checks on the shallower one.
+        "last_scanned_index": last_scanned_index,
     }
 
 
@@ -162,11 +219,27 @@ def _is_unused(addr_json: dict) -> bool:
     )
 
 
-def scan_branch(address_at, fetch_address_summary, gap_limit: int) -> list[dict]:
+def scan_branch(
+    address_at,
+    fetch_address_summary,
+    gap_limit: int,
+    request_delay: float = DEFAULT_REQUEST_DELAY_SECONDS,
+    start_index: int = 0,
+) -> tuple[list[dict], int]:
+    """Scan addresses starting at `start_index` until `gap_limit` consecutive
+    unused addresses are found. Returns the used addresses plus the highest
+    index actually checked, so a caller can resume from there next time.
+    `request_delay` paces successive requests proactively (mempool.space's
+    exact rate limits are undocumented by design) rather than relying solely
+    on reactive backoff after a 429 already happened."""
     used: list[dict] = []
     consecutive_unused = 0
-    index = 0
+    index = start_index
+    first = True
     while consecutive_unused < gap_limit:
+        if not first:
+            time.sleep(request_delay)
+        first = False
         address = address_at(index)
         summary = fetch_address_summary(address)
         if _is_unused(summary):
@@ -175,7 +248,7 @@ def scan_branch(address_at, fetch_address_summary, gap_limit: int) -> list[dict]
             consecutive_unused = 0
             used.append({"index": index, "address": address, "summary": summary})
         index += 1
-    return used
+    return used, index - 1
 
 
 ADDRESS_TXS_PAGE_SIZE = 25
@@ -235,7 +308,8 @@ def render_descriptor_result(result: dict, total_addresses: int | None = None) -
             for entry in result["addresses"]
         ],
     )
-    return f"{summary}\n\nAddresses:\n{addresses}"
+    footer = f"\n\nlast_scanned_index: {result['last_scanned_index']} (pass --start-index {result['last_scanned_index'] + 1} next run to resume from here)" if "last_scanned_index" in result else ""
+    return f"{summary}\n\nAddresses:\n{addresses}{footer}"
 
 
 def render_address(addr_json: dict) -> str:
@@ -340,6 +414,18 @@ def _build_parser() -> argparse.ArgumentParser:
     descriptor_parser.add_argument("descriptor")
     descriptor_parser.add_argument("--gap-limit", type=int, default=20)
     descriptor_parser.add_argument("--page", type=int, default=1, help="Used-addresses page (25 per page, default 1)")
+    descriptor_parser.add_argument(
+        "--request-delay",
+        type=float,
+        default=DEFAULT_REQUEST_DELAY_SECONDS,
+        help=f"Seconds to wait between successive address lookups during the scan (default {DEFAULT_REQUEST_DELAY_SECONDS})",
+    )
+    descriptor_parser.add_argument(
+        "--start-index",
+        type=int,
+        default=0,
+        help="Resume scanning from this address index instead of 0 (see last_scanned_index in a prior run's output)",
+    )
 
     return parser
 
@@ -364,7 +450,14 @@ def main(argv: list[str] | None = None) -> int:
                     print(render_tx_list(txs))
                 print(f"\nPage {args.page}" + (f" (more available - use --page {args.page + 1})" if has_more else ""))
         elif args.command == "descriptor":
-            result = scan_descriptor(args.descriptor, args.network, args.gap_limit, api_urls)
+            result = scan_descriptor(
+                args.descriptor,
+                args.network,
+                args.gap_limit,
+                api_urls,
+                request_delay=args.request_delay,
+                start_index=args.start_index,
+            )
             page_addresses, has_more = paginate(result["addresses"], args.page)
             total_addresses = len(result["addresses"])
             display_result = {**result, "addresses": page_addresses}

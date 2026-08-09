@@ -18,6 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the user's own hands), then adjudicate symmetrically with failures first
   and derived-vs-installed results called out.
 
+## [finance-manager 0.10.0] - 2026-08-08
+
+### Added
+- `query-mempool`'s `mempool_cli.py descriptor` now paces successive address
+  lookups with a `--request-delay` (default 0.5s) instead of firing requests
+  as fast as possible and only reacting after a 429 — proactive, not just
+  reactive, since mempool.space doesn't publish its rate-limit thresholds.
+- 429 responses that carry a `Retry-After` header (delta-seconds or HTTP-date)
+  now have that value honored in place of the exponential backoff schedule,
+  bounded by a new `RATE_LIMIT_MAX_SLEEP_SECONDS` (60s) ceiling so a malformed
+  or hostile value can't hang the CLI. Falls back to the existing 1s/2s/4s
+  exponential schedule when the header is absent, as before.
+- `descriptor` results now report `last_scanned_index` (the highest address
+  index actually checked across all branches), and a new `--start-index` flag
+  lets a caller resume scanning from there next run instead of re-deriving
+  and re-querying every address from 0 — for a wallet that never reuses
+  addresses, a full re-scan on every check is pure waste once the used-address
+  frontier is known.
+- Prompted by a real Bitkey wallet check repeatedly timing out at gap-limit
+  60-100 (needed to cover the wallet's 55 known-used addresses) even after
+  the existing exponential-backoff/fallback-provider mitigations.
+
 ## [finance-manager 0.8.0] - 2026-07-26
 
 ### Added

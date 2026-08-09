@@ -118,6 +118,60 @@ def test_fetch_json_backs_off_with_increasing_delay(monkeypatch):
     assert sleeps == [1.0, 2.0, 4.0]
 
 
+def test_fetch_json_honors_retry_after_seconds_header(monkeypatch):
+    from email.message import Message
+
+    sleeps = []
+
+    def raise_429(req, timeout=10):
+        headers = Message()
+        headers["Retry-After"] = "7"
+        raise urllib.error.HTTPError(req, 429, "Too Many Requests", headers, io.BytesIO(b""))
+
+    monkeypatch.setattr("mempool_cli.urllib.request.urlopen", raise_429)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: sleeps.append(seconds))
+
+    with pytest.raises(MempoolRateLimitError):
+        fetch_json("https://mempool.space/api/tx/abc", max_retries=2, backoff_seconds=1.0)
+
+    # server-supplied Retry-After overrides the exponential-backoff schedule on every attempt
+    assert sleeps == [7.0, 7.0]
+
+
+def test_fetch_json_caps_retry_after_at_max_sleep(monkeypatch):
+    from email.message import Message
+
+    sleeps = []
+
+    def raise_429(req, timeout=10):
+        headers = Message()
+        headers["Retry-After"] = "99999"
+        raise urllib.error.HTTPError(req, 429, "Too Many Requests", headers, io.BytesIO(b""))
+
+    monkeypatch.setattr("mempool_cli.urllib.request.urlopen", raise_429)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: sleeps.append(seconds))
+
+    with pytest.raises(MempoolRateLimitError):
+        fetch_json("https://mempool.space/api/tx/abc", max_retries=1)
+
+    assert sleeps == [60.0]  # RATE_LIMIT_MAX_SLEEP_SECONDS
+
+
+def test_fetch_json_falls_back_to_backoff_without_retry_after_header(monkeypatch):
+    sleeps = []
+
+    def raise_429(req, timeout=10):
+        raise urllib.error.HTTPError(req, 429, "Too Many Requests", None, io.BytesIO(b""))
+
+    monkeypatch.setattr("mempool_cli.urllib.request.urlopen", raise_429)
+    monkeypatch.setattr("mempool_cli.time.sleep", lambda seconds: sleeps.append(seconds))
+
+    with pytest.raises(MempoolRateLimitError):
+        fetch_json("https://mempool.space/api/tx/abc", max_retries=2, backoff_seconds=1.0)
+
+    assert sleeps == [1.0, 2.0]
+
+
 def test_fetch_json_raises_api_error_on_connection_failure(monkeypatch):
     def raise_url_error(req, timeout=10):
         raise urllib.error.URLError("connection refused")
@@ -264,12 +318,30 @@ def test_scan_branch_stops_after_gap_limit_consecutive_unused():
         index = int(addr.removeprefix("addr"))
         return _addr_summary(1 if index in used_indices else 0)
 
-    result = scan_branch(address_at, fetch_address_summary, gap_limit=2)
+    result, last_index = scan_branch(address_at, fetch_address_summary, gap_limit=2, request_delay=0)
 
     assert [r["index"] for r in result] == [0, 1, 3]
     assert [r["address"] for r in result] == ["addr0", "addr1", "addr3"]
     # stops scanning at index 5 (2nd consecutive unused after addr3) - never queries addr6
     assert queried == ["addr0", "addr1", "addr2", "addr3", "addr4", "addr5"]
+    assert last_index == 5
+
+
+def test_scan_branch_resumes_from_start_index():
+    queried = []
+
+    def address_at(i):
+        return f"addr{i}"
+
+    def fetch_address_summary(addr):
+        queried.append(addr)
+        return _addr_summary(0)
+
+    result, last_index = scan_branch(address_at, fetch_address_summary, gap_limit=2, request_delay=0, start_index=10)
+
+    assert result == []
+    assert queried == ["addr10", "addr11"]
+    assert last_index == 11
 
 
 def _fresh_account_pubkey():
@@ -345,11 +417,14 @@ def test_scan_descriptor_aggregates_balance_and_tx_count_across_both_branches():
             return _addr_summary_with_sum(funded_sum=50000, spent_sum=0, tx_count=1)
         return _addr_summary(0)
 
-    result = scan_descriptor(descriptor_str, "mainnet", gap_limit=3, api_urls=["https://mempool.space/api"], fetch=fake_fetch)
+    result = scan_descriptor(
+        descriptor_str, "mainnet", gap_limit=3, api_urls=["https://mempool.space/api"], fetch=fake_fetch, request_delay=0
+    )
 
     assert result["confirmed_balance_sats"] == 120000  # (100000-30000) + (50000-0)
     assert result["tx_count"] == 3
     assert len(result["addresses"]) == 2
+    assert result["last_scanned_index"] == 3  # gap_limit=3 consecutive unused after index 0 -> stops at index 3
 
 
 def _addr_summary_with_sum(funded_sum: int, spent_sum: int, tx_count: int) -> dict:

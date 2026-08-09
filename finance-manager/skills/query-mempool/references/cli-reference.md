@@ -22,11 +22,20 @@ of confirmed tx history (see `<pagination>`).
 **`descriptor <descriptor-string>`** — parses with bdkpython, splits BIP389 multipath
 descriptors into their external (`/0/*`) and internal (`/1/*`) branches automatically
 (`Descriptor.is_multipath()` / `to_single_descriptors()`), derives addresses per branch
-starting at index 0, and queries each via the address endpoint. Stops scanning a branch
-after `--gap-limit` (default 20) consecutive addresses with zero funded TXOs in both
-`chain_stats` and `mempool_stats`. Works for both single-sig and multisig (e.g. Bitkey's
-2-of-3 `wsh(sortedmulti(2, ...))`) — the descriptor string is generic, nothing
+starting at index 0 (or `--start-index`, see below), and queries each via the address
+endpoint, waiting `--request-delay` seconds between successive lookups. Stops scanning a
+branch after `--gap-limit` (default 20) consecutive addresses with zero funded TXOs in
+both `chain_stats` and `mempool_stats`. Works for both single-sig and multisig (e.g.
+Bitkey's 2-of-3 `wsh(sortedmulti(2, ...))`) — the descriptor string is generic, nothing
 Bitkey-specific is hardcoded.
+
+The result includes `last_scanned_index` — the highest address index actually checked
+across all branches this run. For a wallet that never reuses addresses, pass
+`--start-index <last_scanned_index + 1>` on the next run to resume from there instead of
+re-deriving and re-querying every address from 0 again. This applies the same start index
+to every branch; a multipath descriptor's receive and change branches can differ slightly
+in real depth, so the shallower branch may re-check a handful of already-confirmed-empty
+addresses — harmless, just a few extra requests.
 </subcommands>
 
 <flags>
@@ -36,13 +45,31 @@ Bitkey-specific is hardcoded.
 | `--network` | all | `mainnet` | `mainnet` \| `testnet` \| `signet` — picks the default `--api-url` and the address-derivation network |
 | `--api-url` | all | derived from `--network` | e.g. `https://mempool.space/testnet/api`; explicit value always wins over `--network`'s default, and **disables automatic fallback** (see `<retry_and_fallback>`) — an explicit URL is assumed to mean "use exactly this instance" |
 | `--gap-limit` | `descriptor` | 20 | consecutive unused addresses (per branch) before stopping the scan |
+| `--request-delay` | `descriptor` | 0.5s | seconds to wait between successive address lookups during the scan — see `<retry_and_fallback>` |
+| `--start-index` | `descriptor` | 0 | resume scanning from this address index instead of 0; see `last_scanned_index` above |
 | `--page` | `address`, `descriptor` | 1 | see `<pagination>` |
 </flags>
 
 <retry_and_fallback>
-Every request that gets HTTP 429 (rate limited) retries against the *same* provider
-with exponential backoff: 1s, 2s, 4s (3 retries by default, i.e. 4 attempts total)
-before giving up on that provider.
+mempool.space does not publish its rate-limit thresholds ("if you have to ask you'll hit
+them" — project maintainers), so two independent mitigations apply:
+
+**Proactive pacing.** `descriptor` waits `--request-delay` (default 0.5s) between
+successive address lookups during a scan, rather than firing requests as fast as
+possible and only reacting after a 429. A wide `--gap-limit` scan (tens to 100+
+addresses per branch) is the case most likely to trip a rate limit; widen the delay
+further if scans still hit 429s.
+
+**Reactive backoff.** Every request that gets HTTP 429 (rate limited) retries against
+the *same* provider (3 retries by default, i.e. 4 attempts total) before giving up on
+that provider. If the 429 response carries a `Retry-After` header (delta-seconds or an
+HTTP-date), that value is honored in place of the exponential schedule — neither
+mempool.space nor Blockstream document sending this header, but respecting it when a
+provider does is strictly safer than guessing, and costs nothing when it's absent. Every
+sleep, whether from `Retry-After` or the exponential fallback, is capped at
+`RATE_LIMIT_MAX_SLEEP_SECONDS` (60s) so a malformed or hostile header value can't hang
+the CLI. Without a usable `Retry-After`, the schedule is plain exponential backoff: 1s,
+2s, 4s.
 
 If a provider is still rate-limited after retries, or is unreachable outright, the CLI
 falls through to the next provider in line rather than failing the whole command.
