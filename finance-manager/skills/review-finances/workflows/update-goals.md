@@ -8,8 +8,9 @@
 ## Step 1 — Determine the change
 
 Ask (unless already clear from how the user asked):
-- **Add a goal** — name, target amount (CAD), target date, funding account (if one
-  exists in `~/.claude/channels/finance-manager/config.json`)
+- **Add a goal** — name, target amount (in the household's base currency, see
+  `docs/finance/financial-profile.md`), target date, funding account (if one exists in
+  `~/.claude/channels/finance-manager/config.json`)
 - **Edit a goal** — which goal, what's changing (target amount, date, funding account)
 - **Close a goal** — which goal, and whether it was fully funded/achieved or abandoned
 

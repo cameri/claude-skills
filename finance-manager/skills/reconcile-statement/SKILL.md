@@ -1,6 +1,6 @@
 # finance-manager:reconcile-statement
 
-Reconciles a bank statement against ActualBudget. Use when a Financial document is received from paperless-ngx via webhook, when the user asks to reconcile a bank statement, or when a new statement arrives for RBC or Tangerine accounts.
+Reconciles a bank statement against ActualBudget. Use when a Financial document is received from paperless-ngx via webhook, when the user asks to reconcile a bank statement, or when a new statement arrives for any tracked account.
 
 ## Intake
 
@@ -53,4 +53,4 @@ Credentials and tools required:
 - `actual-budget:add-transaction` skill — add missing transactions
 - `paperless:view-document` skill — get document metadata
 - `paperless:view-content` skill — extract statement text
-- Telegram chat ID `7175022` — reconciliation report destination
+- `config.json`'s `reporting.telegram_chat_id` — reconciliation report destination; ask the user for one if unset

@@ -10,7 +10,7 @@ Generic pattern for a Paperless-ngx workflow that auto-tags bank statement docum
 | `matching_algorithm` | `2` (All words) |
 | `is_insensitive` | `true` |
 | `match` | 2–6 distinctive words from the institution name and statement boilerplate — see "Choosing match words" |
-| all `filter_*` fields | leave unset — content match is the only gate, matching the RBC precedent (workflow id 2) |
+| all `filter_*` fields | leave unset — content match is the only gate, matching this workspace's earlier precedent workflows |
 
 ## Actions (create two)
 
@@ -38,6 +38,6 @@ print(inbox[0]['id'] if inbox else 'NONE')
 ## Choosing match words
 
 - Prefer words that appear with clean whitespace boundaries in the document's extracted `content` field. Verify every candidate with `scripts/simulate_match.py` (Task 3) before ever using it — do not guess.
-- Avoid words likely to be glued to neighboring text by OCR/PDF extraction (e.g. "Bank" inside `RoyalBankofCanada`) — this exact failure broke the RBC workflow originally.
+- Avoid words likely to be glued to neighboring text by OCR/PDF extraction (e.g. "Bank" inside a run-together institution name like `AcmeNationalBank`) — this exact failure broke an earlier workflow.
 - Fewer, more distinctive words are safer than many generic ones. An institution name alone is often enough combined with "Statement".
-- **Known limitation:** a single blanket workflow per institution can occasionally mis-tag adjacent non-statement documents from the same correspondent (e.g. a credit agreement that happens to mention "statement" in its boilerplate). This mirrors the existing accepted behavior of the RBC workflow, not a new risk. The consequence is a metadata reassignment, not data loss.
+- **Known limitation:** a single blanket workflow per institution can occasionally mis-tag adjacent non-statement documents from the same correspondent (e.g. a credit agreement that happens to mention "statement" in its boilerplate). This is accepted behavior, not a new risk. The consequence is a metadata reassignment, not data loss.

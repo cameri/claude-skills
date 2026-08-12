@@ -7,10 +7,10 @@
 
 ## 2. Net Worth & Liquidity
 
-| Bucket | Amount (CAD) |
+| Bucket | Amount ({{currency}}) |
 |---|---|
 | Liquid Cash | {{amount}} |
-| Tax Shelters (RRSP/TFSA) | {{amount}} |
+| Tax Shelters | {{amount}} |
 | Home Equity | {{amount}} |
 | Bitcoin ({{btc amount}} @ {{spot price}}, {{timestamp}}) | {{amount}} |
 | Debt | −{{amount}} |
@@ -33,7 +33,7 @@
 
 ## 5. Optimization Notes
 
-- {{tax efficiency observation, e.g. RRSP room / refund opportunity}}
+- {{tax efficiency observation, e.g. tax-advantaged contribution room / refund opportunity}}
 - {{subscription/expense drag flagged, if any — excludes Rich Life categories}}
 
 ## 6. Next Cycle — Up to 3 Actions

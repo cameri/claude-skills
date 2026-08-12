@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [finance-manager 0.11.0] - 2026-08-12
+
+### Changed
+- Portability/OSINT sweep: replaced real names, a real institution (RBC),
+  real account/wallet UUIDs, a real cron job ID, and brand-specific wallet
+  examples (Bitkey/ShakePay/Ledn) throughout `setup-finance-manager`,
+  `manage-paperless-workflows`, `reconcile-statement`, and `query-mempool`
+  with generic placeholders. Added a `reporting.telegram_chat_id` field to
+  `config.json` (see `setup-finance-manager/references/config-schema.md`)
+  and routed every skill that previously hardcoded a literal Telegram chat
+  ID through it instead. Genericized hardcoded Canada/RRSP/TFSA/CAD
+  assumptions in `review-finances` to read the household's jurisdiction and
+  base currency from `docs/finance/financial-profile.md`, consistent with
+  how `financial-planner.md` already worked. No behavior change for the
+  workspace this plugin was built in — `docs/finance/` still supplies all
+  the same real data at runtime.
+
 ## [simple-english 1.0.0] - 2026-08-09
 
 ### Added

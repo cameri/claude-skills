@@ -9,9 +9,9 @@ hardcoded here, so it works for any household's config.
 | Bucket | What goes in it |
 |---|---|
 | Liquid Cash | Chequing, savings, joint emergency fund — anything spendable without penalty or delay |
-| Tax Shelters | RRSP, Spousal RRSP, TFSA accounts |
+| Tax Shelters | Tax-advantaged retirement/savings accounts — the jurisdiction-specific names (e.g. RRSP/TFSA in Canada, 401(k)/IRA in the US, ISA/SIPP in the UK) live in `docs/finance/financial-profile.md`, not hardcoded here |
 | Home Equity | Home value minus mortgage/HELOC principal remaining — from `docs/finance/financial-profile.md`, not Actual Budget (mortgages usually aren't tracked as a live account) |
-| Bitcoin | Every wallet in config.json's `wallets` array, converted to CAD at current spot price |
+| Bitcoin | Every wallet in config.json's `wallets` array, converted to the household's base currency (see `docs/finance/financial-profile.md`) at current spot price |
 | Debt | Lines of credit, credit cards carrying a balance, any loan liability (e.g. a Bitcoin-backed loan's fiat side) |
 </buckets>
 
@@ -19,7 +19,9 @@ hardcoded here, so it works for any household's config.
 For each entry in `config.json`'s `accounts` array, classify by name/institution keyword
 match (case-insensitive):
 
-1. Name contains "RRSP" or "TFSA" → Tax Shelters
+1. Name contains one of the household's jurisdiction-specific tax-advantaged account
+   labels (from `docs/finance/financial-profile.md` — e.g. "RRSP"/"TFSA" for a Canadian
+   household, "401k"/"IRA" for a US one) → Tax Shelters
 2. Name contains "Line of Credit", "LOC" → Debt (report its balance as-is; per the
    liquidity check below it should normally be $0)
 3. Name contains "Mastercard", "Visa", "Amex", "American Express", "Credit Card", or
@@ -36,8 +38,9 @@ match (case-insensitive):
 
 For `config.json`'s `wallets` array: every entry is Bitcoin, regardless of its `kind`
 (hot/cold) — that split matters for security posture, not net worth. Convert BTC balance
-to CAD using a current spot-price lookup (see SKILL.md dependencies) and note the price
-and timestamp used in the report so the figure is auditable.
+to the household's base currency (from `docs/finance/financial-profile.md`) using a current
+spot-price lookup (see SKILL.md dependencies) and note the price and timestamp used in the
+report so the figure is auditable.
 
 Home Equity is never derived from Actual Budget. Pull current home value and mortgage
 principal remaining from `docs/finance/financial-profile.md`. If either is still marked

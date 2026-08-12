@@ -8,9 +8,10 @@ structurally spoken for versus what's genuinely free to spend without guilt.
    Commitments table (mortgage, remittances, charitable giving, utilities baseline, any
    other recurring non-discretionary line), plus any active debt service (e.g. Line of
    Credit interest, if the balance is nonzero this cycle).
-2. **Structural Savings/Investment Allocations** — recurring auto-deposits into tax
-   shelters or goal-funding accounts (Spousal RRSP contributions, TFSA auto-deposits,
-   Honda Buyout Fund contributions, etc.) — pull these as recurring transactions/schedules
+2. **Structural Savings/Investment Allocations** — recurring auto-deposits into tax-
+   advantaged accounts or goal-funding accounts (retirement contributions, named savings
+   goals, etc. — the jurisdiction-specific account types live in
+   `docs/finance/financial-profile.md`) — pull these as recurring transactions/schedules
    from Actual Budget, not from memory.
 3. **Take-Home Pay** — household net income for the period under review, from Actual
    Budget's income transactions (not the gross salary figure in

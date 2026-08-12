@@ -9,9 +9,10 @@ references/config-schema.md
    used for the first wallet job in this workspace.
 2. Build the task description for `cronjobs:add-job` covering: what to check (wallet
    descriptor via `query-mempool descriptor`, or an account via
-   `actual-budget:query-budget bank-sync`), and where to report (Telegram chat 7175022,
-   report only if something changed — new tx, balance change, sweep/spend detected — stay
-   silent otherwise to avoid notification noise).
+   `actual-budget:query-budget bank-sync`), and where to report (`config.json`'s
+   `reporting.telegram_chat_id` — ask the user for one if unset, then write it back via
+   `scripts/write_config.py`; report only if something changed — new tx, balance change,
+   sweep/spend detected — stay silent otherwise to avoid notification noise).
 3. Store the returned job `id` into that account/wallet's `sync_job_id` in `config.json`
    (via `scripts/write_config.py`).
 

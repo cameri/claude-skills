@@ -55,7 +55,7 @@ python3 "$SIMULATE" "<candidate match text>" <sample_document_id>
 - Exit `0` → this candidate is safe to use, proceed to Step 4.
 - Exit `1` → try a different candidate (drop the word it named as missing, or pick different words entirely).
 - Exit `2` → the script itself failed (bad arguments, missing credentials, network/API error) — this is not a 'no match' result; fix the underlying problem before treating any candidate as tried.
-- If every reasonable candidate fails: **abort. Do not write anything.** Report: "Could not find a reliable match for `<correspondent>` statements — document `<sample_document_id>` needs manual review" (to the caller, or Telegram chat `7175022` if headless). This is the one case that still needs a human.
+- If every reasonable candidate fails: **abort. Do not write anything.** Report: "Could not find a reliable match for `<correspondent>` statements — document `<sample_document_id>` needs manual review" (to the caller, or `config.json`'s `reporting.telegram_chat_id` if headless). This is the one case that still needs a human.
 
 ---
 
@@ -127,4 +127,4 @@ If the workflow's trigger has `is_insensitive: false`, pass `--case-sensitive` t
 
 ## Step 7 — Report
 
-State what was created/changed: workflow name and ID, trigger match text, and the exact correspondent/document-type/tag IDs assigned, with their resolved names (e.g. "correspondent 355 (Tangerine), document_type 194 (Financial), tag 77 (statement)") — so an incorrect ID is visible in the report, not just applied silently. Send to the caller directly, or via Telegram chat `7175022` if invoked headless from a reconciliation report. This is the transparency mechanism in place of a confirmation step — automatic does not mean silent.
+State what was created/changed: workflow name and ID, trigger match text, and the exact correspondent/document-type/tag IDs assigned, with their resolved names (e.g. "correspondent 355 (Acme Bank), document_type 194 (Financial), tag 77 (statement)") — so an incorrect ID is visible in the report, not just applied silently. Send to the caller directly, or via `config.json`'s `reporting.telegram_chat_id` if invoked headless from a reconciliation report. This is the transparency mechanism in place of a confirmation step — automatic does not mean silent.

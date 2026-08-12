@@ -285,7 +285,8 @@ Deviations / notes:
 
 Send via Telegram:
 ```bash
-# Use the Telegram reply tool with chat_id 7175022
+# Use the Telegram reply tool with chat_id from config.json's reporting.telegram_chat_id
+# (ask the user for one and write it back via scripts/write_config.py if unset)
 ```
 
 ---

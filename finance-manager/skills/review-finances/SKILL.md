@@ -82,8 +82,9 @@ If `config.json` doesn't exist yet, run `finance-manager:setup-finance-manager` 
 - `actual-budget:query-budget` — account balances, category spend
 - `actual-budget:add-transaction` — not used by this skill (read-mostly)
 - `finance-manager:query-mempool` — Bitcoin wallet balance from descriptor/xpub
-- Current BTC/CAD spot price — look up (e.g. WebSearch) at report time; treat as an
-  approximation, not a reconciled figure
+- Current BTC spot price in the household's base currency (see
+  `docs/finance/financial-profile.md`) — look up (e.g. WebSearch) at report time; treat as
+  an approximation, not a reconciled figure
 - Telegram — send the finished report to the workspace's primary contact chat (see root
   `CLAUDE.md` → Telegram Communication)
 </dependencies>

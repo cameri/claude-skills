@@ -13,51 +13,58 @@ back and diff-check → `os.replace` atomic rename). `credentials.json` is `chmo
 {
   "household": {
     "members": [
-      {"id": "arturo", "name": "Ricardo Arturo Cabral Mejía"},
-      {"id": "gina", "name": "Virginia ..."}
+      {"id": "alex", "name": "Alex Example"},
+      {"id": "jamie", "name": "Jamie Example"}
     ]
   },
   "connections": {
     "actual_budget": {"connected": true},
     "paperless": {"connected": true, "markitdown_configured": true}
   },
+  "reporting": {
+    "telegram_chat_id": null
+  },
   "accounts": [
     {
-      "id": "rbc-joint",
-      "name": "RBC Joint Account",
-      "actual_budget_id": "ab9cc94f-501b-4bdd-b138-54ffdc2a0432",
-      "institution": "RBC Royal Bank",
+      "id": "joint-checking",
+      "name": "Joint Checking Account",
+      "actual_budget_id": "00000000-0000-0000-0000-000000000001",
+      "institution": "Example Bank",
       "ownership": "joint",
-      "owners": ["arturo", "gina"],
+      "owners": ["alex", "jamie"],
       "on_budget": true,
       "reconciliation_mode": "statement",
       "paperless_correspondent_id": 354,
-      "paperless_title_pattern": "Joint Account Statement-1080",
+      "paperless_title_pattern": "Joint Account Statement-XXXX",
       "sync_job_id": null
     }
   ],
   "wallets": [
     {
-      "id": "bitkey",
-      "name": "Bitkey",
+      "id": "hot-wallet",
+      "name": "Hot Wallet",
       "kind": "hot",
       "ownership": "personal",
-      "owners": ["arturo"],
-      "actual_budget_id": "6c262c11-fbb5-4f51-9d30-f5b89cd1b884",
-      "credentials_ref": "wallets.bitkey",
-      "sync_job_id": "7d221048"
+      "owners": ["alex"],
+      "actual_budget_id": "00000000-0000-0000-0000-000000000002",
+      "credentials_ref": "wallets.hot-wallet",
+      "sync_job_id": "a1b2c3d4"
     }
   ]
 }
 ```
 
 Field notes:
+- `reporting.telegram_chat_id`: where headless/cron-triggered skills (reconciliation
+  reports, periodic sync jobs) send their output. `null` until the user provides one during
+  setup; skills that need to report headlessly should ask for it once and write it back via
+  `scripts/write_config.py` rather than assuming any particular chat.
 - `reconciliation_mode`: `"statement"` (paperless + MarkItDown extraction feeds
   `reconcile-statement`), `"bank_sync_only"` (Actual Budget's own SimpleFin/bank-sync is
   the only source — no paperless workflow needed), or `"manual_csv"` (no paperless
-  correspondent and no live bank-sync connector exists for this institution — e.g. crypto
-  exchanges like ShakePay, or a custodial loan account like Ledn — backfilled from
-  manually-obtained CSV/statement exports instead).
+  correspondent and no live bank-sync connector exists for this institution — e.g. a crypto
+  exchange, or a custodial loan account — backfilled from manually-obtained CSV/statement
+  exports instead).
 - `paperless_correspondent_id` / `paperless_title_pattern`: only present when
   `reconciliation_mode` is `"statement"`. Same fields `account-map.md` used to hold.
 - `sync_job_id`: the `cronjobs` plugin job ID if a periodic sync exists for this
@@ -74,8 +81,8 @@ Nothing else currently needs plugin-specific secrets beyond what `actual-budget:
 ```json
 {
   "wallets": {
-    "bitkey": {
-      "name": "Bitkey",
+    "hot-wallet": {
+      "name": "Hot Wallet",
       "kind": "hot",
       "descriptor_external": "wsh(sortedmulti(2,[fp/84'/0'/0']xpub.../0/*,...))",
       "descriptor_internal": "wsh(sortedmulti(2,[fp/84'/0'/0']xpub.../1/*,...))",

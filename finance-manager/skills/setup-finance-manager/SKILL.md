@@ -37,7 +37,7 @@ Check whether `~/.claude/channels/finance-manager/config.json` exists.
      everything; usually "add" is what's actually needed)
 
 **Wait for response before proceeding**, unless intent is already unambiguous from how the
-user asked (e.g. "add my new Questrade account" clearly means option 1).
+user asked (e.g. "add my new brokerage account" clearly means option 1).
 </intake>
 
 <routing>

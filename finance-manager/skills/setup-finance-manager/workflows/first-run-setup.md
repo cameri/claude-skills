@@ -17,12 +17,12 @@ account data grounds every later step instead of asking abstract questions blind
    to walk through it.
 2. List real accounts (`$ACTUAL accounts list --format json`, per `cli-setup.md`).
 3. For each account, check whether its name already ends in an identifying suffix (e.g.
-   `*2377`, `*5852` — most already do). For any that don't, ask the user for the last 4-5
+   `*1234`, `*5678` — most already do). For any that don't, ask the user for the last 4-5
    digits of that account (used later to disambiguate same-institution statement titles,
    same purpose `account-map.md`'s "Title Pattern" column already served). Skip this ask for
    anything that's clearly a wallet/crypto/exchange account, not a numbered bank account
-   (e.g. a Bitcoin wallet, ShakePay, Ledn) — those get identified differently in Step 4, not
-   by digits.
+   (e.g. a Bitcoin wallet, or a crypto exchange account) — those get identified differently
+   in Step 4, not by digits.
 4. Show the full list of proposed renames (`old name` → `new name`) and confirm before
    applying anything.
 5. Apply each rename: `$ACTUAL accounts update <id> --name "<original> *<digits>"`. This is

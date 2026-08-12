@@ -28,8 +28,9 @@
 - Follow `../references/net-worth-categorization.md` to bucket every tracked
   account/wallet and compute the five bucket totals plus Net Worth.
 - For the Bitcoin bucket: get wallet balances via `finance-manager:query-mempool`
-  (descriptor lookup) and a current BTC/CAD spot price (WebSearch or similar). Record the
-  price and timestamp used — this figure is an approximation, say so in the report.
+  (descriptor lookup) and a current BTC spot price in the household's base currency
+  (WebSearch or similar). Record the price and timestamp used — this figure is an
+  approximation, say so in the report.
   mempool.space public API rate-limits fairly aggressively — if the descriptor lookup
   fails after one retry, don't block the rest of the report on it: mark the Bitcoin
   bucket "unavailable this cycle (mempool.space rate-limited)" using last session's
@@ -47,10 +48,10 @@
 ## Step 3 — Optimization & Efficiency Scan
 
 - Tax efficiency: check `docs/finance/financial-profile.md` for the household's current
-  marginal tax bracket / RRSP contribution room if recorded. If not recorded, do not
-  invent Canadian tax bracket figures from memory — either ask the user for their current
-  marginal rate/contribution room, or note it as unknown and skip a numeric estimate
-  rather than guessing at a bracket that may be stale.
+  marginal tax bracket / tax-advantaged contribution room if recorded. If not recorded, do
+  not invent jurisdiction-specific tax bracket figures from memory — either ask the user
+  for their current marginal rate/contribution room, or note it as unknown and skip a
+  numeric estimate rather than guessing at a bracket that may be stale.
 - Recurring expense/subscription scan: follow the `variable_expense_scan` section of
   `../references/rich-life-allocation.md`. Query Actual Budget for repeated same-payee
   transactions over the last 2-3 months.
@@ -73,8 +74,8 @@
 </process>
 
 <success_criteria>
-- Report produced matches the template's sections, fits in one short sitting, uses CAD
-  throughout, no em dashes, no filler
+- Report produced matches the template's sections, fits in one short sitting, uses the
+  household's base currency throughout, no em dashes, no filler
 - Every figure traces to Actual Budget, config.json, or a named docs/finance/ file
 - `docs/finance/rich-life-goals.md` is updated before the workflow ends, not left stale
 - No recommendation to cut a Rich Life discretionary category

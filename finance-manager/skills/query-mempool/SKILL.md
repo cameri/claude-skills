@@ -1,13 +1,14 @@
 ---
 name: query-mempool
-description: Look up Bitcoin transactions and addresses, and derive addresses from an xpub or wallet descriptor to check aggregate balance/history, via the public mempool.space API. Use when the user asks about a Bitcoin transaction (by txid), a Bitcoin address's balance or history, or wants to check a wallet descriptor/xpub (including multisig) against the blockchain — e.g. Bitkey reconciliation.
+description: Look up Bitcoin transactions and addresses, and derive addresses from an xpub or wallet descriptor to check aggregate balance/history, via the public mempool.space API. Use when the user asks about a Bitcoin transaction (by txid), a Bitcoin address's balance or history, or wants to check a wallet descriptor/xpub (including multisig) against the blockchain — e.g. a hardware wallet reconciliation.
 ---
 
 <objective>
 Wraps the public mempool.space REST API (no authentication required) so the plugin can
 look up a transaction by txid, an address's balance/history, or aggregate balance/history
 across every used address in a wallet descriptor (single-sig or multisig, including BIP389
-multipath descriptors like Bitkey's `wsh(sortedmulti(2, xpub/<0;1>/*, ...))`).
+multipath descriptors like a 2-of-3 multisig hardware wallet's
+`wsh(sortedmulti(2, xpub/<0;1>/*, ...))`).
 </objective>
 
 <quick_start>

@@ -26,8 +26,8 @@ starting at index 0 (or `--start-index`, see below), and queries each via the ad
 endpoint, waiting `--request-delay` seconds between successive lookups. Stops scanning a
 branch after `--gap-limit` (default 20) consecutive addresses with zero funded TXOs in
 both `chain_stats` and `mempool_stats`. Works for both single-sig and multisig (e.g.
-Bitkey's 2-of-3 `wsh(sortedmulti(2, ...))`) — the descriptor string is generic, nothing
-Bitkey-specific is hardcoded.
+a 2-of-3 hardware wallet's `wsh(sortedmulti(2, ...))`) — the descriptor string is generic,
+nothing wallet-brand-specific is hardcoded.
 
 The result includes `last_scanned_index` — the highest address index actually checked
 across all branches this run. For a wallet that never reuses addresses, pass

@@ -6,7 +6,7 @@ Creates or fixes Paperless-ngx workflows so bank statement documents get auto-ta
 
 Gather:
 
-1. **Correspondent** — name or ID (e.g. "Tangerine")
+1. **Correspondent** — name or ID (e.g. "Acme Bank")
 2. **Document type** — name or ID to assign (e.g. "Financial")
 3. **Processed tag** — name or ID to assign once matched (e.g. "statement")
 4. **Sample document** — an ID to validate the match against (an existing untriaged document from this correspondent is ideal)
@@ -24,7 +24,7 @@ Gather:
 
 ## Personal configuration (not shipped with this plugin)
 
-- `docs/finance/paperless-workflow-ids.md` — this workspace's correspondent/document-type/tag IDs and worked examples (RBC, Tangerine)
+- `docs/finance/paperless-workflow-ids.md` — this workspace's correspondent/document-type/tag IDs and worked examples
 
 If this file is missing entries for the correspondent/document-type/tag you need, resolve them via the Paperless API by name (see `workflows/create-or-update-workflow.md` Step 1) and add them.
 
@@ -33,4 +33,4 @@ If this file is missing entries for the correspondent/document-type/tag you need
 - `~/.claude/channels/paperless/.env` — Paperless-ngx credentials (via `paperless:access`)
 - `paperless:view-content` skill — fetch sample document content for match simulation
 - `scripts/simulate_match.py` — local match validation, the sole safety gate before applying
-- Telegram chat ID `7175022` — report destination when invoked headless from `reconcile-statement`
+- `config.json`'s `reporting.telegram_chat_id` — report destination when invoked headless from `reconcile-statement`; ask the user for one if unset
