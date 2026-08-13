@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [telegram-ng 0.1.0] - 2026-08-13
+
+### Added
+- New plugin: `telegram-ng`. Straight fork of Anthropic's official `telegram`
+  plugin (claude-plugins-official, v0.0.6) — same server.ts/grammy
+  implementation, ACCESS.md, and access/configure skills, with all
+  `/telegram:*` command references renamed to `/telegram-ng:*` so it doesn't
+  collide with the official plugin's tools. Credential path
+  (`~/.claude/channels/telegram/`) deliberately left unchanged so it shares
+  the same bot token/access list at cutover time. No functional changes from
+  upstream. The existing `telegram/` plugin (skills-only, no MCP server — it
+  predates this fork and was never wired up) is untouched. Not yet enabled;
+  the official plugin remains the live driver for this workspace pending a
+  follow-up cutover pass.
+
 ## [finance-manager 0.11.0] - 2026-08-12
 
 ### Changed
