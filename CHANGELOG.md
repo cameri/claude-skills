@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Root README.md: renamed the stale `scheduler` plugin references to
+  `cronjobs` (the plugin was renamed a while back but the README and the
+  `cronjob` skill's own quick_start examples still said `scheduler`/
+  `/schedule-task`). Also added the 7 plugins missing from the root plugin
+  table and skill-reference sections entirely: autoresearch,
+  docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
+
 ## [telegram-ng 0.1.0] - 2026-08-13
 
 ### Added

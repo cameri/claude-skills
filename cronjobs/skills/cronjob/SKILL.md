@@ -15,11 +15,11 @@ Creates, lists, and removes scheduled jobs using natural language timing express
 
 <quick_start>
 ```
-/schedule-task check email every 1 hour
-/schedule-task send daily standup summary every weekday at 9am
-/schedule-task remind me to drink water once in 30 minutes
-/schedule-task              → list active jobs
-/schedule-task remove <id>  → cancel a job
+/cronjobs:cronjob check email every 1 hour
+/cronjobs:cronjob send daily standup summary every weekday at 9am
+/cronjobs:cronjob remind me to drink water once in 30 minutes
+/cronjobs:cronjob              → list active jobs
+/cronjobs:cronjob remove <id>  → cancel a job
 ```
 </quick_start>
 

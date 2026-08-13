@@ -7,17 +7,24 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Plugin | Description |
 |---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
+| [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops |
+| [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
+| [docker-maintenance](./docker-maintenance/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
 | [executable-skepticism](./executable-skepticism/) | Verification protocol that turns a theory, paper, model, or confident quantitative claim into a falsifiable, runnable test instead of a debate in prose |
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
+| [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history |
+| [jj](./jj/) | Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
+| [nostr](./nostr/) | Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
 | [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane |
-| [scheduler](./scheduler/) | Schedule tasks using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
 | [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache |
+| [telegram](./telegram/) | Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription |
+| [telegram-ng](./telegram-ng/) | Telegram channel for Claude Code — messaging bridge with built-in access control. Fork of Anthropic's official telegram plugin for local development |
 | [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
 | [webhooks](./webhooks/) | Receive webhook events from external systems as channel notifications — HMAC-SHA256, IP allowlisting, BullMQ processing |
 
@@ -101,11 +108,11 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | `sandbox-manager:restart-session` | Fires automatically on a `/clear` channel message; sends `/clear` + Enter to the tmux pane running this Claude Code session |
 
-### scheduler
+### cronjobs
 
 | Skill | Description |
 |---|---|
-| `/scheduler:schedule` | Schedule a task using natural language; fires channel notifications when due |
+| `/cronjobs:cronjob` | Schedule a recurring or one-time job using natural language; fires channel notifications when due |
 
 ### simple-english
 
@@ -134,6 +141,68 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Skill | Description |
 |---|---|
 | `webhooks:receive-webhooks` | Configure webhook endpoints (add/edit/remove/list), set auth mode, manage IP allowlists, and react to inbound events |
+
+### autoresearch
+
+| Skill | Description |
+|---|---|
+| `/autoresearch:optimize-skill` | Improve a SKILL.md using binary evals and iterative prompt mutation — use when a skill has reliability issues or produces inconsistent results |
+
+### docker-maintenance
+
+| Skill | Description |
+|---|---|
+| `/docker-maintenance:docker-maintenance` | Update Docker base images with sha256 pinning, manage Containerfile dependencies, test builds, and keep an audit log |
+
+### home-assistant
+
+| Skill | Description |
+|---|---|
+| `/home-assistant:access` | Configure Home Assistant credentials — save the server URL and long-lived access token |
+| `/home-assistant:get-state` | Get the current state of one or all entities |
+| `/home-assistant:set-state` | Create or update the state of an entity |
+| `/home-assistant:call-service` | Call a service to control devices or trigger automations |
+| `/home-assistant:fire-event` | Fire a custom event to trigger event-driven automations |
+| `/home-assistant:query-history` | Query state history or logbook for one or more entities |
+| `/home-assistant:render-template` | Render and debug a Jinja2 template |
+
+### jj
+
+| Skill | Description |
+|---|---|
+| `jj:working-with-jj` | Use Jujutsu (jj) instead of git for all version control operations in this workspace — commits, history, branching, pushing |
+
+### nostr
+
+| Skill | Description |
+|---|---|
+| `nostr:nostr` | Handle inbound Nostr DMs, send replies, publish notes, fetch events, and check relay status |
+| `/nostr:configure` | Set up the Nostr channel — save the nsec, manage relays, configure subscribed event kinds |
+| `/nostr:access` | Manage Nostr channel access — pairings, allowlists, policy |
+| `/nostr:profile` | View or update the Nostr profile (kind:0 metadata) |
+| `/nostr:relay-list` | Manage the NIP-65 relay list for this identity |
+| `/nostr:fetch-event` | Fetch a Nostr event by ID or filter |
+| `/nostr:verify-event` | Verify an event's schema, ID hash, and Schnorr signature |
+| `/nostr:react` | React to an event with a NIP-25 reaction |
+| `/nostr:bech32` | Encode/decode NIP-19 bech32 entities (note1, npub1, nevent1, etc.) |
+| `/nostr:mine-pubkey` | Mine a vanity or proof-of-work Nostr keypair with rana |
+
+### telegram
+
+| Skill | Description |
+|---|---|
+| `telegram:telegram` | Handle inbound Telegram messages, send replies, react, edit messages, download attachments, process voice notes |
+| `/telegram:configure` | Save the bot token and review access policy |
+| `/telegram:access` | Manage Telegram channel access — pairings, allowlists, DM/group policy |
+
+### telegram-ng
+
+Fork of Anthropic's official `telegram` plugin — see [telegram-ng/README.md](./telegram-ng/README.md). Not yet the live driver for this workspace; `telegram` above remains active pending cutover.
+
+| Skill | Description |
+|---|---|
+| `/telegram-ng:configure` | Save the bot token and review access policy |
+| `/telegram-ng:access` | Manage Telegram channel access — pairings, allowlists, DM/group policy |
 
 ## Commands
 
