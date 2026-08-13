@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-skills",
+  "name": "cameri-skills",
   "description": "Monorepo of Claude Code plugins by Ricardo Arturo Cabral Mejía.",
   "owner": {
     "name": "Ricardo Arturo Cabral Mejía",
