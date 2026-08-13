@@ -10,6 +10,10 @@
     {
       "name": "wallabag",
       "description": "Save, search, and manage read-it-later articles via your Wallabag instance.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -20,6 +24,10 @@
     {
       "name": "actual-budget",
       "description": "Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -30,6 +38,10 @@
     {
       "name": "technitium-dns",
       "description": "Manage Technitium DNS Server instances — configure, query stats, manage zones and records, and control DNS blocking with per-domain allow/block overrides and block list URLs.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -40,6 +52,10 @@
     {
       "name": "nats",
       "description": "Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -50,6 +66,10 @@
     {
       "name": "paperless",
       "description": "Upload documents to and search a Paperless-ngx instance via its REST API.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -60,6 +80,9 @@
     {
       "name": "cronjobs",
       "description": "Schedule jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes'. Fires channel notifications when jobs are due.",
+      "tools": [
+        "claude"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -70,6 +93,10 @@
     {
       "name": "elevenlabs",
       "description": "Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -80,6 +107,9 @@
     {
       "name": "telegram",
       "description": "Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription.",
+      "tools": [
+        "claude"
+      ],
       "category": "communication",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -90,6 +120,9 @@
     {
       "name": "telegram-ng",
       "description": "Telegram channel for Claude Code — messaging bridge with built-in access control. Fork of Anthropic's official telegram plugin for local development.",
+      "tools": [
+        "claude"
+      ],
       "category": "communication",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -100,6 +133,9 @@
     {
       "name": "nostr",
       "description": "Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs.",
+      "tools": [
+        "claude"
+      ],
       "category": "communication",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -110,6 +146,9 @@
     {
       "name": "jj",
       "description": "Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -120,6 +159,9 @@
     {
       "name": "webhooks",
       "description": "Receive webhook events from external systems (GitHub, Stripe, CI/CD, etc.) as channel notifications. Express listener with BullMQ processing, HMAC-SHA256 verification, IP allowlisting, and endpoint management.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -130,6 +172,9 @@
     {
       "name": "autoresearch",
       "description": "Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -140,6 +185,10 @@
     {
       "name": "docker-maintenance",
       "description": "Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -150,6 +199,9 @@
     {
       "name": "netshoot",
       "description": "Network troubleshooting inside Docker container networks using nicolaka/netshoot.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -160,6 +212,10 @@
     {
       "name": "home-assistant",
       "description": "Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -170,6 +226,9 @@
     {
       "name": "github-manager",
       "description": "Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts across managed repos.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -180,6 +239,10 @@
     {
       "name": "finance-manager",
       "description": "Reconcile bank statements from paperless-ngx against ActualBudget — syncs accounts, matches transactions, and self-improves reconciliation rules.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -190,6 +253,9 @@
     {
       "name": "sandbox-manager",
       "description": "Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -200,6 +266,9 @@
     {
       "name": "journal",
       "description": "Keeps a series of narrative journals about what the user has been doing, written from Claude's own perspective by reading session history across every project on this machine plus the memory system.",
+      "tools": [
+        "claude"
+      ],
       "category": "productivity",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -210,6 +279,9 @@
     {
       "name": "executable-skepticism",
       "description": "A verification protocol for evaluating theories, papers, models, or any confident quantitative claim by routing the verdict through executable, falsifiable tests instead of prose.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",
@@ -220,6 +292,9 @@
     {
       "name": "simple-english",
       "description": "Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop.",
+      "tools": [
+        "claude"
+      ],
       "category": "developer-tools",
       "author": {
         "name": "Ricardo Arturo Cabral Mejía",

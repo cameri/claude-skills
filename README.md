@@ -1,32 +1,33 @@
-# claude-skills
+# skills
 
 Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mejía.
 
 ## Plugins
 
-| Plugin | Description |
-|---|---|
-| [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets |
-| [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops |
-| [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' |
-| [docker-maintenance](./docker-maintenance/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes |
-| [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API |
-| [executable-skepticism](./executable-skepticism/) | Verification protocol that turns a theory, paper, model, or confident quantitative claim into a falsifiable, runnable test instead of a debate in prose |
-| [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs |
-| [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts |
-| [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history |
-| [jj](./jj/) | Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS |
-| [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory |
-| [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast |
-| [nostr](./nostr/) | Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs |
-| [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API |
-| [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane |
-| [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop |
-| [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache |
-| [telegram](./telegram/) | Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription |
-| [telegram-ng](./telegram-ng/) | Telegram channel for Claude Code — messaging bridge with built-in access control. Fork of Anthropic's official telegram plugin for local development |
-| [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance |
-| [webhooks](./webhooks/) | Receive webhook events from external systems as channel notifications — HMAC-SHA256, IP allowlisting, BullMQ processing |
+| Plugin | Description | Tools |
+|---|---|---|
+| [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets | Claude + Cursor |
+| [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
+| [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
+| [docker-maintenance](./docker-maintenance/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes | Claude + Cursor |
+| [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API | Claude + Cursor |
+| [executable-skepticism](./executable-skepticism/) | Verification protocol that turns a theory, paper, model, or confident quantitative claim into a falsifiable, runnable test instead of a debate in prose | Claude |
+| [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs | Claude + Cursor |
+| [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts | Claude |
+| [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history | Claude + Cursor |
+| [jj](./jj/) | Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS | Claude |
+| [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory | Claude |
+| [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast | Claude + Cursor |
+| [netshoot](./netshoot/) | Network troubleshooting inside Docker container networks using nicolaka/netshoot | Claude |
+| [nostr](./nostr/) | Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs | Claude |
+| [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API | Claude + Cursor |
+| [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane | Claude |
+| [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop | Claude |
+| [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache | Claude + Cursor |
+| [telegram](./telegram/) | Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription | Claude |
+| [telegram-ng](./telegram-ng/) | Telegram channel for Claude Code — messaging bridge with built-in access control. Fork of Anthropic's official telegram plugin for local development | Claude |
+| [wallabag](./wallabag/) | Save, search, and manage read-it-later articles via your Wallabag instance | Claude + Cursor |
+| [webhooks](./webhooks/) | Receive webhook events from external systems as channel notifications — HMAC-SHA256, IP allowlisting, BullMQ processing | Claude |
 
 ### actual-budget
 
@@ -219,7 +220,7 @@ Fork of Anthropic's official `telegram` plugin — see [telegram-ng/README.md](.
 ### 1. Clone the repo
 
 ```bash
-git clone git@github.com:cameri/claude-skills.git ~/Workspace/claude-skills
+git clone git@github.com:cameri/skills.git ~/Workspace/skills
 ```
 
 ### 2. Install slash commands
@@ -227,13 +228,13 @@ git clone git@github.com:cameri/claude-skills.git ~/Workspace/claude-skills
 Copy (or symlink) the commands into your Claude config directory so they are available in every session:
 
 ```bash
-cp ~/Workspace/claude-skills/commands/*.md ~/.claude/commands/
+cp ~/Workspace/skills/commands/*.md ~/.claude/commands/
 ```
 
 Or as symlinks so changes in the repo are picked up automatically:
 
 ```bash
-for f in ~/Workspace/claude-skills/commands/*.md; do
+for f in ~/Workspace/skills/commands/*.md; do
   ln -sf "$f" ~/.claude/commands/"$(basename "$f")"
 done
 ```
@@ -243,20 +244,20 @@ done
 Run this once inside any Claude Code session:
 
 ```
-/plugin marketplace add ~/Workspace/claude-skills
+/plugin marketplace add ~/Workspace/skills
 ```
 
 ### 4. Install plugins
 
 ```
-/plugin install actual-budget@claude-skills
-/plugin install elevenlabs@claude-skills
-/plugin install github-manager@claude-skills
-/plugin install nats@claude-skills
-/plugin install paperless@claude-skills
-/plugin install scheduler@claude-skills
-/plugin install technitium-dns@claude-skills
-/plugin install wallabag@claude-skills
+/plugin install actual-budget@cameri-skills
+/plugin install elevenlabs@cameri-skills
+/plugin install github-manager@cameri-skills
+/plugin install nats@cameri-skills
+/plugin install paperless@cameri-skills
+/plugin install cronjobs@cameri-skills
+/plugin install technitium-dns@cameri-skills
+/plugin install wallabag@cameri-skills
 ```
 
 ### 5. Reload plugins
@@ -267,6 +268,42 @@ Run this once inside any Claude Code session:
 
 After reloading, all plugin skills are available (e.g. `/paperless:configure`, `/actual-budget:budget`).
 
+## Installing for Cursor
+
+Cursor reads the same `SKILL.md` format as Claude Code (frontmatter `name`/`description`, discovered from `.cursor/skills/<name>/SKILL.md`) and the same `.mcp.json` shape (`{"mcpServers": {...}}`, read from `~/.cursor/mcp.json`). No plugin content needs to change for Cursor — only how it's discovered.
+
+The 9 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `docker-maintenance`, `finance-manager`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
+
+### 1. Symlink each skill directory
+
+Each plugin's skills live at `<plugin>/skills/<skill-name>/SKILL.md`. Symlink each one into `~/.cursor/skills/<plugin>-<skill-name>` so Cursor can discover it:
+
+```bash
+for skill_dir in ~/Workspace/skills/paperless/skills/*/; do
+  skill_name=$(basename "$skill_dir")
+  ln -s "$skill_dir" ~/.cursor/skills/paperless-"$skill_name"
+done
+```
+
+Repeat for each of the 9 Cursor-eligible plugins, substituting the plugin name in both the source path and the `~/.cursor/skills/` prefix.
+
+### 2. Register MCP servers (only plugins with one)
+
+Most of the 9 Cursor-eligible plugins are skill-only (the `SKILL.md` drives `curl`/API calls directly) and need no MCP server entry — Step 1 alone is enough. `nats` is the exception: it ships a real MCP server (`nats/.mcp.json`). Paste its contents into `~/.cursor/mcp.json`, replacing `${CLAUDE_PLUGIN_ROOT}` (a Claude Code–only variable Cursor doesn't expand) with the plugin's absolute path:
+
+```json
+{
+  "mcpServers": {
+    "nats": {
+      "command": "bun",
+      "args": ["run", "--cwd", "/absolute/path/to/skills/nats", "--shell=bun", "--silent", "start"]
+    }
+  }
+}
+```
+
+If a plugin gains an `.mcp.json` in the future, apply the same pattern (copy the plugin's own `.mcp.json` into `~/.cursor/mcp.json`'s `mcpServers` object, resolving any `${CLAUDE_PLUGIN_ROOT}` reference to an absolute path).
+
 ## Alternative: install via `npx skills`
 
 [vercel-labs/skills](https://github.com/vercel-labs/skills) is a separate community CLI that installs Claude Code skills straight from a GitHub repo, without registering a plugin marketplace. It works against this repo too.
@@ -274,25 +311,25 @@ After reloading, all plugin skills are available (e.g. `/paperless:configure`, `
 Install every skill in this repo:
 
 ```bash
-npx skills add cameri/claude-skills
+npx skills add cameri/skills
 ```
 
 Install a specific plugin's skill directly (skills live at `<plugin>/skills/<skill-name>`):
 
 ```bash
-npx skills add https://github.com/cameri/claude-skills/tree/main/actual-budget/skills/access
+npx skills add https://github.com/cameri/skills/tree/main/actual-budget/skills/access
 ```
 
 Or pick skills by name out of the whole repo:
 
 ```bash
-npx skills add cameri/claude-skills -s access query-budget add-transaction
+npx skills add cameri/skills -s access query-budget add-transaction
 ```
 
 Useful flags: `--list` to see what's available before installing, `-g`/`--global` to install to your user directory instead of the current project, `--copy` to copy files instead of symlinking, and `-a claude-code` to target Claude Code if you have other supported agents installed. You can also run a skill without installing it:
 
 ```bash
-npx skills use cameri/claude-skills --skill access --agent claude-code
+npx skills use cameri/skills --skill access --agent claude-code
 ```
 
 See the [vercel-labs/skills README](https://github.com/vercel-labs/skills) for the full command reference (`list`, `find`, `update`, `remove`, `init`).

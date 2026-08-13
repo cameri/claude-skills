@@ -7,7 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `tools` field on every `marketplace.json` plugin entry (`["claude"]` or
+  `["claude", "cursor"]`), marking which plugins work under Cursor:
+  `paperless`, `actual-budget`, `technitium-dns`, `home-assistant`,
+  `wallabag`, `elevenlabs`, `nats`, `docker-maintenance`, `finance-manager`.
+  Channel plugins and `netshoot` stay Claude-only. No plugin content changed
+  — Cursor already reads the same `SKILL.md`/`.mcp.json` shape this repo
+  uses, so this is metadata + docs only.
+- README.md: `Tools` column on the plugin table, and a new "Installing for
+  Cursor" section documenting the skill-dir symlink step and the (rare)
+  MCP-server registration step for Cursor.
+
 ### Fixed
+- README.md: was still referring to itself as `claude-skills` post-rename —
+  fixed the title, the `git clone`/`npx skills` examples, and the
+  `/plugin install` command list (including a stale `scheduler` reference
+  that should have said `cronjobs`) to the current `skills` repo /
+  `cameri-skills` marketplace names. Also added the `netshoot` plugin row,
+  missing from the table entirely (unrelated pre-existing gap, found while
+  touching this table).
 - Root README.md: renamed the stale `scheduler` plugin references to
   `cronjobs` (the plugin was renamed a while back but the README and the
   `cronjob` skill's own quick_start examples still said `scheduler`/
