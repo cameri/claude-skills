@@ -584,6 +584,7 @@ async function handleIdleCallback(ctx: Context, choice: 'compact' | 'pause' | 'd
 // MCP subprocess it spawns (verified against the running process); Claude
 // Code's own transcript dir naming replaces '/' with '-'.
 const CLAUDE_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR
+const CLAUDE_CODE_SESSION_ID = process.env.CLAUDE_CODE_SESSION_ID ?? null
 const TRANSCRIPTS_DIR = CLAUDE_PROJECT_DIR
   ? join(homedir(), '.claude', 'projects', CLAUDE_PROJECT_DIR.replace(/\//g, '-'))
   : null
@@ -614,6 +615,19 @@ async function handleSessionSelect(ctx: Context, sessionId: string): Promise<voi
     await ctx.answerCallbackQuery({ text: 'Not authorized.' }).catch(() => {})
     return
   }
+
+  // 'dismiss' and 'current' are no-op markers from buildSessionsKeyboard —
+  // not real session ids — so they never reach execFileAsync/resume-session.sh.
+  if (sessionId === 'dismiss' || sessionId === 'current') {
+    const label = sessionId === 'dismiss' ? 'Dismissed' : "That's this session already."
+    await ctx.answerCallbackQuery({ text: label }).catch(() => {})
+    const msg = ctx.callbackQuery.message
+    if (msg && 'text' in msg && msg.text) {
+      await ctx.editMessageText(`${msg.text}\n\n${label}`).catch(() => {})
+    }
+    return
+  }
+
   await ctx.answerCallbackQuery({ text: 'Resuming…' }).catch(() => {})
   const msg = ctx.callbackQuery.message
   if (msg && 'text' in msg && msg.text) {
@@ -936,7 +950,7 @@ bot.command('sessions', async ctx => {
     return { id, mtimeMs, name: names[id] }
   })
 
-  const recent = pickRecentSessions(entries, SESSIONS_LIMIT, Date.now())
+  const recent = pickRecentSessions(entries, SESSIONS_LIMIT, Date.now(), CLAUDE_CODE_SESSION_ID)
   if (recent.length === 0) {
     await ctx.reply('No sessions found.')
     return

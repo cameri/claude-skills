@@ -12,7 +12,8 @@ export function pickRecentSessions(
   entries: Array<{ id: string; mtimeMs: number; name?: string; firstMessageSnippet?: string }>,
   limit: number,
   nowMs: number,
-): Array<{ id: string; displayLabel: string; relativeTime: string }> {
+  currentSessionId?: string | null,
+): Array<{ id: string; displayLabel: string; relativeTime: string; isCurrent: boolean }> {
   return [...entries]
     .sort((a, b) => b.mtimeMs - a.mtimeMs)
     .slice(0, limit)
@@ -20,6 +21,7 @@ export function pickRecentSessions(
       id: e.id,
       displayLabel: displayLabelFor(e),
       relativeTime: relativeTimeFor(e.mtimeMs, nowMs),
+      isCurrent: Boolean(currentSessionId) && e.id === currentSessionId,
     }))
 }
 
@@ -47,13 +49,21 @@ function relativeTimeFor(mtimeMs: number, nowMs: number): string {
 const CALLBACK_DATA_MAX_BYTES = 64
 const CALLBACK_PREFIX = 'sess:'
 
+const DISMISS_ROW = [{ text: 'Dismiss', callback_data: 'sess:dismiss' }]
+
 export function buildSessionsKeyboard(
   sessions: ReturnType<typeof pickRecentSessions>,
 ): Array<Array<{ text: string; callback_data: string }>> {
-  return sessions.map(s => {
+  const rows = sessions.map(s => {
+    if (s.isCurrent) {
+      const text = `${s.displayLabel} · ${s.relativeTime} (current)`
+      return [{ text, callback_data: 'sess:current' }]
+    }
     const text = `${s.displayLabel} · ${s.relativeTime}`
     return [{ text, callback_data: buildCallbackData(s.id) }]
   })
+  rows.push(DISMISS_ROW)
+  return rows
 }
 
 // Telegram caps callback_data at 64 bytes. `sess:` (5 bytes) + a standard

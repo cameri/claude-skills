@@ -5,7 +5,7 @@ const NOW = 1_000_000_000_000 // arbitrary fixed "now" in ms
 
 describe('pickRecentSessions', () => {
   test('empty list returns empty array', () => {
-    expect(pickRecentSessions([], 10, NOW)).toEqual([])
+    expect(pickRecentSessions([], 10, NOW, null)).toEqual([])
   })
 
   test('fewer entries than limit returns all of them, sorted by mtimeMs descending', () => {
@@ -13,7 +13,7 @@ describe('pickRecentSessions', () => {
       { id: 'aaaaaaaa-0000-0000-0000-000000000000', mtimeMs: NOW - 1000, name: 'older' },
       { id: 'bbbbbbbb-0000-0000-0000-000000000000', mtimeMs: NOW - 500, name: 'newer' },
     ]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result.length).toBe(2)
     expect(result[0].id).toBe('bbbbbbbb-0000-0000-0000-000000000000')
     expect(result[1].id).toBe('aaaaaaaa-0000-0000-0000-000000000000')
@@ -24,7 +24,7 @@ describe('pickRecentSessions', () => {
       id: `id-${i}`,
       mtimeMs: NOW - i * 1000, // id-0 is most recent
     }))
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result.length).toBe(10)
     expect(result[0].id).toBe('id-0')
     expect(result[9].id).toBe('id-9')
@@ -34,7 +34,7 @@ describe('pickRecentSessions', () => {
     const entries = [
       { id: 'session-id-1', mtimeMs: NOW, name: 'My Session', firstMessageSnippet: 'hello there' },
     ]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].displayLabel).toBe('My Session')
   })
 
@@ -42,7 +42,7 @@ describe('pickRecentSessions', () => {
     const entries = [
       { id: 'session-id-1', mtimeMs: NOW, firstMessageSnippet: 'hello there' },
     ]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].displayLabel).toBe('hello there')
   })
 
@@ -50,14 +50,14 @@ describe('pickRecentSessions', () => {
     const entries = [
       { id: 'abcdefgh-ijkl-mnop-qrst-uvwxyz012345', mtimeMs: NOW },
     ]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].displayLabel).toBe('abcdefgh')
   })
 
   test('snippet truncation: exactly 40 chars is left untouched, no ellipsis', () => {
     const snippet = 'a'.repeat(40)
     const entries = [{ id: 'x', mtimeMs: NOW, firstMessageSnippet: snippet }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].displayLabel).toBe(snippet)
     expect(result[0].displayLabel.length).toBe(40)
   })
@@ -65,42 +65,82 @@ describe('pickRecentSessions', () => {
   test('snippet truncation: 41 chars truncates to 40 + ellipsis', () => {
     const snippet = 'a'.repeat(41)
     const entries = [{ id: 'x', mtimeMs: NOW, firstMessageSnippet: snippet }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].displayLabel).toBe('a'.repeat(40) + '…')
   })
 
   test('relativeTime: just now for <1 min', () => {
     const entries = [{ id: 'x', mtimeMs: NOW - 30_000 }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].relativeTime).toBe('just now')
   })
 
   test('relativeTime: Xm ago for <60 min', () => {
     const entries = [{ id: 'x', mtimeMs: NOW - 5 * 60_000 }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].relativeTime).toBe('5m ago')
   })
 
   test('relativeTime: Xh ago for <24h', () => {
     const entries = [{ id: 'x', mtimeMs: NOW - 3 * 60 * 60_000 }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].relativeTime).toBe('3h ago')
   })
 
   test('relativeTime: Xd ago for >=24h', () => {
     const entries = [{ id: 'x', mtimeMs: NOW - 2 * 24 * 60 * 60_000 }]
-    const result = pickRecentSessions(entries, 10, NOW)
+    const result = pickRecentSessions(entries, 10, NOW, null)
     expect(result[0].relativeTime).toBe('2d ago')
+  })
+
+  test('isCurrent: true for the entry matching currentSessionId, false for all others', () => {
+    const entries = [
+      { id: 'aaaaaaaa-0000-0000-0000-000000000000', mtimeMs: NOW - 1000 },
+      { id: 'bbbbbbbb-0000-0000-0000-000000000000', mtimeMs: NOW - 500 },
+      { id: 'cccccccc-0000-0000-0000-000000000000', mtimeMs: NOW },
+    ]
+    const result = pickRecentSessions(entries, 10, NOW, 'bbbbbbbb-0000-0000-0000-000000000000')
+    const byId = Object.fromEntries(result.map(r => [r.id, r.isCurrent]))
+    expect(byId['aaaaaaaa-0000-0000-0000-000000000000']).toBe(false)
+    expect(byId['bbbbbbbb-0000-0000-0000-000000000000']).toBe(true)
+    expect(byId['cccccccc-0000-0000-0000-000000000000']).toBe(false)
+  })
+
+  test('isCurrent: false for everyone when currentSessionId is null', () => {
+    const entries = [
+      { id: 'a', mtimeMs: NOW - 1000 },
+      { id: 'b', mtimeMs: NOW },
+    ]
+    const result = pickRecentSessions(entries, 10, NOW, null)
+    expect(result.every(r => r.isCurrent === false)).toBe(true)
+  })
+
+  test('isCurrent: false for everyone when currentSessionId is undefined', () => {
+    const entries = [
+      { id: 'a', mtimeMs: NOW - 1000 },
+      { id: 'b', mtimeMs: NOW },
+    ]
+    const result = pickRecentSessions(entries, 10, NOW)
+    expect(result.every(r => r.isCurrent === false)).toBe(true)
+  })
+
+  test('isCurrent: false for everyone when currentSessionId matches nothing in the list', () => {
+    const entries = [
+      { id: 'a', mtimeMs: NOW - 1000 },
+      { id: 'b', mtimeMs: NOW },
+    ]
+    const result = pickRecentSessions(entries, 10, NOW, 'no-such-id')
+    expect(result.every(r => r.isCurrent === false)).toBe(true)
   })
 })
 
 describe('buildSessionsKeyboard', () => {
   test('one row per session, text is label · relativeTime, callback_data is sess:<id>', () => {
     const sessions = [
-      { id: 'abcd1234-5678-90ab-cdef-1234567890ab', displayLabel: 'My Session', relativeTime: '5m ago' },
+      { id: 'abcd1234-5678-90ab-cdef-1234567890ab', displayLabel: 'My Session', relativeTime: '5m ago', isCurrent: false },
     ]
     const kb = buildSessionsKeyboard(sessions)
-    expect(kb.length).toBe(1)
+    expect(kb.length).toBe(2) // session row + Dismiss row
     expect(kb[0].length).toBe(1)
     expect(kb[0][0].text).toBe('My Session · 5m ago')
     expect(kb[0][0].callback_data).toBe('sess:abcd1234-5678-90ab-cdef-1234567890ab')
@@ -108,7 +148,7 @@ describe('buildSessionsKeyboard', () => {
 
   test('standard UUID callback_data stays under 64 bytes with no truncation', () => {
     const sessions = [
-      { id: 'abcd1234-5678-90ab-cdef-1234567890ab', displayLabel: 'x', relativeTime: 'y' },
+      { id: 'abcd1234-5678-90ab-cdef-1234567890ab', displayLabel: 'x', relativeTime: 'y', isCurrent: false },
     ]
     const kb = buildSessionsKeyboard(sessions)
     const data = kb[0][0].callback_data
@@ -118,21 +158,39 @@ describe('buildSessionsKeyboard', () => {
 
   test('oversized id is truncated so callback_data stays within 64 bytes', () => {
     const longId = 'x'.repeat(100)
-    const sessions = [{ id: longId, displayLabel: 'x', relativeTime: 'y' }]
+    const sessions = [{ id: longId, displayLabel: 'x', relativeTime: 'y', isCurrent: false }]
     const kb = buildSessionsKeyboard(sessions)
     const data = kb[0][0].callback_data
     expect(Buffer.byteLength(data, 'utf8')).toBeLessThanOrEqual(64)
     expect(data.startsWith('sess:')).toBe(true)
   })
 
-  test('multiple sessions produce multiple rows in order', () => {
+  test('multiple sessions produce multiple rows in order, plus a trailing Dismiss row', () => {
     const sessions = [
-      { id: 'id1', displayLabel: 'A', relativeTime: '1m ago' },
-      { id: 'id2', displayLabel: 'B', relativeTime: '2m ago' },
+      { id: 'id1', displayLabel: 'A', relativeTime: '1m ago', isCurrent: false },
+      { id: 'id2', displayLabel: 'B', relativeTime: '2m ago', isCurrent: false },
     ]
     const kb = buildSessionsKeyboard(sessions)
-    expect(kb.length).toBe(2)
+    expect(kb.length).toBe(3)
     expect(kb[0][0].callback_data).toBe('sess:id1')
     expect(kb[1][0].callback_data).toBe('sess:id2')
+    expect(kb[2]).toEqual([{ text: 'Dismiss', callback_data: 'sess:dismiss' }])
+  })
+
+  test('current session gets (current) suffix and sess:current callback_data', () => {
+    const sessions = [
+      { id: 'id1', displayLabel: 'A', relativeTime: '1m ago', isCurrent: false },
+      { id: 'id2', displayLabel: 'B', relativeTime: '2m ago', isCurrent: true },
+    ]
+    const kb = buildSessionsKeyboard(sessions)
+    expect(kb[0][0].text).toBe('A · 1m ago')
+    expect(kb[0][0].callback_data).toBe('sess:id1')
+    expect(kb[1][0].text).toBe('B · 2m ago (current)')
+    expect(kb[1][0].callback_data).toBe('sess:current')
+  })
+
+  test('empty session list still produces just the Dismiss row', () => {
+    const kb = buildSessionsKeyboard([])
+    expect(kb).toEqual([[{ text: 'Dismiss', callback_data: 'sess:dismiss' }]])
   })
 })
