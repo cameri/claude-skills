@@ -22,6 +22,12 @@ import { randomBytes } from 'crypto'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync, chmodSync } from 'fs'
 import { homedir } from 'os'
 import { join, extname, sep } from 'path'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
+import { pickRecentSessions, buildSessionsKeyboard } from './sessions-menu'
+
+const execFileAsync = promisify(execFile)
 
 const STATE_DIR = process.env.TELEGRAM_STATE_DIR ?? join(homedir(), '.claude', 'channels', 'telegram')
 const ACCESS_FILE = join(STATE_DIR, 'access.json')
@@ -442,6 +448,184 @@ mcp.setNotificationHandler(
   },
 )
 
+// --- Idle sentinel ---------------------------------------------------------
+// After a stretch of pane inactivity, ask "still going or done for now?"
+// instead of guessing from idle time alone — an idle-gap analysis of this
+// workspace's own session history found gap-then-resume is the norm here
+// (event-driven usage via Telegram/cron/webhooks), so silent auto-action on
+// idle time alone would misfire constantly. The idle-state-tracker.py Stop
+// hook writes IDLE_STATE_FILE after every assistant turn; a separate
+// directory from STATE_DIR (telegram/) avoids colliding with the official
+// plugin sharing that path if both ever run at once.
+const IDLE_STATE_DIR = process.env.TELEGRAM_NG_STATE_DIR ?? join(homedir(), '.claude', 'channels', 'telegram-ng')
+const IDLE_STATE_FILE = join(IDLE_STATE_DIR, 'idle-state.json')
+const IDLE_THRESHOLD_MS = 45 * 60 * 1000
+const IDLE_CHECK_INTERVAL_MS = 60 * 1000
+const IDLE_COMPACT_CAP = 1
+
+// Sibling sandbox-manager scripts. Workspace-local absolute paths — this
+// fork is dogfooded against this exact repo layout, not meant to be
+// portable. Each script self-detects its tmux pane via the $TMUX/$TMUX_PANE
+// env vars, which this process inherits from its parent `claude` process
+// (verified: child processes of the CLI see the same tmux session even
+// though `bun run --cwd` changes cwd to the plugin root) — so no separate
+// pane-registry lookup is needed.
+const SCRIPT_COMPACT = '/workspace/projects/skills/sandbox-manager/skills/compact-session/scripts/compact-session.sh'
+const SCRIPT_CLEAR = '/workspace/projects/skills/sandbox-manager/skills/restart-session/scripts/restart-session.sh'
+const SCRIPT_RENAME = '/workspace/projects/skills/sandbox-manager/skills/rename-session/scripts/rename-session.sh'
+const SCRIPT_RESUME = '/workspace/projects/skills/sandbox-manager/skills/resume-session/scripts/resume-session.sh'
+
+type IdleState = { last_activity_ms: number; idle_safe: boolean; session_id: string | null }
+
+function readIdleState(): IdleState | null {
+  try {
+    return JSON.parse(readFileSync(IDLE_STATE_FILE, 'utf8')) as IdleState
+  } catch {
+    return null
+  }
+}
+
+// In-memory only — resets on telegram-ng restart, which is fine: worst case
+// after a restart is one extra compact offered before the cap re-engages.
+let idleCompactCount = 0
+let idleAlreadyPromptedAtMs: number | null = null
+let idlePromptPending = false
+
+async function checkIdle(): Promise<void> {
+  if (idlePromptPending) return // don't stack a second prompt on an outstanding one
+  const state = readIdleState()
+  if (!state) return
+  const nowMs = Date.now()
+  const due = shouldPromptIdle({
+    lastActivityMs: state.last_activity_ms,
+    nowMs,
+    idleThresholdMs: IDLE_THRESHOLD_MS,
+    idleSafe: state.idle_safe,
+    alreadyPromptedAtMs: idleAlreadyPromptedAtMs,
+  })
+  if (!due) return
+
+  const access = loadAccess()
+  if (access.allowFrom.length === 0) return
+
+  idlePromptPending = true
+  idleAlreadyPromptedAtMs = nowMs
+  const action = nextIdleAction(idleCompactCount, IDLE_COMPACT_CAP)
+
+  const keyboard = new InlineKeyboard()
+  const text =
+    action === 'compact'
+      ? '⏸ Quiet for a while. Still going, or done for now?'
+      : "⏸ Quiet for a while, and I've already compacted once this session. Done for now?"
+  if (action === 'compact') keyboard.text('Still going (compact)', 'idle:compact')
+  keyboard.text('Done for now (park it)', 'idle:pause')
+  keyboard.text('Dismiss', 'idle:dismiss')
+
+  for (const chat_id of access.allowFrom) {
+    void bot.api.sendMessage(chat_id, text, { reply_markup: keyboard }).catch(e => {
+      process.stderr.write(`idle-sentinel: send to ${chat_id} failed: ${e}\n`)
+    })
+  }
+}
+
+if (!STATIC) setInterval(() => { void checkIdle() }, IDLE_CHECK_INTERVAL_MS).unref()
+
+async function handleIdleCallback(ctx: Context, choice: 'compact' | 'pause' | 'dismiss'): Promise<void> {
+  const access = loadAccess()
+  const senderId = String(ctx.from.id)
+  if (!access.allowFrom.includes(senderId)) {
+    await ctx.answerCallbackQuery({ text: 'Not authorized.' }).catch(() => {})
+    return
+  }
+
+  idlePromptPending = false
+
+  // Re-check right before acting, not just when the timer fired: if a new
+  // turn happened between the prompt going out and the user answering, the
+  // session is no longer idle and we should not act on stale intent.
+  const freshState = readIdleState()
+  const noNewActivitySincePrompt =
+    freshState != null &&
+    idleAlreadyPromptedAtMs != null &&
+    freshState.last_activity_ms <= idleAlreadyPromptedAtMs
+  const stale = choice !== 'dismiss' && !noNewActivitySincePrompt
+
+  const label =
+    choice === 'dismiss' ? 'Dismissed' :
+    stale ? 'Session became active again — no action taken' :
+    choice === 'compact' ? 'Compacting…' :
+    'Parking session…'
+
+  await ctx.answerCallbackQuery({ text: label }).catch(() => {})
+  const msg = ctx.callbackQuery.message
+  if (msg && 'text' in msg && msg.text) {
+    await ctx.editMessageText(`${msg.text}\n\n${label}`).catch(() => {})
+  }
+
+  if (choice === 'dismiss' || stale) return
+
+  try {
+    if (choice === 'compact') {
+      await execFileAsync(SCRIPT_COMPACT)
+      idleCompactCount++
+    } else {
+      const name = `idle-parked-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}`
+      await execFileAsync(SCRIPT_RENAME, [name])
+      await execFileAsync(SCRIPT_CLEAR)
+      idleCompactCount = 0
+    }
+  } catch (err) {
+    process.stderr.write(`idle-sentinel: action '${choice}' failed: ${err}\n`)
+  }
+}
+
+// --- /sessions ---------------------------------------------------------
+// Recent-session picker. CLAUDE_PROJECT_DIR is set by Claude Code on every
+// MCP subprocess it spawns (verified against the running process); Claude
+// Code's own transcript dir naming replaces '/' with '-'.
+const CLAUDE_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR
+const TRANSCRIPTS_DIR = CLAUDE_PROJECT_DIR
+  ? join(homedir(), '.claude', 'projects', CLAUDE_PROJECT_DIR.replace(/\//g, '-'))
+  : null
+const SESSIONS_REGISTRY_DIR = join(homedir(), '.claude', 'sessions')
+const SESSIONS_LIMIT = 10
+
+// ~/.claude/sessions/*.json is the CLI's own live registry (pid-keyed) —
+// only tracks currently-running/recent processes, not full history, but
+// gives real user-facing names ("/rename"d or derived) when it has one.
+function readSessionNames(): Record<string, string> {
+  const map: Record<string, string> = {}
+  try {
+    for (const f of readdirSync(SESSIONS_REGISTRY_DIR)) {
+      if (!f.endsWith('.json')) continue
+      try {
+        const data = JSON.parse(readFileSync(join(SESSIONS_REGISTRY_DIR, f), 'utf8'))
+        if (data.sessionId && data.name) map[data.sessionId] = data.name
+      } catch {}
+    }
+  } catch {}
+  return map
+}
+
+async function handleSessionSelect(ctx: Context, sessionId: string): Promise<void> {
+  const access = loadAccess()
+  const senderId = String(ctx.from.id)
+  if (!access.allowFrom.includes(senderId)) {
+    await ctx.answerCallbackQuery({ text: 'Not authorized.' }).catch(() => {})
+    return
+  }
+  await ctx.answerCallbackQuery({ text: 'Resuming…' }).catch(() => {})
+  const msg = ctx.callbackQuery.message
+  if (msg && 'text' in msg && msg.text) {
+    await ctx.editMessageText(`${msg.text}\n\n▶️ Resuming ${sessionId.slice(0, 8)}…`).catch(() => {})
+  }
+  try {
+    await execFileAsync(SCRIPT_RESUME, [sessionId])
+  } catch (err) {
+    process.stderr.write(`sessions: resume failed: ${err}\n`)
+  }
+}
+
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
@@ -725,11 +909,61 @@ bot.command('status', async ctx => {
   await ctx.reply(`Not paired. Send me a message to get a pairing code.`)
 })
 
+bot.command('sessions', async ctx => {
+  const gated = dmCommandGate(ctx)
+  if (!gated) return
+  const { access, senderId } = gated
+  if (!access.allowFrom.includes(senderId)) return
+
+  if (!TRANSCRIPTS_DIR) {
+    await ctx.reply(`Can't resolve this session's project directory — CLAUDE_PROJECT_DIR is unset.`)
+    return
+  }
+
+  let files: string[]
+  try {
+    files = readdirSync(TRANSCRIPTS_DIR).filter(f => f.endsWith('.jsonl'))
+  } catch (err) {
+    await ctx.reply(`Couldn't read session transcripts: ${err}`)
+    return
+  }
+
+  const names = readSessionNames()
+  const entries = files.map(f => {
+    const full = join(TRANSCRIPTS_DIR!, f)
+    const id = f.slice(0, -'.jsonl'.length)
+    const mtimeMs = statSync(full).mtimeMs
+    return { id, mtimeMs, name: names[id] }
+  })
+
+  const recent = pickRecentSessions(entries, SESSIONS_LIMIT, Date.now())
+  if (recent.length === 0) {
+    await ctx.reply('No sessions found.')
+    return
+  }
+
+  const keyboard = new InlineKeyboard(buildSessionsKeyboard(recent))
+  await ctx.reply('Recent sessions:', { reply_markup: keyboard })
+})
+
 // Inline-button handler for permission requests. Callback data is
 // `perm:allow:<id>`, `perm:deny:<id>`, or `perm:more:<id>`.
 // Security mirrors the text-reply path: allowFrom must contain the sender.
 bot.on('callback_query:data', async ctx => {
   const data = ctx.callbackQuery.data
+
+  const idleMatch = /^idle:(compact|pause|dismiss)$/.exec(data)
+  if (idleMatch) {
+    await handleIdleCallback(ctx, idleMatch[1] as 'compact' | 'pause' | 'dismiss')
+    return
+  }
+
+  const sessMatch = /^sess:(.+)$/.exec(data)
+  if (sessMatch) {
+    await handleSessionSelect(ctx, sessMatch[1])
+    return
+  }
+
   const m = /^perm:(allow|deny|more):([a-km-z]{5})$/.exec(data)
   if (!m) {
     await ctx.answerCallbackQuery().catch(() => {})
@@ -1009,6 +1243,7 @@ void (async () => {
               { command: 'start', description: 'Welcome and setup guide' },
               { command: 'help', description: 'What this bot can do' },
               { command: 'status', description: 'Check your pairing status' },
+              { command: 'sessions', description: 'List recent sessions to resume' },
             ],
             { scope: { type: 'all_private_chats' } },
           ).catch(() => {})
