@@ -34,6 +34,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.5.0] - 2026-08-15
+
+### Fixed
+- Nostr publishing: `nostr-publisher.ts` opened a fresh `Relay.connect` per
+  event per relay — against the real 152-gene ledger's first publish (155
+  records × 2 relays) that's 310 simultaneous connections, which public
+  relays rate-limit. Replaced with a single `SimplePool` reused for the
+  whole publisher's lifetime, collapsing it to one connection per relay
+  URL regardless of record count. Added `NostrPublisher.close()`, called
+  from `scripts/publish-cycle.ts` after the publish call so the process
+  exits instead of hanging on open sockets.
+- Relay-rejection formatting: nostr-tools relay/pool operations can reject
+  with a plain string, not an `Error` — the previous
+  `.catch((err: Error) => ...${err.message})` pattern produced the literal
+  text "undefined" in failure reasons. Fixed to handle both shapes.
+- `meditate/SKILL.md`: swapped Step 6 (Publish) and Step 7 (Trace) — Publish
+  now runs and updates the ledger *before* the commit/push step, so a real
+  publish cycle no longer leaves the workspace repo dirty, and the
+  trace/Telegram summary can report Publish's own outcome. Fixed the
+  intro's stale "six-step cycle" to "seven-step cycle."
+- `selectChangedGenes` (`publish-cycle.ts`): `cycles.lastPublish` is a
+  date-only string (`"2026-08-15"`) but was compared lexicographically
+  against full-ISO event timestamps (`"2026-08-15T02:43:39Z"`), spuriously
+  re-selecting every gene that changed on the same calendar date as the
+  last publish as "changed" again. Now compares date portions only.
+- `lists.ts`'s `buildLists`: NIP-51-style lists carried bare
+  `['g', '<plugin>:<skill>']` tags with no pointer to the actual gene
+  event. Now also emits `['a', '<kind>:<pubkey>:<key>']` per listed gene,
+  resolving to the real addressable gene record. Signature changed to
+  `buildLists(ledger, pubkeyHex)`.
+- Stale Phase-2 documentation in `replicator/README.md` and
+  `replicator/.claude-plugin/plugin.json` — both said registry/publishing
+  was "not built yet"; now reflect that it exists (cross-replicator voting
+  and adoption still don't).
+
+### Added
+- `buildPublishPlan(ledger, speciesName, pubkeyHex)` (`publish-cycle.ts`)
+  — extracts the gene+list+profile record assembly previously inlined in
+  `scripts/publish-cycle.ts` into a pure, tested function; the script is
+  now a thin shell around it.
+- `--dry-run` flag on `scripts/publish-cycle.ts`: prints the full publish
+  plan (label, kind, dTag, tag count, content) without constructing a
+  `NostrPublisher`, making any network call, or mutating the ledger.
+
 ## [replicator 0.3.0] - 2026-08-15
 
 ### Added

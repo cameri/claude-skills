@@ -1,9 +1,7 @@
 #!/usr/bin/env bun
 import { loadLedger, saveLedger } from '../store'
 import { recordPublish } from '../ledger'
-import { selectChangedGenes } from '../publish-cycle'
-import { buildGeneRecord, buildProfileRecord } from '../publisher'
-import { buildLists } from '../lists'
+import { selectChangedGenes, buildPublishPlan } from '../publish-cycle'
 import { NostrPublisher } from '../nostr-publisher'
 import { loadNsec, credentialsPath } from '../credentials'
 import { decodeNsec, keypairFromSecretKey, SPECIES_NAME } from '../identity'
@@ -20,14 +18,41 @@ function today(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+// Prints exactly what a real publish would send, without ever constructing a
+// NostrPublisher (no network call) or mutating the ledger (no
+// saveLedger/recordPublish) — a preview a human can read before ever
+// committing to an irreversible public Nostr publish.
+function printDryRun(plan: ReturnType<typeof buildPublishPlan>): void {
+  for (const record of plan) {
+    const dTag = record.dTag !== undefined ? `, d=${record.dTag}` : ''
+    console.log(`${record.label} — kind ${record.kind}${dTag}, ${record.tags.length} tags`)
+    console.log(record.content)
+    console.log('---')
+  }
+}
+
 async function main(): Promise<void> {
+  const dryRun = process.argv.includes('--dry-run')
+  const ledger = loadLedger(STATE_DIR)
   const nsec = loadNsec(CREDENTIALS_DIR)
+
+  if (dryRun) {
+    // buildPublishPlan is pure — no identity or network is actually
+    // required to preview it. Fall back to a placeholder pubkey when no
+    // identity has been generated yet so the preview still works.
+    const pubkeyHex = nsec ? keypairFromSecretKey(decodeNsec(nsec)).pubkeyHex : '0'.repeat(64)
+    if (!nsec) {
+      console.log(`no identity found at ${credentialsPath(CREDENTIALS_DIR)} — using a placeholder pubkey for this dry run`)
+    }
+    printDryRun(buildPublishPlan(ledger, SPECIES_NAME, pubkeyHex))
+    return
+  }
+
   if (!nsec) {
     console.log(`no identity found at ${credentialsPath(CREDENTIALS_DIR)} — run scripts/generate-identity.ts once first`)
     process.exit(0)
   }
 
-  const ledger = loadLedger(STATE_DIR)
   const changed = selectChangedGenes(ledger, ledger.cycles.lastPublish)
   if (changed.length === 0) {
     console.log('nothing changed since last publish')
@@ -37,10 +62,13 @@ async function main(): Promise<void> {
 
   const kp = keypairFromSecretKey(decodeNsec(nsec))
   const publisher = new NostrPublisher(kp.sk, kp.pubkeyHex, RELAY_URLS)
-  const geneRecords = changed.map(key => buildGeneRecord(key, ledger.genes[key]))
-  const listRecords = buildLists(ledger)
-  const profileRecord = buildProfileRecord(SPECIES_NAME, ledger.harnessModels)
-  const results = await publisher.publish([...geneRecords, ...listRecords, profileRecord])
+  const plan = buildPublishPlan(ledger, SPECIES_NAME, kp.pubkeyHex)
+  let results
+  try {
+    results = await publisher.publish(plan)
+  } finally {
+    publisher.close()
+  }
 
   for (const r of results) {
     console.log(`${r.label}: ${r.ok ? 'ok' : `FAILED (${r.reason})`}`)

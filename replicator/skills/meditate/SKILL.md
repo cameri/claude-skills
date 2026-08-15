@@ -21,7 +21,7 @@ instead. Don't add them back to this list.
 # /replicator:meditate — The Nightly Cycle
 
 Full design: `docs/superpowers/specs/2026-08-14-replicator-design.md`. This
-skill implements that spec's six-step cycle. Read it once if this is your
+skill implements that spec's seven-step cycle. Read it once if this is your
 first run in a session — the vocabulary (gene, mute, cycle, watchlist,
 speculative build) is defined there.
 
@@ -241,25 +241,56 @@ activity, or a pattern across recent traces, shows real harm (wasted
 spend, bad builds, an injection incident it couldn't contain) — and wait
 for Cameri's confirm exactly like any other removal candidate.
 
-## Step 6 — Trace
+**6. Publish (registry).** Check whether the replicator's own Nostr
+identity exists at `$REPLICATOR_CREDENTIALS_DIR/.env` (default
+`~/.claude/channels/replicator/.env`). If not: note in the trace
+("registry publishing not yet set up — run `scripts/generate-identity.ts`
+once to enable") and stop here — generating that identity is a one-time
+manual setup, never done automatically by a cycle.
+
+If the identity exists, check `cycles.lastPublish`: if it's set and less
+than 7 days old, this step is a silent no-op (no trace note — publishing
+is weekly, not nightly, and an ineligible cycle isn't worth mentioning).
+Otherwise, run `bun run
+/workspace/projects/skills/replicator/scripts/publish-cycle.ts` (same
+`REPLICATOR_STATE_DIR` convention as `ledger-cli.ts`). That script diffs
+the ledger against `cycles.lastPublish` itself and only actually publishes
+gene/list/profile records to Nostr if something changed since then — an
+eligible cycle with nothing changed still advances `cycles.lastPublish`
+(so the next attempt is scheduled another 7 days out, not retried
+immediately) without making any network call. If the script exits
+non-zero (a relay publish failed), `cycles.lastPublish` was **not**
+advanced — say so explicitly in the trace and the Telegram summary, the
+same "state changes exist but aren't pushed" discipline Step 7 already
+applies to its own commit/push failures. This step runs — and the ledger
+it may update is saved — **before** Step 7's commit, so any change it
+makes is captured in that same commit rather than left dirty after it;
+what it published (or that nothing changed, or that it failed) is
+reported as part of Step 7's trace below, not separately here.
+
+## Step 7 — Trace
 
 Write `docs/replicator/traces/<today>.md` covering: what the ledger review
 found, what was built (with origin), what was muted or flagged, watchlist
-additions, source changes, blocklist additions, and **everything
-considered and rejected, with reasons** — including a report-only "would
-mute" list where applicable. Include a **Routines** subsection whenever
-Step 2 found something: new candidates routed to `routines.md` (with the
-one-line why), and any existing routine that got a fresh Decision-log line
-this cycle (what was observed, what was decided). Leave this subsection out
-entirely when Step 2 found nothing routine-shaped — same always-visible-
-but-not-noisy discipline as the rest of the trace. If nothing happened this
-cycle, write that and why — a no-op cycle is not a failed cycle, but it
-must be visible, not silent.
+additions, source changes, blocklist additions, what Step 6 published to
+the registry (gene keys, list names) or that nothing had changed or that a
+relay publish failed, and **everything considered and rejected, with
+reasons** — including a report-only "would mute" list where applicable.
+Include a **Routines** subsection whenever Step 2 found something: new
+candidates routed to `routines.md` (with the one-line why), and any
+existing routine that got a fresh Decision-log line this cycle (what was
+observed, what was decided). Leave this subsection out entirely when Step
+2 found nothing routine-shaped — same always-visible-but-not-noisy
+discipline as the rest of the trace. If nothing happened this cycle, write
+that and why — a no-op cycle is not a failed cycle, but it must be
+visible, not silent.
 
 Then, commit in **each repo that actually changed** — `docs/replicator/`
-lives in the main workspace `jj` repo; anything built or edited under
-`projects/skills/` (a new skill, an extended existing one) lives in that
-directory's own standalone git repo. Never run `jj` from `/workspace`
+lives in the main workspace `jj` repo (this includes any ledger change
+Step 6 just made — `saveLedger` writes under `docs/replicator/`, so it's
+picked up by the same `jj status` check below); anything built or edited
+under `projects/skills/` (a new skill, an extended existing one) lives in
+that directory's own standalone git repo. Never run `jj` from `/workspace`
 expecting it to pick up `projects/skills/` changes — it won't, and the
 work silently stays uncommitted there.
 
@@ -278,31 +309,6 @@ work silently stays uncommitted there.
    Telegram summary (state changes exist locally but are not pushed)
    rather than reporting the cycle as clean.
 4. If anything user-visible changed (built, muted, watchlisted, a source
-   change, an incident): reply over Telegram to Cameri with a short
-   summary. A pure no-op cycle stays silent — no ping for "nothing
-   happened."
-
-**7. Publish (registry).** Check whether the replicator's own Nostr
-identity exists at `$REPLICATOR_CREDENTIALS_DIR/.env` (default
-`~/.claude/channels/replicator/.env`). If not: note in the trace
-("registry publishing not yet set up — run `scripts/generate-identity.ts`
-once to enable") and stop here — generating that identity is a one-time
-manual setup, never done automatically by a cycle.
-
-If the identity exists, check `cycles.lastPublish`: if it's set and less
-than 7 days old, this step is a silent no-op (no trace note — publishing
-is weekly, not nightly, and an ineligible cycle isn't worth mentioning).
-Otherwise, run `bun run
-/workspace/projects/skills/replicator/scripts/publish-cycle.ts` (same
-`REPLICATOR_STATE_DIR` convention as `ledger-cli.ts`). That script diffs
-the ledger against `cycles.lastPublish` itself and only actually publishes
-gene/list/profile records to Nostr if something changed since then — an
-eligible cycle with nothing changed still advances `cycles.lastPublish`
-(so the next attempt is scheduled another 7 days out, not retried
-immediately) without making any network call. Report the script's outcome
-in the trace: what was published (gene keys, list names), or that nothing
-had changed. If the script exits non-zero (a relay publish failed),
-`cycles.lastPublish` was **not** advanced — say so explicitly in the trace
-and the Telegram summary, the same "state changes exist but aren't
-pushed" discipline Step 6 already applies to its own commit/push
-failures.
+   change, an incident, or a registry publish): reply over Telegram to
+   Cameri with a short summary. A pure no-op cycle stays silent — no ping
+   for "nothing happened."

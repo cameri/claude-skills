@@ -1,5 +1,5 @@
 import { finalizeEvent, type UnsignedEvent, type Event as NostrEvent } from 'nostr-tools'
-import { Relay } from 'nostr-tools/relay'
+import { SimplePool } from 'nostr-tools/pool'
 import type { Publisher, PublishRecord, PublishResult } from './publisher'
 
 export function buildSignedEvent(record: PublishRecord, sk: Uint8Array, pubkey: string): NostrEvent {
@@ -14,36 +14,21 @@ export function buildSignedEvent(record: PublishRecord, sk: Uint8Array, pubkey: 
   return finalizeEvent(unsigned, sk)
 }
 
-function publishToUrl(
-  event: NostrEvent,
-  url: string,
-  timeoutMs = 8000,
-): Promise<{ ok: boolean; reason?: string }> {
-  return new Promise(resolve => {
-    let relay: InstanceType<typeof Relay> | null = null
-    const timer = setTimeout(() => {
-      try { relay?.close() } catch {}
-      resolve({ ok: false, reason: `${url}: timeout` })
-    }, timeoutMs)
-    Relay.connect(url)
-      .then(r => {
-        relay = r
-        return r.publish(event as never)
-      })
-      .then(() => {
-        clearTimeout(timer)
-        try { relay?.close() } catch {}
-        resolve({ ok: true })
-      })
-      .catch((err: Error) => {
-        clearTimeout(timer)
-        try { relay?.close() } catch {}
-        resolve({ ok: false, reason: `${url}: ${err.message}` })
-      })
-  })
+// nostr-tools relay/pool operations can reject with a plain string, not an
+// Error — a string has no `.message`, so assuming one produces the literal
+// text "undefined" in failure messages. Handle both shapes.
+function describeRejection(err: unknown): string {
+  return String((err as { message?: string } | undefined)?.message ?? err)
 }
 
 export class NostrPublisher implements Publisher {
+  // One SimplePool for the whole publisher's lifetime: nostr-tools reuses
+  // (or opens once) a single connection per relay URL across every publish
+  // made through it, regardless of how many events are published — this is
+  // what collapses N-records × M-relays simultaneous connections down to
+  // just M.
+  private pool = new SimplePool()
+
   constructor(
     private sk: Uint8Array,
     private pubkey: string,
@@ -54,11 +39,18 @@ export class NostrPublisher implements Publisher {
     return Promise.all(records.map(record => this.publishOne(record)))
   }
 
+  close(): void {
+    this.pool.close(this.relayUrls)
+  }
+
   private async publishOne(record: PublishRecord): Promise<PublishResult> {
     const signed = buildSignedEvent(record, this.sk, this.pubkey)
-    const results = await Promise.all(this.relayUrls.map(url => publishToUrl(signed, url)))
-    const ok = results.some(r => r.ok)
+    const settled = await Promise.allSettled(this.pool.publish(this.relayUrls, signed))
+    const ok = settled.some(r => r.status === 'fulfilled')
     if (ok) return { label: record.label, ok: true }
-    return { label: record.label, ok: false, reason: results.map(r => r.reason).join('; ') }
+    const reason = settled
+      .map((r, i) => `${this.relayUrls[i]}: ${r.status === 'rejected' ? describeRejection(r.reason) : 'unknown'}`)
+      .join('; ')
+    return { label: record.label, ok: false, reason }
   }
 }

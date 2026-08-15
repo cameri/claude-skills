@@ -11,13 +11,14 @@ Full design: `docs/superpowers/specs/2026-08-14-replicator-design.md`
 (workspace repo — this plugin's own repo stays portable and doesn't ship
 that instance-specific document).
 
-**Phase 1** (this release): capture → meditate cycle, usage-based pruning,
-injection defense for outward-scan content. **Phase 2** (not built yet):
-a public registry of this replicator's skills, cross-replicator voting,
-and adopting skills authored by other replicators — phase 1's structures
-(the gene ledger, the watchlist, the no-source-code rule, the
-rewrite-never-copy discipline) are built so phase 2 plugs in without
-rework.
+**Phase 1**: capture → meditate cycle, usage-based pruning, injection
+defense for outward-scan content. **Phase 2** (this release): a public
+registry of this replicator's genes, published weekly over Nostr (gene
+and list records signed under its own identity). **Not built yet**:
+cross-replicator voting and adopting skills authored by other
+replicators — phase 1's structures (the gene ledger, the watchlist, the
+no-source-code rule, the rewrite-never-copy discipline) are built so that
+plugs in without rework.
 
 ## Install
 
