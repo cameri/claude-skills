@@ -2,6 +2,9 @@
   "name": "replicator",
   "version": "0.3.0",
   "license": "Apache-2.0",
+  "dependencies": {
+    "nostr-tools": "^2.23.3"
+  },
   "type": "module",
   "scripts": {
     "test": "bun test"
