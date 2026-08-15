@@ -45,9 +45,7 @@ export function hasSeasonalGapPattern(gene: Gene, thresholdWeeks: number): boole
 }
 
 export function classifyGene(gene: Gene, todayISO: string): Pattern {
-  // Only consider flapping if there are no invocations (purely from automation)
-  const invocations = invocationDates(gene)
-  if (isFlapping(gene) && invocations.length === 0) return 'flapping'
+  if (isFlapping(gene)) return 'flapping'
   if (isRevived(gene, gene.muteThresholdWeeks)) return 'revived'
   const idle = weeksIdle(gene, todayISO)
   if (idle >= gene.muteThresholdWeeks) {

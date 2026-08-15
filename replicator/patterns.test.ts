@@ -116,8 +116,6 @@ describe('pruneCandidates', () => {
     l = registerGene(l, 'stale:x', 'preexisting', BORN)
     l = recordInvocation(l, 'stale:x', '2026-01-05', 1)
     l = applyEvent(l, 'stale:x', '2026-02-01T00:00:00Z', 'muted', 'decay')
-    // re-activate for this test by directly checking classify at a far-future date
-    l = applyEvent(l, 'stale:x', '2026-02-02T00:00:00Z', 'unmuted', 'test setup')
     l = applyEvent(l, 'stale:x', '2026-03-01T00:00:00Z', 'muted', 'decay')
     l = applyEvent(l, 'stale:x', '2026-03-02T00:00:00Z', 'unmuted', 'test setup')
 
