@@ -53,6 +53,14 @@ so no env var needs setting in this workspace.
    note it. For `revived`: just note it in the trace — evidence pruning may
    be too aggressive, no action this cycle.
 4. Run `ledger-cli.ts record-cycle --date <today>`.
+5. Record this session's harness and model: run `ledger-cli.ts
+   record-harness-model --harness <harness> --model <model>` — the harness
+   is the agent runtime driving this cycle (e.g. `claude-code`), the model
+   is the specific model family running it (e.g. `claude-sonnet-5`); both
+   are available from the session's own operating context, never asked of
+   Cameri. Idempotent — recording the same pair twice is a no-op, so this
+   runs every cycle regardless of whether Step 7 (Publish) is eligible
+   this cycle.
 
 ## Step 2 — Inward meditation
 
@@ -273,3 +281,28 @@ work silently stays uncommitted there.
    change, an incident): reply over Telegram to Cameri with a short
    summary. A pure no-op cycle stays silent — no ping for "nothing
    happened."
+
+**7. Publish (registry).** Check whether the replicator's own Nostr
+identity exists at `$REPLICATOR_CREDENTIALS_DIR/.env` (default
+`~/.claude/channels/replicator/.env`). If not: note in the trace
+("registry publishing not yet set up — run `scripts/generate-identity.ts`
+once to enable") and stop here — generating that identity is a one-time
+manual setup, never done automatically by a cycle.
+
+If the identity exists, check `cycles.lastPublish`: if it's set and less
+than 7 days old, this step is a silent no-op (no trace note — publishing
+is weekly, not nightly, and an ineligible cycle isn't worth mentioning).
+Otherwise, run `bun run
+/workspace/projects/skills/replicator/scripts/publish-cycle.ts` (same
+`REPLICATOR_STATE_DIR` convention as `ledger-cli.ts`). That script diffs
+the ledger against `cycles.lastPublish` itself and only actually publishes
+gene/list/profile records to Nostr if something changed since then — an
+eligible cycle with nothing changed still advances `cycles.lastPublish`
+(so the next attempt is scheduled another 7 days out, not retried
+immediately) without making any network call. Report the script's outcome
+in the trace: what was published (gene keys, list names), or that nothing
+had changed. If the script exits non-zero (a relay publish failed),
+`cycles.lastPublish` was **not** advanced — say so explicitly in the trace
+and the Telegram summary, the same "state changes exist but aren't
+pushed" discipline Step 6 already applies to its own commit/push
+failures.
