@@ -17,6 +17,21 @@ import { parseSkillUsage } from '../extract'
 
 const STATE_DIR = process.env.REPLICATOR_STATE_DIR ?? '/workspace/docs/replicator'
 
+const GENE_ORIGINS = ['inward', 'outward-speculative', 'adopted', 'preexisting'] as const
+
+function parseGeneOrigin(value: string | undefined): GeneOrigin {
+  if (!value || !(GENE_ORIGINS as readonly string[]).includes(value)) {
+    throw new Error(`--origin must be one of: ${GENE_ORIGINS.join(', ')} (got ${JSON.stringify(value)})`)
+  }
+  return value as GeneOrigin
+}
+
+function parseBoolFlag(value: string | undefined, flagName: string): boolean {
+  if (value === 'true') return true
+  if (value === 'false') return false
+  throw new Error(`--${flagName} must be exactly "true" or "false" (got ${JSON.stringify(value)})`)
+}
+
 function nowISO(): string {
   return new Date().toISOString()
 }
@@ -46,8 +61,8 @@ function main(): void {
     }
     case 'register': {
       const key = flag(args, 'key')
-      const origin = flag(args, 'origin') as GeneOrigin | undefined
-      if (!key || !origin) throw new Error('register requires --key and --origin')
+      if (!key) throw new Error('register requires --key and --origin')
+      const origin = parseGeneOrigin(flag(args, 'origin'))
       ledger = registerGene(ledger, key, origin, nowISO(), { core: args.includes('--core') })
       break
     }
@@ -116,7 +131,7 @@ function main(): void {
       break
     }
     case 'set-report-only': {
-      ledger = setReportOnlyPruning(ledger, flag(args, 'value') === 'true')
+      ledger = setReportOnlyPruning(ledger, parseBoolFlag(flag(args, 'value'), 'value'))
       break
     }
     default:
