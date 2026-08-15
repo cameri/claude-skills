@@ -89,7 +89,10 @@ actually quarantined, unlike a general-purpose read-only agent type, which
 in this harness still carries `Bash` and is not contained.
 
 For each source, dispatch one `Agent` call with `subagent_type:
-"quarantine"`, passing only the source's name, URL, and feed description —
+"replicator:quarantine"` (plugin-provided agents are namespaced
+`<plugin>:<agent>` in this harness's Agent tool — the same convention
+`finance-manager:financial-planner` uses), passing only the source's name,
+URL, and feed description —
 **never** pre-fetched content (there shouldn't be any in the main agent's
 context to pass). The subagent fetches the source itself, does the
 narrative evaluation and scoring, and returns its narrative reasoning, a
