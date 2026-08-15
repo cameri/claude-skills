@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { selectChangedGenes, buildPublishPlan, filterPublicGenes } from './publish-cycle'
+import { selectChangedGenes, buildPublishPlan, buildGistSnapshot, filterPublicGenes } from './publish-cycle'
 import { emptyLedger, registerGene, setCore, applyEvent } from './ledger'
 import { GENE_RECORD_KIND, LIST_RECORD_KIND } from './publisher'
 import type { VisibilityMap } from './repo-visibility'
@@ -117,5 +117,26 @@ describe('buildPublishPlan', () => {
     const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), {})
     const geneRecords = plan.filter(r => r.kind === GENE_RECORD_KIND)
     expect(geneRecords).toEqual([])
+  })
+})
+
+describe('buildGistSnapshot', () => {
+  test('includes every public gene, not just ones changed since lastPublish', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = registerGene(l, 'b:b', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = { ...l, cycles: { ...l.cycles, lastPublish: '2026-08-20' } }
+    l = applyEvent(l, 'b:b', '2026-08-25T03:00:00Z', 'muted', 'decay')
+
+    const snapshot = buildGistSnapshot(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
+    const geneRecords = snapshot.filter(r => r.kind === GENE_RECORD_KIND)
+    expect(geneRecords.map(r => r.label).sort()).toEqual(['a:a', 'b:b'])
+  })
+
+  test('still respects the public-repo filter', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = registerGene(l, 'private-plugin:x', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    const snapshot = buildGistSnapshot(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
+    const geneRecords = snapshot.filter(r => r.kind === GENE_RECORD_KIND)
+    expect(geneRecords.map(r => r.label)).toEqual(['a:a'])
   })
 })

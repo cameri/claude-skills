@@ -36,3 +36,20 @@ export function buildPublishPlan(
   const profileRecord = buildProfileRecord(speciesName, publishable.harnessModels)
   return [...geneRecords, ...listRecords, profileRecord]
 }
+
+// Nostr's replaceable gene events persist on relays untouched between
+// cycles, so only publishing the delta is correct there. A gist file has no
+// such persistence of its own — last write wins — so its snapshot always
+// carries every currently-public gene, not just what changed this cycle.
+export function buildGistSnapshot(
+  ledger: Ledger,
+  speciesName: string,
+  pubkeyHex: string,
+  visibility: VisibilityMap,
+): PublishRecord[] {
+  const publishable = filterPublicGenes(ledger, visibility)
+  const geneRecords = Object.keys(publishable.genes).map(key => buildGeneRecord(key, publishable.genes[key]))
+  const listRecords = buildLists(publishable, pubkeyHex)
+  const profileRecord = buildProfileRecord(speciesName, publishable.harnessModels)
+  return [...geneRecords, ...listRecords, profileRecord]
+}

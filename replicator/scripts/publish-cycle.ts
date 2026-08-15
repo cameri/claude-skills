@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 import { loadLedger, saveLedger } from '../store'
 import { recordPublish } from '../ledger'
-import { selectChangedGenes, buildPublishPlan } from '../publish-cycle'
+import { selectChangedGenes, buildPublishPlan, buildGistSnapshot } from '../publish-cycle'
 import { NostrPublisher } from '../nostr-publisher'
+import { GistPublisher, buildGistFiles, gistStatePath } from '../gist-publisher'
 import { loadNsec, credentialsPath } from '../credentials'
 import { decodeNsec, keypairFromSecretKey, SPECIES_NAME } from '../identity'
 import { loadVisibilityMap, visibilityPath, isPublicSource } from '../repo-visibility'
@@ -57,7 +58,15 @@ async function main(): Promise<void> {
     if (!nsec) {
       console.log(`no identity found at ${credentialsPath(CREDENTIALS_DIR)} — using a placeholder pubkey for this dry run`)
     }
+    console.log('--- Nostr (delta since lastPublish) ---')
     printDryRun(buildPublishPlan(ledger, SPECIES_NAME, pubkeyHex, visibility))
+    console.log('--- Gist (full current snapshot) ---')
+    const gistFiles = buildGistFiles(buildGistSnapshot(ledger, SPECIES_NAME, pubkeyHex, visibility))
+    for (const [name, file] of Object.entries(gistFiles)) {
+      console.log(`${name}:`)
+      console.log(file.content)
+      console.log('---')
+    }
     return
   }
 
@@ -84,12 +93,22 @@ async function main(): Promise<void> {
   }
 
   for (const r of results) {
-    console.log(`${r.label}: ${r.ok ? 'ok' : `FAILED (${r.reason})`}`)
+    console.log(`nostr ${r.label}: ${r.ok ? 'ok' : `FAILED (${r.reason})`}`)
   }
+
+  // The gist is a best-effort mirror, not the authoritative registry — its
+  // failure is reported but never blocks lastPublish, which is gated on
+  // Nostr alone (see buildGistSnapshot's own comment on why the two
+  // channels need different content, not just different transports).
+  const snapshot = buildGistSnapshot(ledger, SPECIES_NAME, kp.pubkeyHex, visibility)
+  const gistPublisher = new GistPublisher(STATE_DIR, `${SPECIES_NAME} — gene registry`)
+  const gistResults = await gistPublisher.publish(snapshot)
+  const gistFailed = gistResults.some(r => !r.ok)
+  console.log(gistFailed ? `gist: FAILED (${gistResults[0]?.reason})` : `gist: ok (${gistStatePath(STATE_DIR)})`)
 
   const anyFailed = results.some(r => !r.ok)
   if (anyFailed) {
-    console.error('one or more records failed to publish — lastPublish not advanced, will retry next eligible cycle')
+    console.error('one or more Nostr records failed to publish — lastPublish not advanced, will retry next eligible cycle')
     process.exit(1)
   }
 

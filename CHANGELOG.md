@@ -34,6 +34,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.7.0] - 2026-08-15
+
+### Added
+- Second publish channel: `gist-publisher.ts`'s `GistPublisher` (implements
+  the same `Publisher` interface Nostr does) mirrors the gene registry to a
+  single GitHub gist, updated in place via `gh api gists`/`PATCH` (id/URL
+  persisted to a new `docs/replicator/gist.json` on first creation, so
+  later cycles get a stable URL instead of a new gist every week). Unlike
+  Nostr's replaceable events, a gist file has no persistence of its own
+  between writes — `publish-cycle.ts`'s new `buildGistSnapshot` therefore
+  builds the *full* current public-gene set every cycle rather than
+  `buildPublishPlan`'s delta, or previously-published genes would silently
+  vanish from the file on the next update. Files: `profile.json`,
+  `core.json`, `active.json` (flat key arrays, the Nostr `a`-tag pointers
+  dropped since they're meaningless outside Nostr), `genes.json` (every
+  gene's redacted record, keyed by gene key). The gist is a best-effort
+  mirror, not the authoritative registry: its failure is logged but never
+  blocks `cycles.lastPublish`, which stays gated on the Nostr publish
+  alone. `--dry-run` now previews both channels.
+
 ## [replicator 0.6.1] - 2026-08-15
 
 ### Fixed
