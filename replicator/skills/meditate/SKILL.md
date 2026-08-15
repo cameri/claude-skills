@@ -70,9 +70,43 @@ procedure or check rather than a one-time fact. Then run targeted greps
 - **Procedure-shaped memory** — a memory entry that is actually a checklist
   or repeatable check, not a one-time fact.
 
-For each candidate that survives Step 4's scrutiny gate, add it to this
-cycle's build list with a one-line justification citing the evidence
-(which sessions, which memory entry).
+Every candidate found this way gets a **three-way test**, not a binary
+skill-or-memory call:
+
+- **Discrete, invocable trigger** (a session would explicitly run it via
+  the Skill tool or a slash command) → **skill candidate**. For each one
+  that survives Step 4's scrutiny gate, add it to this cycle's build list
+  with a one-line justification citing the evidence (which sessions, which
+  memory entry).
+- **One-time fact, no recurrence** → belongs in memory, not here. Reject
+  it, note why in the trace.
+- **Recurring, composite pattern** — spans multiple skills and non-skill
+  actions in service of one recurring goal, repeatable, identity-shaped
+  ("something we do/are") rather than a single invocable step → **routine
+  candidate**. Append a new section to `docs/replicator/routines.md` (see
+  its schema at the top of that file) with status `candidate`. Routine
+  candidates never enter Step 4's build queue.
+
+Also check whether a candidate found this cycle looks, narratively, like a
+match for an *existing* `routines.md` entry — no keyword or grep matching,
+just the same qualitative judgment call used above. If it matches: append a
+dated line to that entry's **Decision log** describing what was observed
+this cycle. If the evidence is enough to actually decide the routine's
+fate, update its **Status** (`candidate` → `adopted` / `maintained` /
+`sunset`) and say why in the same log line. This is evidence-driven, not a
+scheduled review — a routine only gets attention in a cycle that actually
+turned up something about it, so accumulating more routines never raises
+this step's baseline cost.
+
+Graduation between skills and routines is always Cameri-confirmed, never
+automatic:
+- If a routine's pattern has crisped into one discrete invocable step,
+  propose it for Step 4's build queue this cycle and mark the
+  `routines.md` entry `graduated → <plugin>:<skill>` once built.
+- If a stale or rarely-invoked gene's spirit keeps recurring in a broader
+  multi-step way rather than as its own trigger, propose reframing it as a
+  routine instead of pruning it — flag it to Cameri the same way removal
+  candidates already are in Step 5, don't apply it automatically.
 
 ## Step 3 — Outward scan
 
@@ -125,6 +159,9 @@ edit directly (cheap to revert) and note it in the trace.
 Finish with `ledger-cli.ts record-outward-scan --date <today>`.
 
 ## Step 4 — Build queue
+
+Only skill candidates reach this step — routine candidates from Step 2 go
+straight to `routines.md` and are never part of the build queue.
 
 Assemble the queue:
 (a) Everything in `docs/replicator/queue.md`, plus every inward candidate
@@ -202,9 +239,14 @@ Write `docs/replicator/traces/<today>.md` covering: what the ledger review
 found, what was built (with origin), what was muted or flagged, watchlist
 additions, source changes, blocklist additions, and **everything
 considered and rejected, with reasons** — including a report-only "would
-mute" list where applicable. If nothing happened this cycle, write that
-and why — a no-op cycle is not a failed cycle, but it must be visible, not
-silent.
+mute" list where applicable. Include a **Routines** subsection whenever
+Step 2 found something: new candidates routed to `routines.md` (with the
+one-line why), and any existing routine that got a fresh Decision-log line
+this cycle (what was observed, what was decided). Leave this subsection out
+entirely when Step 2 found nothing routine-shaped — same always-visible-
+but-not-noisy discipline as the rest of the trace. If nothing happened this
+cycle, write that and why — a no-op cycle is not a failed cycle, but it
+must be visible, not silent.
 
 Then, commit in **each repo that actually changed** — `docs/replicator/`
 lives in the main workspace `jj` repo; anything built or edited under
