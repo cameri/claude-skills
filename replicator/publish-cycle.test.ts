@@ -1,7 +1,14 @@
 import { describe, expect, test } from 'bun:test'
-import { selectChangedGenes, buildPublishPlan } from './publish-cycle'
+import { selectChangedGenes, buildPublishPlan, filterPublicGenes } from './publish-cycle'
 import { emptyLedger, registerGene, setCore, applyEvent } from './ledger'
-import { GENE_RECORD_KIND } from './publisher'
+import { GENE_RECORD_KIND, LIST_RECORD_KIND } from './publisher'
+import type { VisibilityMap } from './repo-visibility'
+
+const ALL_PUBLIC: VisibilityMap = {
+  a: { repo: 'n/a', public: true, checkedAt: '2026-08-15' },
+  b: { repo: 'n/a', public: true, checkedAt: '2026-08-15' },
+  c: { repo: 'n/a', public: true, checkedAt: '2026-08-15' },
+}
 
 describe('selectChangedGenes', () => {
   test('returns every gene when sinceISO is null (first-ever publish)', () => {
@@ -29,6 +36,28 @@ describe('selectChangedGenes', () => {
   })
 })
 
+describe('filterPublicGenes', () => {
+  test('keeps only genes whose plugin prefix is confirmed public', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = registerGene(l, 'private-plugin:x', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    const filtered = filterPublicGenes(l, ALL_PUBLIC)
+    expect(Object.keys(filtered.genes)).toEqual(['a:a'])
+  })
+
+  test('drops every gene when the visibility map is empty — fail closed', () => {
+    const l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    expect(filterPublicGenes(l, {}).genes).toEqual({})
+  })
+
+  test('leaves cycles/harnessModels untouched', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = { ...l, cycles: { ...l.cycles, lastPublish: '2026-08-15' } }
+    const filtered = filterPublicGenes(l, ALL_PUBLIC)
+    expect(filtered.cycles).toEqual(l.cycles)
+    expect(filtered.harnessModels).toEqual(l.harnessModels)
+  })
+})
+
 describe('buildPublishPlan', () => {
   test('assembles exactly changed genes + 2 lists + 1 profile, in that order', () => {
     let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
@@ -37,7 +66,7 @@ describe('buildPublishPlan', () => {
     l = { ...l, cycles: { ...l.cycles, lastPublish: '2026-08-15' } }
     l = applyEvent(l, 'b:b', '2026-08-20T03:00:00Z', 'muted', 'decay')
 
-    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64))
+    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
 
     expect(plan).toHaveLength(4)
     expect(plan[0].label).toBe('b:b')
@@ -53,7 +82,7 @@ describe('buildPublishPlan', () => {
     l = setCore(l, 'a:a')
     l = applyEvent(l, 'b:b', '2026-08-16T03:00:00Z', 'muted', 'decay')
 
-    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64))
+    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
     const geneRecords = plan.filter(r => r.kind === GENE_RECORD_KIND)
     expect(geneRecords.length).toBeGreaterThan(0)
 
@@ -64,5 +93,29 @@ describe('buildPublishPlan', () => {
       expect(content).not.toHaveProperty('core')
       expect(content).not.toHaveProperty('muteThresholdWeeks')
     }
+  })
+
+  test('a gene from an unconfirmed-public plugin never appears in gene records or list tags', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = registerGene(l, 'private-plugin:x', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = setCore(l, 'private-plugin:x')
+
+    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
+
+    const geneRecords = plan.filter(r => r.kind === GENE_RECORD_KIND)
+    expect(geneRecords.map(r => r.label)).toEqual(['a:a'])
+
+    const lists = plan.filter(r => r.kind === LIST_RECORD_KIND)
+    for (const list of lists) {
+      const geneKeysInList = list.tags.filter(t => t[0] === 'g').map(t => t[1])
+      expect(geneKeysInList).not.toContain('private-plugin:x')
+    }
+  })
+
+  test('with an empty visibility map, nothing publishes — fail closed', () => {
+    const l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), {})
+    const geneRecords = plan.filter(r => r.kind === GENE_RECORD_KIND)
+    expect(geneRecords).toEqual([])
   })
 })

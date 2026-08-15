@@ -1,6 +1,15 @@
 import type { Ledger } from './ledger'
 import { buildGeneRecord, buildProfileRecord, type PublishRecord } from './publisher'
 import { buildLists } from './lists'
+import { isPublicSource, type VisibilityMap } from './repo-visibility'
+
+// Genes whose plugin isn't confirmed to live in a public repo never reach
+// the redacted record, the changed-gene diff, or the core/active lists —
+// filtered here, once, before any of those consume the ledger's genes.
+export function filterPublicGenes(ledger: Ledger, visibility: VisibilityMap): Ledger {
+  const genes = Object.fromEntries(Object.entries(ledger.genes).filter(([key]) => isPublicSource(visibility, key)))
+  return { ...ledger, genes }
+}
 
 export function selectChangedGenes(ledger: Ledger, sinceISO: string | null): string[] {
   return Object.entries(ledger.genes)
@@ -14,10 +23,16 @@ export function selectChangedGenes(ledger: Ledger, sinceISO: string | null): str
     .map(([key]) => key)
 }
 
-export function buildPublishPlan(ledger: Ledger, speciesName: string, pubkeyHex: string): PublishRecord[] {
-  const changed = selectChangedGenes(ledger, ledger.cycles.lastPublish)
-  const geneRecords = changed.map(key => buildGeneRecord(key, ledger.genes[key]))
-  const listRecords = buildLists(ledger, pubkeyHex)
-  const profileRecord = buildProfileRecord(speciesName, ledger.harnessModels)
+export function buildPublishPlan(
+  ledger: Ledger,
+  speciesName: string,
+  pubkeyHex: string,
+  visibility: VisibilityMap,
+): PublishRecord[] {
+  const publishable = filterPublicGenes(ledger, visibility)
+  const changed = selectChangedGenes(publishable, publishable.cycles.lastPublish)
+  const geneRecords = changed.map(key => buildGeneRecord(key, publishable.genes[key]))
+  const listRecords = buildLists(publishable, pubkeyHex)
+  const profileRecord = buildProfileRecord(speciesName, publishable.harnessModels)
   return [...geneRecords, ...listRecords, profileRecord]
 }

@@ -255,7 +255,11 @@ Otherwise, run `bun run
 /workspace/projects/skills/replicator/scripts/publish-cycle.ts` (same
 `REPLICATOR_STATE_DIR` convention as `ledger-cli.ts`). That script diffs
 the ledger against `cycles.lastPublish` itself and only actually publishes
-gene/list/profile records to Nostr if something changed since then — an
+gene/list/profile records to Nostr if something changed since then — a
+gene whose plugin isn't confirmed public in
+`docs/replicator/repo-visibility.json` never reaches a record or a list
+regardless (fail-closed; re-run `scripts/check-repo-visibility.ts` after
+installing a new plugin so it's eligible to publish at all). An
 eligible cycle with nothing changed still advances `cycles.lastPublish`
 (so the next attempt is scheduled another 7 days out, not retried
 immediately) without making any network call. If the script exits

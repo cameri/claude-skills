@@ -34,6 +34,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.6.0] - 2026-08-15
+
+### Added
+- Publish-time repo-visibility gate: `repo-visibility.ts` + a new
+  `docs/replicator/repo-visibility.json` state file mapping each installed
+  plugin to its source repo's public/private status. `buildPublishPlan` now
+  filters the ledger down to only genes whose plugin is confirmed to live in
+  a public repo before building gene records or the core/active lists — a
+  gene with no entry in the map (unknown source) is excluded by default,
+  fail-closed. New maintenance script `scripts/check-repo-visibility.ts`
+  (re-run whenever a plugin/marketplace is added, or periodically) derives
+  the map from `~/.claude/plugins/{installed_plugins,known_marketplaces}.json`
+  plus a small manually-curated list for non-marketplace sources (the
+  `printing-press-*` family, cloned standalone from `mvanhorn/cli-printing-press`
+  rather than installed via a marketplace). Prompted by Cameri: the first
+  real dry-run would have published Claude Code's own built-in skills
+  (`code-review`, `dataviz`, `slash:*`, etc. — not from any repo at all) and,
+  more importantly, would have silently included a private-repo variant had
+  one existed — confirmed live against this workspace's own `unfurl` gene,
+  which turned out to be sourced from the private `phoenix-server` repo's
+  `.claude/commands/unfurl.md` (a materially different file from the public
+  `cameri/skills` copy of the same name) and is now correctly excluded by
+  the fail-closed default rather than by having been caught by inspection.
+
 ## [replicator 0.5.0] - 2026-08-15
 
 ### Fixed

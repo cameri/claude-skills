@@ -5,6 +5,7 @@ import { selectChangedGenes, buildPublishPlan } from '../publish-cycle'
 import { NostrPublisher } from '../nostr-publisher'
 import { loadNsec, credentialsPath } from '../credentials'
 import { decodeNsec, keypairFromSecretKey, SPECIES_NAME } from '../identity'
+import { loadVisibilityMap, visibilityPath, isPublicSource } from '../repo-visibility'
 
 const STATE_DIR = process.env.REPLICATOR_STATE_DIR ?? '/workspace/docs/replicator'
 const CREDENTIALS_DIR = process.env.REPLICATOR_CREDENTIALS_DIR
@@ -35,6 +36,11 @@ async function main(): Promise<void> {
   const dryRun = process.argv.includes('--dry-run')
   const ledger = loadLedger(STATE_DIR)
   const nsec = loadNsec(CREDENTIALS_DIR)
+  const visibility = loadVisibilityMap(STATE_DIR)
+  const excludedCount = Object.keys(ledger.genes).filter(key => !isPublicSource(visibility, key)).length
+  if (excludedCount > 0) {
+    console.log(`${excludedCount} gene(s) excluded — plugin not confirmed public in ${visibilityPath(STATE_DIR)} (run scripts/check-repo-visibility.ts to refresh)`)
+  }
 
   if (dryRun) {
     // buildPublishPlan is pure — no identity or network is actually
@@ -44,7 +50,7 @@ async function main(): Promise<void> {
     if (!nsec) {
       console.log(`no identity found at ${credentialsPath(CREDENTIALS_DIR)} — using a placeholder pubkey for this dry run`)
     }
-    printDryRun(buildPublishPlan(ledger, SPECIES_NAME, pubkeyHex))
+    printDryRun(buildPublishPlan(ledger, SPECIES_NAME, pubkeyHex, visibility))
     return
   }
 
@@ -62,7 +68,7 @@ async function main(): Promise<void> {
 
   const kp = keypairFromSecretKey(decodeNsec(nsec))
   const publisher = new NostrPublisher(kp.sk, kp.pubkeyHex, RELAY_URLS)
-  const plan = buildPublishPlan(ledger, SPECIES_NAME, kp.pubkeyHex)
+  const plan = buildPublishPlan(ledger, SPECIES_NAME, kp.pubkeyHex, visibility)
   let results
   try {
     results = await publisher.publish(plan)
