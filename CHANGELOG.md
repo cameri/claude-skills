@@ -34,6 +34,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [telegram-ng 0.3.0] - 2026-08-15
+
+### Added
+- `/usage` bot command: replies with current context-window and Claude
+  subscription rate-limit usage on demand, reading the same
+  `~/.claude/session-status-cache.json` cache `statusline-wrapper.py` writes
+  on every statusline render (the same source `usage-alert.py`'s Stop hook
+  polls for threshold-crossing pushes) — no band/threshold logic, just
+  "what does the cache say right now." Pure formatting lives in new
+  `usage-cache.ts` (`formatUsageMessage`, 7 tests), gated the same way as
+  `/status`/`/sessions` (paired senders only). Flags a stale cache (>1h old)
+  rather than silently showing outdated numbers, but still shows them —
+  an on-demand pull deserves an answer, not silence, unlike the passive
+  push case which can just skip a turn.
+
 ## [replicator 0.7.0] - 2026-08-15
 
 ### Added

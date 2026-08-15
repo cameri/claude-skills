@@ -26,11 +26,16 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
 import { pickRecentSessions, buildSessionsKeyboard } from './sessions-menu'
+import { formatUsageMessage, type UsageCache } from './usage-cache'
 
 const execFileAsync = promisify(execFile)
 
 const STATE_DIR = process.env.TELEGRAM_STATE_DIR ?? join(homedir(), '.claude', 'channels', 'telegram')
 const ACCESS_FILE = join(STATE_DIR, 'access.json')
+// Same file statusline-wrapper.py writes on every statusline render and
+// usage-alert.py's Stop hook polls for threshold pushes — /usage just reads
+// it on demand instead of waiting for a band crossing.
+const USAGE_CACHE_FILE = join(homedir(), '.claude', 'session-status-cache.json')
 const APPROVED_DIR = join(STATE_DIR, 'approved')
 const ENV_FILE = join(STATE_DIR, '.env')
 
@@ -896,7 +901,8 @@ bot.command('help', async ctx => {
     `Messages you send here route to a paired Claude Code session. ` +
     `Text and photos are forwarded; replies and reactions come back.\n\n` +
     `/start — pairing instructions\n` +
-    `/status — check your pairing state`
+    `/status — check your pairing state\n` +
+    `/usage — current context/rate-limit usage`
   )
 })
 
@@ -958,6 +964,21 @@ bot.command('sessions', async ctx => {
 
   const keyboard = new InlineKeyboard(buildSessionsKeyboard(recent))
   await ctx.reply('Recent sessions:', { reply_markup: keyboard })
+})
+
+bot.command('usage', async ctx => {
+  const gated = dmCommandGate(ctx)
+  if (!gated) return
+  const { access, senderId } = gated
+  if (!access.allowFrom.includes(senderId)) return
+
+  let cache: UsageCache | null = null
+  try {
+    cache = JSON.parse(readFileSync(USAGE_CACHE_FILE, 'utf8'))
+  } catch {
+    cache = null
+  }
+  await ctx.reply(formatUsageMessage(cache, Date.now() / 1000))
 })
 
 // Inline-button handler for permission requests. Callback data is
@@ -1258,6 +1279,7 @@ void (async () => {
               { command: 'help', description: 'What this bot can do' },
               { command: 'status', description: 'Check your pairing status' },
               { command: 'sessions', description: 'List recent sessions to resume' },
+              { command: 'usage', description: 'Current context/rate-limit usage' },
             ],
             { scope: { type: 'all_private_chats' } },
           ).catch(() => {})
