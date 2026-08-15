@@ -9,14 +9,23 @@ import {
   recordCycleRun,
   recordOutwardScan,
   setReportOnlyPruning,
+  recordHarnessModel,
+  recordPublish,
   DEFAULT_MUTE_THRESHOLD_WEEKS,
 } from './ledger'
 
 describe('emptyLedger', () => {
-  test('starts with no genes and report-only pruning on', () => {
+  test('starts with no genes, no harness/models, and report-only pruning on', () => {
     const l = emptyLedger()
     expect(l.genes).toEqual({})
-    expect(l.cycles).toEqual({ lastRun: null, lastOutwardScan: null, count: 0, reportOnlyPruning: true })
+    expect(l.harnessModels).toEqual([])
+    expect(l.cycles).toEqual({
+      lastRun: null,
+      lastOutwardScan: null,
+      lastPublish: null,
+      count: 0,
+      reportOnlyPruning: true,
+    })
   })
 })
 
@@ -150,5 +159,37 @@ describe('cycle bookkeeping', () => {
   test('setReportOnlyPruning toggles the flag', () => {
     const l = setReportOnlyPruning(emptyLedger(), false)
     expect(l.cycles.reportOnlyPruning).toBe(false)
+  })
+})
+
+describe('recordHarnessModel', () => {
+  test('appends a new pair', () => {
+    const l = recordHarnessModel(emptyLedger(), 'claude-code', 'claude-sonnet-5')
+    expect(l.harnessModels).toEqual([{ harness: 'claude-code', model: 'claude-sonnet-5' }])
+  })
+
+  test('is idempotent for an exact repeat', () => {
+    let l = recordHarnessModel(emptyLedger(), 'claude-code', 'claude-sonnet-5')
+    l = recordHarnessModel(l, 'claude-code', 'claude-sonnet-5')
+    expect(l.harnessModels).toEqual([{ harness: 'claude-code', model: 'claude-sonnet-5' }])
+  })
+
+  test('accumulates distinct pairs, never shrinks', () => {
+    let l = recordHarnessModel(emptyLedger(), 'claude-code', 'claude-sonnet-5')
+    l = recordHarnessModel(l, 'pi', 'claude-sonnet-5')
+    expect(l.harnessModels).toEqual([
+      { harness: 'claude-code', model: 'claude-sonnet-5' },
+      { harness: 'pi', model: 'claude-sonnet-5' },
+    ])
+  })
+})
+
+describe('recordPublish', () => {
+  test('sets lastPublish without touching other cycle fields', () => {
+    let l = recordCycleRun(emptyLedger(), '2026-08-14')
+    l = recordPublish(l, '2026-08-15')
+    expect(l.cycles.lastPublish).toBe('2026-08-15')
+    expect(l.cycles.lastRun).toBe('2026-08-14')
+    expect(l.cycles.count).toBe(1)
   })
 })

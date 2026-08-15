@@ -8,7 +8,13 @@ export function ledgerPath(stateDir: string): string {
 
 export function loadLedger(stateDir: string): Ledger {
   try {
-    return JSON.parse(readFileSync(ledgerPath(stateDir), 'utf8')) as Ledger
+    const raw = JSON.parse(readFileSync(ledgerPath(stateDir), 'utf8')) as Partial<Ledger>
+    const empty = emptyLedger()
+    return {
+      genes: raw.genes ?? empty.genes,
+      harnessModels: raw.harnessModels ?? empty.harnessModels,
+      cycles: { ...empty.cycles, ...raw.cycles },
+    }
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return emptyLedger()
     throw err

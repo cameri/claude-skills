@@ -19,15 +19,22 @@ export type Gene = {
   invocations: Record<string, number>
 }
 
+export type HarnessModel = {
+  harness: string
+  model: string
+}
+
 export type Cycles = {
   lastRun: string | null
   lastOutwardScan: string | null
+  lastPublish: string | null
   count: number
   reportOnlyPruning: boolean
 }
 
 export type Ledger = {
   genes: Record<string, Gene>
+  harnessModels: HarnessModel[]
   cycles: Cycles
 }
 
@@ -36,7 +43,8 @@ export const DEFAULT_MUTE_THRESHOLD_WEEKS = 8
 export function emptyLedger(): Ledger {
   return {
     genes: {},
-    cycles: { lastRun: null, lastOutwardScan: null, count: 0, reportOnlyPruning: true },
+    harnessModels: [],
+    cycles: { lastRun: null, lastOutwardScan: null, lastPublish: null, count: 0, reportOnlyPruning: true },
   }
 }
 
@@ -104,4 +112,14 @@ export function recordOutwardScan(ledger: Ledger, dateISO: string): Ledger {
 
 export function setReportOnlyPruning(ledger: Ledger, value: boolean): Ledger {
   return { ...ledger, cycles: { ...ledger.cycles, reportOnlyPruning: value } }
+}
+
+export function recordHarnessModel(ledger: Ledger, harness: string, model: string): Ledger {
+  const exists = ledger.harnessModels.some(hm => hm.harness === harness && hm.model === model)
+  if (exists) return ledger
+  return { ...ledger, harnessModels: [...ledger.harnessModels, { harness, model }] }
+}
+
+export function recordPublish(ledger: Ledger, dateISO: string): Ledger {
+  return { ...ledger, cycles: { ...ledger.cycles, lastPublish: dateISO } }
 }

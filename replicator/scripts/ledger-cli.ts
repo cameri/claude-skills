@@ -9,6 +9,8 @@ import {
   recordCycleRun,
   recordOutwardScan,
   setReportOnlyPruning,
+  recordHarnessModel,
+  recordPublish,
   type GeneOrigin,
 } from '../ledger'
 import { loadLedger, saveLedger } from '../store'
@@ -132,6 +134,17 @@ function main(): void {
     }
     case 'record-outward-scan': {
       ledger = recordOutwardScan(ledger, flag(args, 'date') ?? today())
+      break
+    }
+    case 'record-harness-model': {
+      const harness = flag(args, 'harness')
+      const model = flag(args, 'model')
+      if (!harness || !model) throw new Error('record-harness-model requires --harness and --model')
+      ledger = recordHarnessModel(ledger, harness, model)
+      break
+    }
+    case 'record-publish': {
+      ledger = recordPublish(ledger, flag(args, 'date') ?? today())
       break
     }
     case 'set-report-only': {
