@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.3.0] - 2026-08-15
+
+### Added
+- Routines/habits: a third meditation outcome for `/replicator:meditate` alongside skill-build and memory-fact — recurring, composite patterns spanning multiple skills/non-skill actions in service of one recurring goal, repeatable and identity-shaped ("something we do/are") rather than a single invocable step. Adds a three-way test to Step 2 (skill candidate / memory fact / routine candidate), a note in Step 4 that routine candidates skip the build queue, a "Routines" trace subsection in Step 6, and a new `docs/replicator/routines.md` state file (name / what it is / why it recurs / status: candidate|adopted|maintained|sunset / decision log). Revisiting an existing routine is evidence-driven (Step 2's existing transcript scan, narrative matching — no new grep machinery), not a scheduled per-cycle review. Graduation between routines and skills works both directions, always Cameri-confirmed, never automatic. Design: `docs/superpowers/specs/2026-08-14-replicator-design.md` "Routines (habits)" section.
+
 ## [telegram-ng 0.1.0] - 2026-08-13
 
 ### Added
