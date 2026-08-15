@@ -6,6 +6,7 @@ allowed-tools:
   - Read
   - Write
   - Bash(mkdir *)
+  - Bash(jj *)
   - mcp__plugin_cronjobs_cronjobs__list-jobs
   - mcp__plugin_cronjobs_cronjobs__add-job
 ---
@@ -39,9 +40,19 @@ future session could run instead of re-deriving.
    `# Skill Candidate Queue` heading). Append the entry as a new `##`
    section titled with today's date and a short slug, using the four
    fields above. Write the file back.
-4. Check the nightly cycle is scheduled: call `list-jobs` and look for a
+4. Commit and push that change immediately — this workspace has already
+   lost uncommitted work to container restarts three separate times (see
+   `docs/replicator/queue.md`'s own seeded history), and a captured
+   candidate sitting uncommitted between now and the next `meditate` cycle
+   is exposed to exactly that failure mode. `cd /workspace && jj describe
+   -m "replicator: capture <slug>"`, then `jj bookmark move main --to @`
+   and `jj git push --bookmark main` — in this workspace `jj git push`
+   alone does not move `main`, so skipping the bookmark move silently
+   pushes nothing. No need for the full cron-job-check step to move for
+   this — just the commit.
+5. Check the nightly cycle is scheduled: call `list-jobs` and look for a
    task whose text mentions "replicator" and "meditate". If none exists,
    call `add-job` with `task: "Run the /replicator:meditate skill"` and
    `expression: "every day at 3am"`.
-5. Confirm briefly what was queued. No need to build anything now — that
+6. Confirm briefly what was queued. No need to build anything now — that
    happens tonight, with scrutiny.
