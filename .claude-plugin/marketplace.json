@@ -301,6 +301,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./simple-english"
+    },
+    {
+      "name": "replicator",
+      "description": "Grows and prunes this instance's own skill set via a nightly capture→meditate cycle with strict scrutiny and injection defense.",
+      "tools": ["claude"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./replicator"
     }
   ]
 }
