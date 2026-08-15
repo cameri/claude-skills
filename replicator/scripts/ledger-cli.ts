@@ -55,7 +55,7 @@ function main(): void {
       const genesArg = flag(args, 'genes') ?? ''
       const coreArg = (flag(args, 'core') ?? '').split(',').filter(Boolean)
       for (const key of genesArg.split(',').filter(Boolean)) {
-        ledger = registerGene(ledger, key, 'preexisting', nowISO(), { core: coreArg.includes(key) })
+        ledger = registerGene(ledger, key, 'preexisting', nowISO(), today(), { core: coreArg.includes(key) })
       }
       break
     }
@@ -63,7 +63,7 @@ function main(): void {
       const key = flag(args, 'key')
       if (!key) throw new Error('register requires --key and --origin')
       const origin = parseGeneOrigin(flag(args, 'origin'))
-      ledger = registerGene(ledger, key, origin, nowISO(), { core: args.includes('--core') })
+      ledger = registerGene(ledger, key, origin, nowISO(), today(), { core: args.includes('--core') })
       break
     }
     case 'record': {
@@ -72,7 +72,11 @@ function main(): void {
       const date = flag(args, 'date') ?? today()
       const counts = parseSkillUsage(readFileSync(inputPath, 'utf8'))
       for (const [key, count] of Object.entries(counts)) {
-        if (!ledger.genes[key]) ledger = registerGene(ledger, key, 'preexisting', nowISO())
+        // Auto-registration must use the same `date` string this loop is
+        // about to record the invocation against — not a freshly computed
+        // nowISO() — or born can end up after the invocation it was
+        // registered for at UTC/local date boundaries (M3).
+        if (!ledger.genes[key]) ledger = registerGene(ledger, key, 'preexisting', nowISO(), date)
         ledger = recordInvocation(ledger, key, date, count)
       }
       break

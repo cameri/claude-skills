@@ -20,7 +20,7 @@ describe('loadLedger', () => {
 describe('saveLedger / loadLedger round trip', () => {
   test('what is saved is what loads back', () => {
     const dir = tmpDir()
-    const ledger = registerGene(emptyLedger(), 'foo:bar', 'inward', '2026-08-14T03:00:00Z')
+    const ledger = registerGene(emptyLedger(), 'foo:bar', 'inward', '2026-08-14T03:00:00Z', '2026-08-14')
     saveLedger(dir, ledger)
     expect(loadLedger(dir)).toEqual(ledger)
     rmSync(dir, { recursive: true, force: true })
@@ -35,8 +35,8 @@ describe('saveLedger / loadLedger round trip', () => {
 
   test('a second save cleanly replaces the first — no leftover .tmp file', () => {
     const dir = tmpDir()
-    saveLedger(dir, registerGene(emptyLedger(), 'a:a', 'inward', '2026-08-14T03:00:00Z'))
-    saveLedger(dir, registerGene(emptyLedger(), 'b:b', 'inward', '2026-08-14T03:00:00Z'))
+    saveLedger(dir, registerGene(emptyLedger(), 'a:a', 'inward', '2026-08-14T03:00:00Z', '2026-08-14'))
+    saveLedger(dir, registerGene(emptyLedger(), 'b:b', 'inward', '2026-08-14T03:00:00Z', '2026-08-14'))
     const loaded = loadLedger(dir)
     expect(Object.keys(loaded.genes)).toEqual(['b:b'])
     const files = readdirSync(dir)

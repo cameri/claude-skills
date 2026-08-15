@@ -45,12 +45,18 @@ export function registerGene(
   key: string,
   origin: GeneOrigin,
   atISO: string,
+  bornDate: string,
   opts: { core?: boolean } = {},
 ): Ledger {
   if (ledger.genes[key]) return ledger
   const gene: Gene = {
     origin,
-    born: atISO.slice(0, 10),
+    // `born` is the caller's own "today" date string, not a UTC slice of
+    // atISO — atISO is only the born event's full-precision timestamp.
+    // Deriving born from atISO independently let it drift a day away from
+    // the date the caller used for a same-cycle invocation at UTC/local
+    // boundaries (see M3 in the 2026-08-14 final-review-fix-brief).
+    born: bornDate,
     seasonal: false,
     core: opts.core ?? false,
     muteThresholdWeeks: DEFAULT_MUTE_THRESHOLD_WEEKS,
