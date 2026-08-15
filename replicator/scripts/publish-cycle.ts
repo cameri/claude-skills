@@ -10,7 +10,14 @@ import { loadVisibilityMap, visibilityPath, isPublicSource } from '../repo-visib
 const STATE_DIR = process.env.REPLICATOR_STATE_DIR ?? '/workspace/docs/replicator'
 const CREDENTIALS_DIR = process.env.REPLICATOR_CREDENTIALS_DIR
   ?? `${process.env.HOME}/.claude/channels/replicator`
-const RELAY_URLS = (process.env.REPLICATOR_NOSTR_RELAYS ?? 'wss://relay.damus.io,wss://offchain.pub')
+const DEFAULT_RELAYS = [
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.primal.net',
+  'wss://nostr.mom',
+  'wss://relay.snort.social',
+].join(',')
+const RELAY_URLS = (process.env.REPLICATOR_NOSTR_RELAYS ?? DEFAULT_RELAYS)
   .split(',')
   .map(s => s.trim())
   .filter(Boolean)

@@ -34,6 +34,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.6.1] - 2026-08-15
+
+### Fixed
+- Nostr publishing rate-limited mid-publish on the real first live attempt:
+  `wss://relay.damus.io` returned "rate-limited: you are noting too much"
+  after ~15 of 127 records went through, because `NostrPublisher.publish()`
+  fired every record concurrently via `Promise.all`. Changed to sequential
+  publishing with a 300ms pace between records (`NostrPublisher`'s new
+  `delayMs` constructor param, default 300).
+- Default relay list: dropped `wss://offchain.pub` (rejected every event
+  outright with "pubkey is not in our web of trust" — a structural gate on
+  new identities, not fixable by pacing or content). Replaced with 4 relays
+  verified live (both HTTP/NIP-11 reachability and an actual test publish of
+  a real kind-0 and kind-32100 event) to accept unvetted writes:
+  `wss://nos.lol`, `wss://relay.primal.net`, `wss://nostr.mom`,
+  `wss://relay.snort.social`. (`api.nostr.watch`'s relay-discovery API was
+  down — 502 on every endpoint at the time — so relays were sourced from the
+  ecosystem's commonly-cited public write relays and verified directly
+  instead.) `wss://purplepag.es` and `wss://nostr21.com` were also tried and
+  dropped: the former only accepts profile-shaped kinds (0/3/10002) and
+  rejects the replicator's custom kinds outright, the latter rejected the
+  test publish with no reason given.
+
 ## [replicator 0.6.0] - 2026-08-15
 
 ### Added

@@ -26,6 +26,12 @@ export function isRealSuccess(value: unknown): boolean {
   return typeof value === 'string' && !value.startsWith(CONNECTION_FAILURE_PREFIX)
 }
 
+const DEFAULT_PUBLISH_DELAY_MS = 300
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export class NostrPublisher implements Publisher {
   private pool = new SimplePool()
 
@@ -33,10 +39,20 @@ export class NostrPublisher implements Publisher {
     private sk: Uint8Array,
     private pubkey: string,
     private relayUrls: string[],
+    private delayMs: number = DEFAULT_PUBLISH_DELAY_MS,
   ) {}
 
+  // Sequential with a pace, not Promise.all — firing 100+ records at once
+  // reads as spam to a relay's own rate limiter (confirmed live: damus.io
+  // returned "rate-limited: you are noting too much" partway through the
+  // real 127-record first publish).
   async publish(records: PublishRecord[]): Promise<PublishResult[]> {
-    return Promise.all(records.map(record => this.publishOne(record)))
+    const results: PublishResult[] = []
+    for (const [i, record] of records.entries()) {
+      results.push(await this.publishOne(record))
+      if (i < records.length - 1) await sleep(this.delayMs)
+    }
+    return results
   }
 
   close(): void {
