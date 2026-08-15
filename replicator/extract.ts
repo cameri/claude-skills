@@ -12,10 +12,15 @@ export function parseSkillUsage(text: string): InvocationCounts {
       counts[name] = (counts[name] ?? 0) + Number(n)
       continue
     }
-    const cmdMatch = /^\s*(\d+)\s+\/([a-zA-Z0-9_-]+)/.exec(line)
+    const cmdMatch = /^\s*(\d+)\s+\/([a-zA-Z0-9_:-]+)/.exec(line)
     if (cmdMatch) {
       const [, n, name] = cmdMatch
-      const key = `slash:${name}`
+      // A namespaced invocation (e.g. /cronjobs:cronjob) already matches the
+      // `plugin:skill` gene-key convention the Skill-tool branch above uses —
+      // route it there directly. A bare command (e.g. /clear) has no plugin
+      // namespace, so it gets the slash: prefix to avoid colliding with a
+      // same-named gene key.
+      const key = name.includes(':') ? name : `slash:${name}`
       counts[key] = (counts[key] ?? 0) + Number(n)
     }
   }
