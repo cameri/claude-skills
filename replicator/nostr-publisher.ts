@@ -14,21 +14,12 @@ export function buildSignedEvent(record: PublishRecord, sk: Uint8Array, pubkey: 
   return finalizeEvent(unsigned, sk)
 }
 
-// nostr-tools relay/pool operations can reject with a plain string, not an
-// Error — a string has no `.message`, so assuming one produces the literal
-// text "undefined" in failure messages. Handle both shapes.
 function describeRejection(err: unknown): string {
   return String((err as { message?: string } | undefined)?.message ?? err)
 }
 
-// SimplePool.publish()'s per-relay promise does not reject on a connection
-// failure the way it does on an explicit relay rejection or timeout — its
-// internal ensureRelay() catch block instead *resolves* with a string
-// prefixed exactly "connection failure: " (verified against the installed
-// nostr-tools/lib/esm/abstract-pool.js). A genuine successful publish
-// resolves with the relay's own OK-message `reason` field, which per NIP-01
-// is normally empty and is never this literal prefix. Without this check,
-// every relay being unreachable would still read back as `ok: true`.
+// SimplePool resolves (never rejects) a connection failure as this exact
+// prefixed string, so a plain fulfilled/rejected check would miscount it as success.
 const CONNECTION_FAILURE_PREFIX = 'connection failure: '
 
 export function isRealSuccess(value: unknown): boolean {
@@ -36,11 +27,6 @@ export function isRealSuccess(value: unknown): boolean {
 }
 
 export class NostrPublisher implements Publisher {
-  // One SimplePool for the whole publisher's lifetime: nostr-tools reuses
-  // (or opens once) a single connection per relay URL across every publish
-  // made through it, regardless of how many events are published — this is
-  // what collapses N-records × M-relays simultaneous connections down to
-  // just M.
   private pool = new SimplePool()
 
   constructor(
