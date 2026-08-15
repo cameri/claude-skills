@@ -262,13 +262,15 @@ regardless (fail-closed; re-run `scripts/check-repo-visibility.ts` after
 installing a new plugin so it's eligible to publish at all). An
 eligible cycle with nothing changed still advances `cycles.lastPublish`
 (so the next attempt is scheduled another 7 days out, not retried
-immediately) without making any network call. The same run also mirrors
-the full current snapshot (every public gene, not just the delta — a gist
-file has no persistence of its own between cycles) to a GitHub gist via
-`gh`, updated in place at the id/URL recorded in
-`docs/replicator/gist.json` on first creation; a gist failure is reported
-but never blocks `cycles.lastPublish`, which is gated on Nostr alone. If
-the Nostr publish exits non-zero (a relay publish failed),
+immediately) without making any Nostr network call. The same run also
+always mirrors the full current snapshot (every public gene, not just the
+delta — a gist file has no persistence of its own between cycles) to a
+GitHub gist via `gh`, updated in place at the id/URL recorded in
+`docs/replicator/gist.json` on first creation; this happens even on a
+cycle where Nostr had nothing new to say, since the two channels have
+different persistence models. A gist failure is reported but never
+blocks `cycles.lastPublish`, which is gated on Nostr alone. If the Nostr
+publish exits non-zero (a relay publish failed),
 `cycles.lastPublish` was **not** advanced — say so explicitly in the trace
 and the Telegram summary, the same "state changes exist but aren't
 pushed" discipline Step 7 already applies to its own commit/push

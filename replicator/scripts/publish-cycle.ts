@@ -75,39 +75,40 @@ async function main(): Promise<void> {
     process.exit(0)
   }
 
-  const changed = selectChangedGenes(ledger, ledger.cycles.lastPublish)
-  if (changed.length === 0) {
-    console.log('nothing changed since last publish')
-    saveLedger(STATE_DIR, recordPublish(ledger, today()))
-    return
-  }
-
   const kp = keypairFromSecretKey(decodeNsec(nsec))
-  const publisher = new NostrPublisher(kp.sk, kp.pubkeyHex, RELAY_URLS)
-  const plan = buildPublishPlan(ledger, SPECIES_NAME, kp.pubkeyHex, visibility)
-  let results
-  try {
-    results = await publisher.publish(plan)
-  } finally {
-    publisher.close()
+  const changed = selectChangedGenes(ledger, ledger.cycles.lastPublish)
+  let nostrFailed = false
+
+  if (changed.length === 0) {
+    console.log('nothing changed since last publish — skipping Nostr (no network call)')
+  } else {
+    const publisher = new NostrPublisher(kp.sk, kp.pubkeyHex, RELAY_URLS)
+    const plan = buildPublishPlan(ledger, SPECIES_NAME, kp.pubkeyHex, visibility)
+    let results
+    try {
+      results = await publisher.publish(plan)
+    } finally {
+      publisher.close()
+    }
+    for (const r of results) {
+      console.log(`nostr ${r.label}: ${r.ok ? 'ok' : `FAILED (${r.reason})`}`)
+    }
+    nostrFailed = results.some(r => !r.ok)
   }
 
-  for (const r of results) {
-    console.log(`nostr ${r.label}: ${r.ok ? 'ok' : `FAILED (${r.reason})`}`)
-  }
-
-  // The gist is a best-effort mirror, not the authoritative registry — its
-  // failure is reported but never blocks lastPublish, which is gated on
-  // Nostr alone (see buildGistSnapshot's own comment on why the two
-  // channels need different content, not just different transports).
+  // The gist always syncs when this step runs at all, independent of
+  // Nostr's delta — it's a full-snapshot mirror (see buildGistSnapshot),
+  // so "nothing new since lastPublish" doesn't mean "nothing to sync" the
+  // way it does for Nostr's per-event model. It's also a best-effort
+  // mirror, not the authoritative registry: its failure is reported but
+  // never blocks lastPublish, which stays gated on Nostr alone.
   const snapshot = buildGistSnapshot(ledger, SPECIES_NAME, kp.pubkeyHex, visibility)
   const gistPublisher = new GistPublisher(STATE_DIR, `${SPECIES_NAME} — gene registry`)
   const gistResults = await gistPublisher.publish(snapshot)
   const gistFailed = gistResults.some(r => !r.ok)
   console.log(gistFailed ? `gist: FAILED (${gistResults[0]?.reason})` : `gist: ok (${gistStatePath(STATE_DIR)})`)
 
-  const anyFailed = results.some(r => !r.ok)
-  if (anyFailed) {
+  if (nostrFailed) {
     console.error('one or more Nostr records failed to publish — lastPublish not advanced, will retry next eligible cycle')
     process.exit(1)
   }
