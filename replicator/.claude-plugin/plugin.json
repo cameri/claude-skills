@@ -1,0 +1,6 @@
+{
+  "name": "replicator",
+  "description": "Grows and prunes this instance's own skill set — captures reusable procedures during work, and nightly meditates on usage history, recent sessions, and frontier sources to build or mute skills with scrutiny. Phase 1: no cross-instance registry or adoption yet.",
+  "version": "0.1.0",
+  "keywords": ["skills", "automation", "self-improvement", "cronjobs"]
+}
