@@ -16,14 +16,25 @@ describe('buildGeneRecord', () => {
       born: '2026-08-14',
       state: 'muted',
       events: [
-        { at: '2026-08-14T03:00:00Z', type: 'born', reason: 'origin=inward' },
-        { at: '2026-09-14T03:00:00Z', type: 'muted', reason: 'decay' },
+        { at: '2026-08-14T03:00:00Z', type: 'born' },
+        { at: '2026-09-14T03:00:00Z', type: 'muted' },
       ],
     })
     expect(content.invocations).toBeUndefined()
     expect(content.seasonal).toBeUndefined()
     expect(content.core).toBeUndefined()
     expect(content.muteThresholdWeeks).toBeUndefined()
+  })
+
+  test('drops the free-text reason field from every event — the one open-ended field in the redacted shape', () => {
+    let l = registerGene(emptyLedger(), 'foo:bar', 'inward', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = applyEvent(l, 'foo:bar', '2026-09-14T03:00:00Z', 'muted', 'a narrative explanation that should never leave the local ledger')
+    const record = buildGeneRecord('foo:bar', l.genes['foo:bar'])
+    const content = JSON.parse(record.content)
+    for (const event of content.events) {
+      expect(event.reason).toBeUndefined()
+      expect(Object.keys(event).sort()).toEqual(['at', 'type'])
+    }
   })
 })
 

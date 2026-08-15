@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { verifyEvent } from 'nostr-tools'
-import { buildSignedEvent } from './nostr-publisher'
+import { buildSignedEvent, isRealSuccess } from './nostr-publisher'
 import { generateKeypair } from './identity'
 import { GENE_RECORD_KIND, LIST_RECORD_KIND, type PublishRecord } from './publisher'
 
@@ -41,5 +41,28 @@ describe('buildSignedEvent', () => {
     const event = buildSignedEvent(record, kp.sk, kp.pubkeyHex)
     expect(event.tags).toEqual([])
     expect(verifyEvent(event)).toBe(true)
+  })
+})
+
+describe('isRealSuccess', () => {
+  test('treats a real relay OK reason (typically empty) as success', () => {
+    expect(isRealSuccess('')).toBe(true)
+  })
+
+  test('treats an arbitrary non-empty relay-supplied reason as success too', () => {
+    expect(isRealSuccess('stored')).toBe(true)
+  })
+
+  test('rejects SimplePool.publish()\'s own "connection failure: " prefixed string as a real success', () => {
+    // This is the exact shape SimplePool's internal ensureRelay() catch
+    // block resolves with (not rejects with) when a relay is unreachable —
+    // verified against the installed nostr-tools/lib/esm/abstract-pool.js.
+    // Without this check, an unreachable relay reads back as `ok: true`.
+    expect(isRealSuccess('connection failure: Error: connect ECONNREFUSED')).toBe(false)
+  })
+
+  test('rejects non-string values', () => {
+    expect(isRealSuccess(undefined)).toBe(false)
+    expect(isRealSuccess(null)).toBe(false)
   })
 })

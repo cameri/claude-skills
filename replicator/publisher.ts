@@ -22,7 +22,14 @@ export interface Publisher {
 }
 
 export function buildGeneRecord(key: string, gene: Gene): PublishRecord {
-  const redacted = { origin: gene.origin, born: gene.born, state: gene.state, events: gene.events }
+  // `reason` is the one open-ended, free-text field on a gene event — every
+  // other field here is a fixed enum or a date. It publishes permanently to
+  // public relays, so it's dropped: `type` + `at` already carry the useful
+  // cross-replicator signal (what happened, when) without the narrative
+  // explanation, which could describe session-specific context never meant
+  // to be public. Cameri, 2026-08-15.
+  const events = gene.events.map(({ at, type }) => ({ at, type }))
+  const redacted = { origin: gene.origin, born: gene.born, state: gene.state, events }
   return { label: key, kind: GENE_RECORD_KIND, dTag: key, content: JSON.stringify(redacted), tags: [] }
 }
 
