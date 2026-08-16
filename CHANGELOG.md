@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- `sandbox-manager` `setup-hooks` `install-hooks.py` (v0.6.2): the
+  idempotency check compared literal `"python3 <path>"` command strings, so
+  an existing tilde-form entry (`~/.claude/hooks/x.py`, the style every
+  other hand-written hook in this instance's `settings.json` uses) never
+  matched a freshly generated absolute-path entry pointing at the same
+  script — producing a duplicate registration on every reinstall. Found
+  immediately after the v0.6.1 symlink fix, on the very next dogfood run.
+  `merge_hook_group()` (and the `statusLine` comparison) now resolve each
+  command's script path with `expanduser()` + `realpath()` before comparing,
+  so different spellings of the same real file are recognized as identical.
 - `sandbox-manager` `setup-hooks` `install-hooks.py` (v0.6.1): `write_json()`
   used `os.replace()` directly on the caller-supplied path, which unlinks a
   symlink and drops a plain file in its place if `--settings-path` (or

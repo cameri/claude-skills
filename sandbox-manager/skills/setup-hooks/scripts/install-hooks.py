@@ -107,10 +107,22 @@ def write_json(path, data, mode=None):
         os.chmod(real_path, mode)
 
 
+def command_script_path(command):
+    """Extract the script path from a "python3 <path>" command and resolve
+    it (expanduser + realpath) so entries that differ only in literal
+    spelling — "~/.claude/hooks/x.py" vs its expanded absolute form, or a
+    symlinked hooks dir vs its real target — are recognized as the same
+    script."""
+    parts = (command or "").split(None, 1)
+    if len(parts) != 2:
+        return None
+    return os.path.realpath(os.path.expanduser(parts[1]))
+
+
 def merge_hook_group(settings, event, matcher, entry):
     """Idempotently add `entry` to the (event, matcher) group. Returns True
-    if it was newly added, False if an entry with the same command already
-    existed."""
+    if it was newly added, False if an entry pointing at the same script
+    already existed."""
     settings.setdefault("hooks", {})
     groups = settings["hooks"].setdefault(event, [])
     target_group = None
@@ -124,8 +136,9 @@ def merge_hook_group(settings, event, matcher, entry):
             target_group["matcher"] = matcher
         groups.append(target_group)
 
-    existing_commands = {h.get("command") for h in target_group["hooks"]}
-    if entry["command"] in existing_commands:
+    new_script = command_script_path(entry["command"])
+    existing_scripts = {command_script_path(h.get("command")) for h in target_group["hooks"]}
+    if new_script is not None and new_script in existing_scripts:
         return False
     target_group["hooks"].append(entry)
     return True
@@ -212,7 +225,11 @@ def main():
         if d.get("special") == "statusline":
             command = f"python3 {dst}"
             current = settings.get("statusLine")
-            already_ours = isinstance(current, dict) and current.get("command") == command
+            current_command = current.get("command") if isinstance(current, dict) else None
+            already_ours = (
+                current_command is not None
+                and command_script_path(current_command) == command_script_path(command)
+            )
             if already_ours:
                 skipped_existing.append("statusLine (already set)")
             elif current and not args.force_statusline:
