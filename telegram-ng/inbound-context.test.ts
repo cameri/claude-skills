@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin } from './inbound-context'
+import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer } from './inbound-context'
 
 describe('safeName', () => {
   test('strips delimiter chars that could break out of the <channel> tag', () => {
@@ -132,5 +132,23 @@ describe('formatForwardOrigin', () => {
         message_id: 5,
       } as any),
     ).toBe('News Feed')
+  })
+})
+
+describe('formatPollAnswer', () => {
+  test('reports a retracted vote when option_ids is empty', () => {
+    expect(formatPollAnswer([], ['Yes', 'No'])).toBe('retracted their vote')
+  })
+
+  test('reports a single chosen option', () => {
+    expect(formatPollAnswer([1], ['Yes', 'No'])).toBe('voted for: No')
+  })
+
+  test('reports multiple chosen options joined for a multi-answer poll', () => {
+    expect(formatPollAnswer([0, 2], ['Red', 'Green', 'Blue'])).toBe('voted for: Red, Blue')
+  })
+
+  test('sanitizes delimiter characters in option text', () => {
+    expect(formatPollAnswer([0], ['<script>'])).toBe('voted for: _script_')
   })
 })

@@ -81,6 +81,7 @@ Quick reference: IDs are **numeric user IDs** (get yours from [@userinfobot](htt
 | `edit_message` | Edit a message the bot previously sent. Useful for "working…" → result progress updates. Supports the same `format` values as `reply`. Only works on the bot's own messages. |
 | `start_typing` / `stop_typing` | Keep Telegram's "typing…" indicator alive during a long tool-use stretch (Telegram clears it every ~5s on its own). `reply` clears it automatically once sent. |
 | `stream_draft` | Stream a live "composing" preview of a message to a private chat while it's still being generated. Auto-expires after 30s and is never persisted — `reply` still has to send the final text. |
+| `send_poll` / `stop_poll` | Send a poll (`chat_id`, `question`, `options[]`; non-anonymous by default so votes are attributable) and later close it for a final tally. Each vote/retraction arrives as its own informational `<channel>` notification — no reply is expected per vote. |
 
 Inbound messages get an emoji reaction (if `ackReaction` is configured) as an
 instant "seen" acknowledgment. The assistant calls `start_typing` itself for
@@ -90,6 +91,11 @@ Inbound `<channel>` meta may also include `reply_to_text`/`reply_to_user` (a
 quoted message's text and sender), `forwarded_from` (a best-effort forward
 provenance label), `link_entities` (a JSON array of hyperlink/mention targets
 not visible in the plain text), and, in groups, `bot_is_admin`.
+
+Poll votes/retractions arrive as their own `<channel>` notification (content
+like "voted for: ..." or "retracted their vote"), with `poll_id` in the meta.
+Only non-anonymous polls carry a voter to attribute — anonymous polls are
+silently skipped.
 
 ## Photos
 

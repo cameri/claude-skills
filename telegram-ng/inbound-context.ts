@@ -67,3 +67,12 @@ export function formatForwardOrigin(origin: MessageOrigin | undefined): string |
     }
   }
 }
+
+// Empty option_ids means the voter retracted their vote — Bot API represents
+// both "voted" and "unvoted" as PollAnswer updates, distinguished only by
+// whether option_ids is empty.
+export function formatPollAnswer(optionIds: number[], options: string[]): string {
+  if (optionIds.length === 0) return 'retracted their vote'
+  const chosen = optionIds.map(i => safeName(options[i]) ?? `option ${i}`)
+  return `voted for: ${chosen.join(', ')}`
+}

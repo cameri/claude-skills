@@ -29,7 +29,7 @@ import { promisify } from 'util'
 import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
 import { pickRecentSessions, buildSessionsMenuRows, SESSIONS_MENU_ID } from './sessions-menu'
 import { formatUsageMessage, type UsageCache } from './usage-cache'
-import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin } from './inbound-context'
+import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer } from './inbound-context'
 
 const execFileAsync = promisify(execFile)
 
@@ -428,6 +428,8 @@ const mcp = new Server(
       'reply accepts file paths (files: ["/abs/path.png"]) for attachments. Pass receiver_user_id in a group to send an ephemeral reply visible only to that one member instead of a normal group post — only works if bot_is_admin was true on the inbound meta. Use react to add emoji reactions, and edit_message for interim progress updates. Edits don\'t trigger push notifications — when a long task completes, send a new reply so the user\'s device pings.',
       '',
       'Use start_typing before a long tool-use stretch to keep the "typing…" indicator alive, and stop_typing when done (reply also clears it automatically). stream_draft streams a live composing preview in a private chat — it auto-expires in 30s and never persists, so still call reply with the final text.',
+      '',
+      'send_poll sends a poll (non-anonymous by default so votes can be attributed); stop_poll closes it and returns the final tally. Each vote/retraction arrives as its own <channel> notification ("voted for: ..." / "retracted their vote") — these are informational only, just note them as context. Do not reply or react to acknowledge an individual vote; only respond if asked for a tally or summary.',
       '',
       "Telegram's Bot API exposes no history or search — you only see messages as they arrive. If you need earlier context, ask the user to paste it or summarize.",
       '',
@@ -864,6 +866,35 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['chat_id', 'text'],
       },
     },
+    {
+      name: 'send_poll',
+      description: 'Send a poll to a chat. Defaults to a non-anonymous regular poll so individual votes can be attributed — inbound poll_answer notifications only carry the voter for non-anonymous polls. Set type to "quiz" with correct_option_id to mark a right answer.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chat_id: { type: 'string' },
+          question: { type: 'string' },
+          options: { type: 'array', items: { type: 'string' }, description: '2-10 answer options' },
+          is_anonymous: { type: 'boolean', description: 'Default false — set true only if voter attribution is not needed.' },
+          allows_multiple_answers: { type: 'boolean' },
+          type: { type: 'string', enum: ['regular', 'quiz'], description: 'Default "regular".' },
+          correct_option_id: { type: 'string', description: '0-based index of the correct option; required when type is "quiz".' },
+        },
+        required: ['chat_id', 'question', 'options'],
+      },
+    },
+    {
+      name: 'stop_poll',
+      description: 'Close a poll the bot sent and return the final tallied results (option text + vote counts).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chat_id: { type: 'string' },
+          message_id: { type: 'string', description: 'The message_id of the poll (returned by send_poll).' },
+        },
+        required: ['chat_id', 'message_id'],
+      },
+    },
   ],
 }))
 
@@ -1006,6 +1037,29 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const draftId = args.draft_id != null ? Number(args.draft_id) : 1
         await bot.api.sendMessageDraft(Number(chat_id), draftId, args.text as string)
         return { content: [{ type: 'text', text: 'draft sent' }] }
+      }
+      case 'send_poll': {
+        const chat_id = args.chat_id as string
+        assertAllowedChat(chat_id)
+        const options = args.options as string[]
+        const pollType = (args.type as string | undefined) ?? 'regular'
+        const other = {
+          is_anonymous: (args.is_anonymous as boolean | undefined) ?? false,
+          allows_multiple_answers: (args.allows_multiple_answers as boolean | undefined) ?? false,
+          type: pollType as 'regular' | 'quiz',
+          ...(pollType === 'quiz' ? { correct_option_id: Number(args.correct_option_id) } : {}),
+        }
+        const sent = await bot.api.sendPoll(chat_id, args.question as string, options, other)
+        pollChats.set(sent.poll.id, { chatId: chat_id, options })
+        return { content: [{ type: 'text', text: `sent (id: ${sent.message_id})` }] }
+      }
+      case 'stop_poll': {
+        const chat_id = args.chat_id as string
+        assertAllowedChat(chat_id)
+        const poll = await bot.api.stopPoll(chat_id, Number(args.message_id))
+        pollChats.delete(poll.id)
+        const tally = poll.options.map(o => `${o.text}: ${o.voter_count}`).join(', ')
+        return { content: [{ type: 'text', text: tally }] }
       }
       default:
         return {
@@ -1212,6 +1266,29 @@ bot.on('message:text', async ctx => {
   await handleInbound(ctx, ctx.message.text, undefined)
 })
 
+bot.on('poll_answer', async ctx => {
+  const answer = ctx.pollAnswer
+  const poll = pollChats.get(answer.poll_id)
+  if (!poll) return // poll sent before this process started, or already closed
+  if (!answer.user) return // anonymous voter_chat case — can't attribute
+
+  const content = formatPollAnswer(answer.option_ids, poll.options)
+  void mcp.notification({
+    method: 'notifications/claude/channel',
+    params: {
+      content,
+      meta: {
+        chat_id: poll.chatId,
+        user: answer.user.username ?? String(answer.user.id),
+        user_id: String(answer.user.id),
+        poll_id: answer.poll_id,
+      },
+    },
+  }).catch(err => {
+    process.stderr.write(`telegram channel: failed to deliver poll_answer to Claude: ${err}\n`)
+  })
+})
+
 bot.on('message:photo', async ctx => {
   const caption = ctx.message.caption ?? '(photo)'
   // Defer download until after the gate approves — any user can send photos,
@@ -1355,6 +1432,11 @@ function stopTyping(chatId: string): void {
   clearInterval(interval)
   typingIntervals.delete(chatId)
 }
+
+// PollAnswer updates carry no chat_id (just poll_id + voter + option
+// indices) — send_poll records where each poll it sends lives so inbound
+// votes can be routed and rendered with the actual option text.
+const pollChats = new Map<string, { chatId: string; options: string[] }>()
 
 async function handleInbound(
   ctx: Context,

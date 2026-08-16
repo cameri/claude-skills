@@ -30,6 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to admin). Documented that an ephemeral `reply` returns `message_id: 0`
   in the API response — expected, since Telegram doesn't persist these as
   normal messages, not an error.
+- `telegram-ng` (v0.8.0): `send_poll`/`stop_poll` tools. Polls default to
+  non-anonymous so votes can be attributed (Telegram only reports a voter
+  for non-anonymous polls); supports `allows_multiple_answers` and a
+  `quiz` type with `correct_option_id`. Each inbound vote/retraction
+  arrives as its own `<channel>` notification via a new `bot.on('poll_answer',
+  ...)` handler — since `PollAnswer` updates carry no `chat_id`, `send_poll`
+  tracks `poll_id → {chat_id, options}` in memory to route and render them.
+  These notifications are informational only (no reply/react expected per
+  vote, per explicit product decision) — documented in the MCP instructions
+  block. New `formatPollAnswer` pure helper in `inbound-context.ts`,
+  unit-tested.
 
 ### Changed
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
