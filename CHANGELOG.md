@@ -29,6 +29,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `telegram-ng` (v0.6.1): the idle-detection prompt ("⏸ Quiet for a while...")
+  broadcast to every chat_id in the allowlist, not just whoever was actually
+  talking — so an unrelated allowlisted contact got pinged for a
+  conversation that wasn't theirs. `idle-state-tracker.py` (the Stop hook
+  that writes `idle-state.json`) now scans the transcript for the most
+  recent inbound Telegram channel tag and records its `chat_id`;
+  `checkIdle()` sends only to that chat, falling back to the full allowlist
+  only when no chat_id could be determined (e.g. the last activity wasn't
+  Telegram-sourced). Found by Cameri, 2026-08-16.
 - `telegram-ng` (v0.3.1): `SCRIPT_COMPACT`/`SCRIPT_CLEAR`/`SCRIPT_RENAME`/
   `SCRIPT_RESUME` were hardcoded to a dev-checkout path
   (`/workspace/projects/skills/sandbox-manager/...`), so every exec of

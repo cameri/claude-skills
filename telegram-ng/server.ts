@@ -506,7 +506,12 @@ const SCRIPT_CLEAR = join(SANDBOX_MANAGER_ROOT, 'skills/restart-session/scripts/
 const SCRIPT_RENAME = join(SANDBOX_MANAGER_ROOT, 'skills/rename-session/scripts/rename-session.sh')
 const SCRIPT_RESUME = join(SANDBOX_MANAGER_ROOT, 'skills/resume-session/scripts/resume-session.sh')
 
-type IdleState = { last_activity_ms: number; idle_safe: boolean; session_id: string | null }
+type IdleState = {
+  last_activity_ms: number
+  idle_safe: boolean
+  session_id: string | null
+  last_chat_id: string | null
+}
 
 function readIdleState(): IdleState | null {
   try {
@@ -539,6 +544,17 @@ async function checkIdle(): Promise<void> {
   const access = loadAccess()
   if (access.allowFrom.length === 0) return
 
+  // Target only the chat_id that sent the most recent inbound message —
+  // not every allowlisted contact. Falls back to broadcasting to the full
+  // allowlist only if the hook couldn't determine who was actually talking
+  // (e.g. the last activity wasn't Telegram-sourced at all), so a genuinely
+  // ambiguous case still gets a prompt somewhere rather than silently
+  // dropping it.
+  const targets =
+    state.last_chat_id && access.allowFrom.includes(state.last_chat_id)
+      ? [state.last_chat_id]
+      : access.allowFrom
+
   idlePromptPending = true
   idleAlreadyPromptedAtMs = nowMs
   const action = nextIdleAction(idleCompactCount, IDLE_COMPACT_CAP)
@@ -552,7 +568,7 @@ async function checkIdle(): Promise<void> {
   keyboard.text('Done for now (park it)', 'idle:pause')
   keyboard.text('Dismiss', 'idle:dismiss')
 
-  for (const chat_id of access.allowFrom) {
+  for (const chat_id of targets) {
     void bot.api.sendMessage(chat_id, text, { reply_markup: keyboard }).catch(e => {
       process.stderr.write(`idle-sentinel: send to ${chat_id} failed: ${e}\n`)
     })
