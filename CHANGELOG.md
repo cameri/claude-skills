@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- `telegram-ng` (v0.3.1): `SCRIPT_COMPACT`/`SCRIPT_CLEAR`/`SCRIPT_RENAME`/
+  `SCRIPT_RESUME` were hardcoded to a dev-checkout path
+  (`/workspace/projects/skills/sandbox-manager/...`), so every exec of
+  these scripts silently failed on a normal marketplace install — including
+  every `/sessions` inline-keyboard click, since `handleSessionSelect`
+  shells out to `SCRIPT_RESUME`. Now resolved from
+  `~/.claude/plugins/installed_plugins.json` at startup (versioned
+  plugin-cache path), with the old hardcoded path kept as a dev-checkout
+  fallback. Thanks to @baymax-agent (PR #1).
 - `sandbox-manager` `setup-hooks` `install-hooks.py` (v0.6.2): the
   idempotency check compared literal `"python3 <path>"` command strings, so
   an existing tilde-form entry (`~/.claude/hooks/x.py`, the style every
