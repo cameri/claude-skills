@@ -91,14 +91,20 @@ def load_json(path, default):
 
 
 def write_json(path, data, mode=None):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp_path = path + ".tmp"
+    # Resolve symlinks first: os.replace() on a symlink path unlinks the
+    # symlink itself and drops a plain file in its place, silently
+    # detaching the file from wherever it was tracked (e.g. a git-managed
+    # canonical copy). Writing through the real target keeps the symlink
+    # intact.
+    real_path = os.path.realpath(path)
+    os.makedirs(os.path.dirname(real_path), exist_ok=True)
+    tmp_path = real_path + ".tmp"
     with open(tmp_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
-    os.replace(tmp_path, path)
+    os.replace(tmp_path, real_path)
     if mode is not None:
-        os.chmod(path, mode)
+        os.chmod(real_path, mode)
 
 
 def merge_hook_group(settings, event, matcher, entry):

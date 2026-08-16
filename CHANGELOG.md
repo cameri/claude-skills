@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `sandbox-manager` `setup-hooks` `install-hooks.py` (v0.6.1): `write_json()`
+  used `os.replace()` directly on the caller-supplied path, which unlinks a
+  symlink and drops a plain file in its place if `--settings-path` (or
+  `--config-path`) pointed at one — silently detaching the write from a
+  git-tracked canonical copy behind a symlink, and duplicating hook entries
+  on the next run since the two files' contents then diverged. Found by
+  dogfooding the skill against this instance's own symlinked
+  `~/.claude/settings.json`. Now resolves `os.path.realpath()` first and
+  writes through to the real target.
+
 ### Added
 - `sandbox-manager` `setup-hooks` skill (v0.6.0): installs a curated set of
   7 Claude Code hooks (destructive-`rm` guard, channel-reply-enforcement
