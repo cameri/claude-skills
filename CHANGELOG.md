@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `telegram-ng` (v0.7.0): four Bot API 10.x-driven improvements. `start_typing`/
+  `stop_typing` tools replace the old one-shot `sendChatAction` call at
+  message receipt, which silently expired after ~5s and was never re-armed
+  during long tool-use stretches — the receipt-time emoji ack (`ackReaction`)
+  still covers "seen". Inbound `<channel>` meta now surfaces
+  `reply_to_text`/`reply_to_user` (a quoted message's text/sender),
+  `forwarded_from` (best-effort forward provenance), and `link_entities`
+  (markdown-style hyperlink/mention targets not visible in `message.text`
+  alone) — extracted via new pure helpers in `inbound-context.ts`. `reply`
+  takes an optional `receiver_user_id` to send an ephemeral reply visible
+  only to one group member instead of a normal group post (admin-path only
+  for now — the bot must be a group admin, surfaced via a new cached
+  `bot_is_admin` group meta flag; the 15s-reactive/`ephemeral_message_id`
+  fallback path was scoped out as a follow-up). New `stream_draft` tool
+  wraps `sendMessageDraft` to stream a live 30s-ephemeral "composing"
+  preview in private chats before `reply` persists the final text.
+
 ### Changed
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
   `InlineKeyboard` + `bot.on('callback_query:data', ...)` regex dispatch

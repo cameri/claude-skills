@@ -29,6 +29,7 @@ import { promisify } from 'util'
 import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
 import { pickRecentSessions, buildSessionsMenuRows, SESSIONS_MENU_ID } from './sessions-menu'
 import { formatUsageMessage, type UsageCache } from './usage-cache'
+import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin } from './inbound-context'
 
 const execFileAsync = promisify(execFile)
 
@@ -104,6 +105,7 @@ const bot = new Bot(TOKEN)
 // the separate case of the initial long-polling connection failing.
 bot.api.config.use(autoRetry())
 let botUsername = ''
+let botId = 0
 
 type PendingEntry = {
   senderId: string
@@ -421,7 +423,11 @@ const mcp = new Server(
       '',
       'Messages from Telegram arrive as <channel source="telegram" chat_id="..." message_id="..." user="..." ts="...">. If the tag has an image_path attribute, Read that file — it is a photo the sender attached. If the tag has attachment_file_id, call download_attachment with that file_id to fetch the file, then Read the returned path. Reply with the reply tool — pass chat_id back. Use reply_to (set to a message_id) only when replying to an earlier message; the latest message doesn\'t need a quote-reply, omit reply_to for normal responses.',
       '',
-      'reply accepts file paths (files: ["/abs/path.png"]) for attachments. Use react to add emoji reactions, and edit_message for interim progress updates. Edits don\'t trigger push notifications — when a long task completes, send a new reply so the user\'s device pings.',
+      'The meta may also carry reply_to_text/reply_to_user (what an earlier message quoted said and who sent it), forwarded_from (best-effort provenance label for a forwarded message), and link_entities (a JSON array of {text,url} / {text,user_id,username} — markdown-style hyperlinks and user mentions whose target isn\'t visible in plain text). In a group, bot_is_admin tells you whether an ephemeral receiver_user_id reply can be sent anytime.',
+      '',
+      'reply accepts file paths (files: ["/abs/path.png"]) for attachments. Pass receiver_user_id in a group to send an ephemeral reply visible only to that one member instead of a normal group post — only works if bot_is_admin was true on the inbound meta. Use react to add emoji reactions, and edit_message for interim progress updates. Edits don\'t trigger push notifications — when a long task completes, send a new reply so the user\'s device pings.',
+      '',
+      'Use start_typing before a long tool-use stretch to keep the "typing…" indicator alive, and stop_typing when done (reply also clears it automatically). stream_draft streams a live composing preview in a private chat — it auto-expires in 30s and never persists, so still call reply with the final text.',
       '',
       "Telegram's Bot API exposes no history or search — you only see messages as they arrive. If you need earlier context, ask the user to paste it or summarize.",
       '',
@@ -777,6 +783,10 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
             enum: ['text', 'markdownv2', 'rich'],
             description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links) — caller must escape special chars per MarkdownV2 rules. 'rich' sends a Bot API 10.1+ rich message (tables, headings, code fences with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed, and the length cap is 32768 chars instead of 4096. Default: 'text' (plain, no escaping needed).",
           },
+          receiver_user_id: {
+            type: 'string',
+            description: "Send an ephemeral reply visible only to this user in a group chat, instead of a normal group post. Only works if the bot is a group administrator (check inbound meta's bot_is_admin) — this is the 'anytime' ephemeral-message path; the bot cannot send ephemeral messages to arbitrary members otherwise. Not available in broadcast channels.",
+          },
         },
         required: ['chat_id', 'text'],
       },
@@ -823,6 +833,37 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['chat_id', 'message_id', 'text'],
       },
     },
+    {
+      name: 'start_typing',
+      description: "Show Telegram's \"typing…\" indicator to the user, keeping it alive (Telegram clears it every ~5s) until stop_typing is called or a reply is sent to the same chat. Call before a long tool-use stretch; the receipt-time emoji reaction already acknowledges the message, so this is only for genuinely long work.",
+      inputSchema: {
+        type: 'object',
+        properties: { chat_id: { type: 'string' } },
+        required: ['chat_id'],
+      },
+    },
+    {
+      name: 'stop_typing',
+      description: 'Stop the "typing…" indicator started by start_typing for this chat. reply also clears it automatically, so this is only needed if you decide not to reply after all.',
+      inputSchema: {
+        type: 'object',
+        properties: { chat_id: { type: 'string' } },
+        required: ['chat_id'],
+      },
+    },
+    {
+      name: 'stream_draft',
+      description: "Stream a live \"composing\" preview of a message while it's still being generated, in a private chat only. Auto-expires after 30 seconds and is never persisted — you must still call reply with the final text to actually send it. Reuse the same draft_id across calls to animate a single preview; defaults to 1 for a single concurrent draft.",
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chat_id: { type: 'string' },
+          text: { type: 'string' },
+          draft_id: { type: 'string', description: 'Non-zero identifier; reuse across calls to animate the same draft. Defaults to "1".' },
+        },
+        required: ['chat_id', 'text'],
+      },
+    },
   ],
 }))
 
@@ -838,8 +879,10 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const format = (args.format as string | undefined) ?? 'text'
         const parseMode = format === 'markdownv2' ? 'MarkdownV2' as const : undefined
         const isRich = format === 'rich'
+        const receiverUserId = args.receiver_user_id != null ? Number(args.receiver_user_id) : undefined
 
         assertAllowedChat(chat_id)
+        stopTyping(chat_id)
 
         for (const f of files) {
           assertSendable(f)
@@ -864,10 +907,12 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
               replyMode !== 'off' &&
               (replyMode === 'all' || i === 0)
             const replyOpt = shouldReplyTo ? { reply_parameters: { message_id: reply_to! } } : {}
+            const receiverOpt = receiverUserId != null ? { receiver_user_id: receiverUserId } : {}
             const sent = isRich
-              ? await bot.api.sendRichMessage(chat_id, { markdown: chunks[i] }, replyOpt)
+              ? await bot.api.sendRichMessage(chat_id, { markdown: chunks[i] }, { ...replyOpt, ...receiverOpt })
               : await bot.api.sendMessage(chat_id, chunks[i], {
                   ...replyOpt,
+                  ...receiverOpt,
                   ...(parseMode ? { parse_mode: parseMode } : {}),
                 })
             sentIds.push(sent.message_id)
@@ -884,9 +929,10 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         for (const f of files) {
           const ext = extname(f).toLowerCase()
           const input = new InputFile(f)
-          const opts = reply_to != null && replyMode !== 'off'
-            ? { reply_parameters: { message_id: reply_to } }
-            : undefined
+          const opts = {
+            ...(reply_to != null && replyMode !== 'off' ? { reply_parameters: { message_id: reply_to } } : {}),
+            ...(receiverUserId != null ? { receiver_user_id: receiverUserId } : {}),
+          }
           if (PHOTO_EXTS.has(ext)) {
             const sent = await bot.api.sendPhoto(chat_id, input, opts)
             sentIds.push(sent.message_id)
@@ -941,6 +987,25 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         )
         const id = typeof edited === 'object' ? edited.message_id : args.message_id
         return { content: [{ type: 'text', text: `edited (id: ${id})` }] }
+      }
+      case 'start_typing': {
+        const chat_id = args.chat_id as string
+        assertAllowedChat(chat_id)
+        startTyping(chat_id)
+        return { content: [{ type: 'text', text: 'typing started' }] }
+      }
+      case 'stop_typing': {
+        const chat_id = args.chat_id as string
+        assertAllowedChat(chat_id)
+        stopTyping(chat_id)
+        return { content: [{ type: 'text', text: 'typing stopped' }] }
+      }
+      case 'stream_draft': {
+        const chat_id = args.chat_id as string
+        assertAllowedChat(chat_id)
+        const draftId = args.draft_id != null ? Number(args.draft_id) : 1
+        await bot.api.sendMessageDraft(Number(chat_id), draftId, args.text as string)
+        return { content: [{ type: 'text', text: 'draft sent' }] }
       }
       default:
         return {
@@ -1249,11 +1314,46 @@ type AttachmentMeta = {
   name?: string
 }
 
-// Filenames and titles are uploader-controlled. They land inside the <channel>
-// notification — delimiter chars would let the uploader break out of the tag
-// or forge a second meta entry.
-function safeName(s: string | undefined): string | undefined {
-  return s?.replace(/[<>\[\]\r\n;]/g, '_')
+const GROUP_ADMIN_CACHE_TTL_MS = 5 * 60 * 1000
+const groupAdminCache = new Map<string, { isAdmin: boolean; checkedAt: number }>()
+
+// Whether the bot can send an ephemeral (receiver_user_id) reply to any
+// member of this group at any time — the Bot API only allows that outside
+// the 15s reactive window when the bot is a chat administrator.
+async function isBotAdminInGroup(chatId: string): Promise<boolean> {
+  const cached = groupAdminCache.get(chatId)
+  if (cached && Date.now() - cached.checkedAt < GROUP_ADMIN_CACHE_TTL_MS) return cached.isAdmin
+  try {
+    const member = await bot.api.getChatMember(chatId, botId)
+    const isAdmin = member.status === 'administrator' || member.status === 'creator'
+    groupAdminCache.set(chatId, { isAdmin, checkedAt: Date.now() })
+    return isAdmin
+  } catch {
+    groupAdminCache.set(chatId, { isAdmin: false, checkedAt: Date.now() })
+    return false
+  }
+}
+
+// Typing indicator re-fire loop, keyed per chat. sendChatAction's own status
+// expires after ~5s, so a single fire-and-forget call (the old behavior)
+// silently goes stale while a long tool-use stretch is still in progress.
+const typingIntervals = new Map<string, ReturnType<typeof setInterval>>()
+
+function startTyping(chatId: string): void {
+  if (typingIntervals.has(chatId)) return
+  void bot.api.sendChatAction(chatId, 'typing').catch(() => {})
+  const interval = setInterval(() => {
+    void bot.api.sendChatAction(chatId, 'typing').catch(() => {})
+  }, 4000)
+  interval.unref()
+  typingIntervals.set(chatId, interval)
+}
+
+function stopTyping(chatId: string): void {
+  const interval = typingIntervals.get(chatId)
+  if (!interval) return
+  clearInterval(interval)
+  typingIntervals.delete(chatId)
 }
 
 async function handleInbound(
@@ -1301,9 +1401,6 @@ async function handleInbound(
     return
   }
 
-  // Typing indicator — signals "processing" until we reply (or ~5s elapses).
-  void bot.api.sendChatAction(chat_id, 'typing').catch(() => {})
-
   // Ack reaction — lets the user know we're processing. Fire-and-forget.
   // Telegram only accepts a fixed emoji whitelist — if the user configures
   // something outside that set the API rejects it and we swallow.
@@ -1316,6 +1413,16 @@ async function handleInbound(
   }
 
   const imagePath = downloadImage ? await downloadImage() : undefined
+
+  const quoted = ctx.message?.reply_to_message
+  const replyToText = quoted ? safeName(truncateQuoted(quoted.text ?? quoted.caption ?? '')) : undefined
+  const replyToUser = quoted?.from ? (quoted.from.username ?? String(quoted.from.id)) : undefined
+  const forwardedFrom = formatForwardOrigin(ctx.message?.forward_origin)
+  const linkEntities = extractLinkEntities(text, ctx.message?.entities ?? ctx.message?.caption_entities)
+
+  const chatType = ctx.chat?.type
+  const isGroupChat = chatType === 'group' || chatType === 'supergroup'
+  const botIsAdmin = isGroupChat ? await isBotAdminInGroup(chat_id) : undefined
 
   // image_path goes in meta only — an in-content "[image attached — read: PATH]"
   // annotation is forgeable by any allowlisted sender typing that string.
@@ -1337,6 +1444,11 @@ async function handleInbound(
           ...(attachment.mime ? { attachment_mime: attachment.mime } : {}),
           ...(attachment.name ? { attachment_name: attachment.name } : {}),
         } : {}),
+        ...(replyToText ? { reply_to_text: replyToText } : {}),
+        ...(replyToUser ? { reply_to_user: replyToUser } : {}),
+        ...(forwardedFrom ? { forwarded_from: forwardedFrom } : {}),
+        ...(linkEntities.length ? { link_entities: JSON.stringify(linkEntities) } : {}),
+        ...(botIsAdmin != null ? { bot_is_admin: String(botIsAdmin) } : {}),
       },
     },
   }).catch(err => {
@@ -1362,6 +1474,7 @@ void (async () => {
         onStart: info => {
           attempt = 0
           botUsername = info.username
+          botId = info.id
           process.stderr.write(`telegram channel: polling as @${info.username}\n`)
           void bot.api.setMyCommands(
             [
