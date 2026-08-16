@@ -18,6 +18,7 @@ import {
 import { z } from 'zod'
 import { Bot, GrammyError, InlineKeyboard, InputFile, type Context } from 'grammy'
 import type { ReactionTypeEmoji, InputRichMessage } from 'grammy/types'
+import { autoRetry } from '@grammyjs/auto-retry'
 import { randomBytes } from 'crypto'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync, chmodSync } from 'fs'
 import { homedir } from 'os'
@@ -95,6 +96,12 @@ process.on('uncaughtException', err => {
 const PERMISSION_REPLY_RE = /^\s*(y|yes|n|no)\s+([a-km-z]{5})\s*$/i
 
 const bot = new Bot(TOKEN)
+// Transparently retries any bot.api.* call (sendMessage, editMessageText,
+// sendPhoto, ...) that fails with a 429 flood-control or transient 5xx
+// response, honoring Telegram's own retry_after hint. Only covers calls
+// made once the bot is running — the bot.start() retry loop below handles
+// the separate case of the initial long-polling connection failing.
+bot.api.config.use(autoRetry())
 let botUsername = ''
 
 type PendingEntry = {
