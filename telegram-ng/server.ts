@@ -17,7 +17,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { Bot, GrammyError, InlineKeyboard, InputFile, type Context } from 'grammy'
-import type { ReactionTypeEmoji } from 'grammy/types'
+import type { ReactionTypeEmoji, InputRichMessage } from 'grammy/types'
 import { randomBytes } from 'crypto'
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, statSync, renameSync, realpathSync, chmodSync } from 'fs'
 import { homedir } from 'os'
@@ -137,6 +137,9 @@ function defaultAccess(): Access {
 }
 
 const MAX_CHUNK_LIMIT = 4096
+// Rich messages (Bot API 10.1+) have a much higher character cap than plain
+// text/MarkdownV2 sends.
+const MAX_RICH_CHUNK_LIMIT = 32768
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024
 
 // reply's files param takes any path. .env is ~60 bytes and ships as a
@@ -682,8 +685,8 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
           format: {
             type: 'string',
-            enum: ['text', 'markdownv2'],
-            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links). Caller must escape special chars per MarkdownV2 rules. Default: 'text' (plain, no escaping needed).",
+            enum: ['text', 'markdownv2', 'rich'],
+            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links) — caller must escape special chars per MarkdownV2 rules. 'rich' sends a Bot API 10.1+ rich message (tables, headings, code fences with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed, and the length cap is 32768 chars instead of 4096. Default: 'text' (plain, no escaping needed).",
           },
         },
         required: ['chat_id', 'text'],
@@ -724,8 +727,8 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           text: { type: 'string' },
           format: {
             type: 'string',
-            enum: ['text', 'markdownv2'],
-            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links). Caller must escape special chars per MarkdownV2 rules. Default: 'text' (plain, no escaping needed).",
+            enum: ['text', 'markdownv2', 'rich'],
+            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links) — caller must escape special chars per MarkdownV2 rules. 'rich' edits into a Bot API 10.1+ rich message (tables, headings, code fences with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed. Default: 'text' (plain, no escaping needed).",
           },
         },
         required: ['chat_id', 'message_id', 'text'],
@@ -745,6 +748,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const files = (args.files as string[] | undefined) ?? []
         const format = (args.format as string | undefined) ?? 'text'
         const parseMode = format === 'markdownv2' ? 'MarkdownV2' as const : undefined
+        const isRich = format === 'rich'
 
         assertAllowedChat(chat_id)
 
@@ -757,7 +761,8 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         }
 
         const access = loadAccess()
-        const limit = Math.max(1, Math.min(access.textChunkLimit ?? MAX_CHUNK_LIMIT, MAX_CHUNK_LIMIT))
+        const hardCap = isRich ? MAX_RICH_CHUNK_LIMIT : MAX_CHUNK_LIMIT
+        const limit = Math.max(1, Math.min(access.textChunkLimit ?? hardCap, hardCap))
         const mode = access.chunkMode ?? 'length'
         const replyMode = access.replyToMode ?? 'first'
         const chunks = chunk(text, limit, mode)
@@ -769,10 +774,13 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
               reply_to != null &&
               replyMode !== 'off' &&
               (replyMode === 'all' || i === 0)
-            const sent = await bot.api.sendMessage(chat_id, chunks[i], {
-              ...(shouldReplyTo ? { reply_parameters: { message_id: reply_to } } : {}),
-              ...(parseMode ? { parse_mode: parseMode } : {}),
-            })
+            const replyOpt = shouldReplyTo ? { reply_parameters: { message_id: reply_to! } } : {}
+            const sent = isRich
+              ? await bot.api.sendRichMessage(chat_id, { markdown: chunks[i] }, replyOpt)
+              : await bot.api.sendMessage(chat_id, chunks[i], {
+                  ...replyOpt,
+                  ...(parseMode ? { parse_mode: parseMode } : {}),
+                })
             sentIds.push(sent.message_id)
           }
         } catch (err) {
@@ -834,10 +842,12 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         assertAllowedChat(args.chat_id as string)
         const editFormat = (args.format as string | undefined) ?? 'text'
         const editParseMode = editFormat === 'markdownv2' ? 'MarkdownV2' as const : undefined
+        const content: string | InputRichMessage =
+          editFormat === 'rich' ? { markdown: args.text as string } : (args.text as string)
         const edited = await bot.api.editMessageText(
           args.chat_id as string,
           Number(args.message_id),
-          args.text as string,
+          content,
           ...(editParseMode ? [{ parse_mode: editParseMode }] : []),
         )
         const id = typeof edited === 'object' ? edited.message_id : args.message_id

@@ -76,9 +76,9 @@ Quick reference: IDs are **numeric user IDs** (get yours from [@userinfobot](htt
 
 | Tool | Purpose |
 | --- | --- |
-| `reply` | Send to a chat. Takes `chat_id` + `text`, optionally `reply_to` (message ID) for native threading and `files` (absolute paths) for attachments. Images (`.jpg`/`.png`/`.gif`/`.webp`) send as photos with inline preview; other types send as documents. Max 50MB each. Auto-chunks text; files send as separate messages after the text. Returns the sent message ID(s). |
+| `reply` | Send to a chat. Takes `chat_id` + `text`, optionally `reply_to` (message ID) for native threading and `files` (absolute paths) for attachments. Images (`.jpg`/`.png`/`.gif`/`.webp`) send as photos with inline preview; other types send as documents. Max 50MB each. `format` selects rendering: plain `text` (default), `markdownv2`, or `rich` (Bot API 10.1+ structured messages — tables, headings, code blocks, math, collapsible sections; 32768-char cap instead of 4096). Auto-chunks text; files send as separate messages after the text. Returns the sent message ID(s). |
 | `react` | Add an emoji reaction to a message by ID. **Only Telegram's fixed whitelist** is accepted (👍 👎 ❤ 🔥 👀 etc). |
-| `edit_message` | Edit a message the bot previously sent. Useful for "working…" → result progress updates. Only works on the bot's own messages. |
+| `edit_message` | Edit a message the bot previously sent. Useful for "working…" → result progress updates. Supports the same `format` values as `reply`. Only works on the bot's own messages. |
 
 Inbound messages trigger a typing indicator automatically — Telegram shows
 "botname is typing…" while the assistant works on a response.
