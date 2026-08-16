@@ -59,6 +59,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   writes through to the real target.
 
 ### Added
+- `telegram-ng` (v0.5.0): wired up the official `@grammyjs/auto-retry`
+  plugin so every `bot.api.*` call (sendMessage, editMessageText,
+  sendPhoto, setMessageReaction, etc.) transparently retries on Telegram
+  429 flood-control and transient 5xx responses, honoring the `retry_after`
+  hint. The existing retry loop around `bot.start()` only covered the
+  initial long-polling connection — it did nothing for proactive
+  notifications (cron jobs, GitHub webhooks, finance reports) failing once
+  the bot was already running. Registered via
+  `bot.api.config.use(autoRetry())` right after the bot is constructed,
+  using the plugin's defaults.
 - `sandbox-manager` `setup-hooks` skill (v0.6.0): installs a curated set of
   7 Claude Code hooks (destructive-`rm` guard, channel-reply-enforcement
   Stop hook, usage-threshold Telegram alerts, idle-state tracker, session

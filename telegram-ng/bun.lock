@@ -6,6 +6,7 @@
       "name": "claude-channel-telegram",
       "dependencies": {
         "@grammyjs/menu": "^1.4.0",
+        "@grammyjs/auto-retry": "^2.0.2",
         "@modelcontextprotocol/sdk": "^1.0.0",
         "grammy": "^1.45.0",
       },
@@ -13,6 +14,7 @@
   },
   "packages": {
     "@grammyjs/menu": ["@grammyjs/menu@1.4.0", "", { "peerDependencies": { "grammy": "^1.40.0" } }, "sha512-Q9TO9n536TwSgRpr/n73v1fJFaZ5d8cqYse2VEmepoIMwqfavXjLMjaCW/JetwzQhSv8gaaMtGsWhbktClaSUQ=="],
+    "@grammyjs/auto-retry": ["@grammyjs/auto-retry@2.0.2", "", { "dependencies": { "debug": "^4.3.4" }, "peerDependencies": { "grammy": "^1.10.0" } }, "sha512-b4A4p5jlYDiQtW0c0FXYe11WMkYoiW+5rvOaDMCOk1h7Pu2SDl7B7gmFF8cthWCx2+M2nWLOsBxAgbBG4kKWYg=="],
 
     "@grammyjs/types": ["@grammyjs/types@4.0.0", "", {}, "sha512-Z8lDLTvOlo12e5Vnly/vQh3JC9ppaitS1dGZ3w068gNitOd/y8tTSiib+Xm38aBGbtYGmUZwOc6afYrLs2CSTg=="],
 
