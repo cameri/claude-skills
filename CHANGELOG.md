@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` `setup-hooks` skill (v0.6.0): installs a curated set of
+  7 Claude Code hooks (destructive-`rm` guard, channel-reply-enforcement
+  Stop hook, usage-threshold Telegram alerts, idle-state tracker, session
+  handoff-doc reader, new-session Telegram notifier, statusline
+  usage-cache wrapper) into `~/.claude/settings.json`, idempotently via
+  `scripts/install-hooks.py`. Bundled hook scripts carry no secrets or
+  hardcoded personal paths — chat ID, bot-token `.env` path, timezone, and
+  handoff-doc path are gathered at install time and stored separately in
+  `~/.claude/channels/sandbox-manager/hooks-config.json` (mode 600).
 - `tools` field on every `marketplace.json` plugin entry (`["claude"]` or
   `["claude", "cursor"]`), marking which plugins work under Cursor:
   `paperless`, `actual-budget`, `technitium-dns`, `home-assistant`,
