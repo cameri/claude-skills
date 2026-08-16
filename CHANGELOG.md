@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fallback path was scoped out as a follow-up). New `stream_draft` tool
   wraps `sendMessageDraft` to stream a live 30s-ephemeral "composing"
   preview in private chats before `reply` persists the final text.
+- `telegram-ng` (v0.7.1): live-verified all four v0.7.0 features in a real
+  group (typing indicator surviving >5s, reply/forward context, link
+  entities, ephemeral `receiver_user_id` replies once the bot was promoted
+  to admin). Documented that an ephemeral `reply` returns `message_id: 0`
+  in the API response — expected, since Telegram doesn't persist these as
+  normal messages, not an error.
 
 ### Changed
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
