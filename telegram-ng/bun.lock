@@ -5,12 +5,15 @@
     "": {
       "name": "claude-channel-telegram",
       "dependencies": {
+        "@grammyjs/menu": "^1.4.0",
         "@modelcontextprotocol/sdk": "^1.0.0",
         "grammy": "^1.45.0",
       },
     },
   },
   "packages": {
+    "@grammyjs/menu": ["@grammyjs/menu@1.4.0", "", { "peerDependencies": { "grammy": "^1.40.0" } }, "sha512-Q9TO9n536TwSgRpr/n73v1fJFaZ5d8cqYse2VEmepoIMwqfavXjLMjaCW/JetwzQhSv8gaaMtGsWhbktClaSUQ=="],
+
     "@grammyjs/types": ["@grammyjs/types@4.0.0", "", {}, "sha512-Z8lDLTvOlo12e5Vnly/vQh3JC9ppaitS1dGZ3w068gNitOd/y8tTSiib+Xm38aBGbtYGmUZwOc6afYrLs2CSTg=="],
 
     "@hono/node-server": ["@hono/node-server@1.19.11", "", { "peerDependencies": { "hono": "^4" } }, "sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g=="],
