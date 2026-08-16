@@ -468,17 +468,32 @@ const IDLE_THRESHOLD_MS = 45 * 60 * 1000
 const IDLE_CHECK_INTERVAL_MS = 60 * 1000
 const IDLE_COMPACT_CAP = 1
 
-// Sibling sandbox-manager scripts. Workspace-local absolute paths — this
-// fork is dogfooded against this exact repo layout, not meant to be
-// portable. Each script self-detects its tmux pane via the $TMUX/$TMUX_PANE
-// env vars, which this process inherits from its parent `claude` process
-// (verified: child processes of the CLI see the same tmux session even
-// though `bun run --cwd` changes cwd to the plugin root) — so no separate
-// pane-registry lookup is needed.
-const SCRIPT_COMPACT = '/workspace/projects/skills/sandbox-manager/skills/compact-session/scripts/compact-session.sh'
-const SCRIPT_CLEAR = '/workspace/projects/skills/sandbox-manager/skills/restart-session/scripts/restart-session.sh'
-const SCRIPT_RENAME = '/workspace/projects/skills/sandbox-manager/skills/rename-session/scripts/rename-session.sh'
-const SCRIPT_RESUME = '/workspace/projects/skills/sandbox-manager/skills/resume-session/scripts/resume-session.sh'
+// Sibling sandbox-manager scripts. Each script self-detects its tmux pane
+// via the $TMUX/$TMUX_PANE env vars, which this process inherits from its
+// parent `claude` process (verified: child processes of the CLI see the
+// same tmux session even though `bun run --cwd` changes cwd to the plugin
+// root) — so no separate pane-registry lookup is needed.
+//
+// Resolved from the installed plugin's cache path (versioned, changes on
+// every sandbox-manager update) rather than hardcoded, so this works for a
+// normal marketplace install and not just a dev checkout at a fixed path.
+function resolveSandboxManagerRoot(): string {
+  const DEV_FALLBACK = '/workspace/projects/skills/sandbox-manager'
+  try {
+    const installed = JSON.parse(
+      readFileSync(join(homedir(), '.claude', 'plugins', 'installed_plugins.json'), 'utf8'),
+    )
+    const entries = installed?.plugins?.['sandbox-manager@cameri-skills']
+    const installPath = entries?.[0]?.installPath
+    if (installPath) return installPath
+  } catch {}
+  return DEV_FALLBACK
+}
+const SANDBOX_MANAGER_ROOT = resolveSandboxManagerRoot()
+const SCRIPT_COMPACT = join(SANDBOX_MANAGER_ROOT, 'skills/compact-session/scripts/compact-session.sh')
+const SCRIPT_CLEAR = join(SANDBOX_MANAGER_ROOT, 'skills/restart-session/scripts/restart-session.sh')
+const SCRIPT_RENAME = join(SANDBOX_MANAGER_ROOT, 'skills/rename-session/scripts/rename-session.sh')
+const SCRIPT_RESUME = join(SANDBOX_MANAGER_ROOT, 'skills/resume-session/scripts/resume-session.sh')
 
 type IdleState = { last_activity_ms: number; idle_safe: boolean; session_id: string | null }
 
