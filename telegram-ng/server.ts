@@ -17,6 +17,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { Bot, GrammyError, InlineKeyboard, InputFile, type Context } from 'grammy'
+import { Menu, MenuRange } from '@grammyjs/menu'
 import type { ReactionTypeEmoji, InputRichMessage } from 'grammy/types'
 import { autoRetry } from '@grammyjs/auto-retry'
 import { randomBytes } from 'crypto'
@@ -26,7 +27,7 @@ import { join, extname, sep } from 'path'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
-import { pickRecentSessions, buildSessionsKeyboard } from './sessions-menu'
+import { pickRecentSessions, buildSessionsMenuRows, SESSIONS_MENU_ID } from './sessions-menu'
 import { formatUsageMessage, type UsageCache } from './usage-cache'
 
 const execFileAsync = promisify(execFile)
@@ -638,7 +639,41 @@ function readSessionNames(): Record<string, string> {
   return map
 }
 
-async function handleSessionSelect(ctx: Context, sessionId: string): Promise<void> {
+// Scans transcripts + the live session registry and picks the most recent
+// SESSIONS_LIMIT sessions. Shared by the /sessions command (which needs a
+// friendly error message when scanning fails) and the menu's dynamic range
+// (which re-runs this on every render — both the initial send and every
+// button press — and just falls back to an empty list on failure, since
+// there's no user-facing reply available from inside a menu render).
+function scanRecentSessions(): { recent: ReturnType<typeof pickRecentSessions>; error?: string } {
+  if (!TRANSCRIPTS_DIR) {
+    return { recent: [], error: `Can't resolve this session's project directory — CLAUDE_PROJECT_DIR is unset.` }
+  }
+
+  let files: string[]
+  try {
+    files = readdirSync(TRANSCRIPTS_DIR).filter(f => f.endsWith('.jsonl'))
+  } catch (err) {
+    return { recent: [], error: `Couldn't read session transcripts: ${err}` }
+  }
+
+  const names = readSessionNames()
+  const entries = files.map(f => {
+    const full = join(TRANSCRIPTS_DIR!, f)
+    const id = f.slice(0, -'.jsonl'.length)
+    const mtimeMs = statSync(full).mtimeMs
+    return { id, mtimeMs, name: names[id] }
+  })
+
+  return { recent: pickRecentSessions(entries, SESSIONS_LIMIT, Date.now(), CLAUDE_CODE_SESSION_ID) }
+}
+
+// Shared handler for every button in sessionsMenu. `ctx.match` is the
+// pressed button's payload — a session id, or the 'dismiss'/'current'
+// no-op markers set by buildSessionsMenuRows — read back from the
+// callback_data Telegram sent, independent of whatever the menu's dynamic
+// range renders to on this particular update.
+async function handleSessionButton(ctx: Context & { match: string }): Promise<void> {
   const access = loadAccess()
   const senderId = String(ctx.from.id)
   if (!access.allowFrom.includes(senderId)) {
@@ -646,22 +681,29 @@ async function handleSessionSelect(ctx: Context, sessionId: string): Promise<voi
     return
   }
 
-  // 'dismiss' and 'current' are no-op markers from buildSessionsKeyboard —
+  const sessionId = ctx.match
+  const msg = ctx.callbackQuery.message
+  // Explicitly re-supplying the message's own current keyboard (rather than
+  // omitting reply_markup) defeats @grammyjs/menu's default behavior of
+  // auto-injecting a freshly re-rendered menu into any editMessageText call
+  // that targets this same message — we want editMessageText here to touch
+  // only the text, exactly like the hand-rolled InlineKeyboard version did.
+  const keepKeyboard = msg && 'reply_markup' in msg ? { reply_markup: msg.reply_markup } : {}
+
+  // 'dismiss' and 'current' are no-op markers from buildSessionsMenuRows —
   // not real session ids — so they never reach execFileAsync/resume-session.sh.
   if (sessionId === 'dismiss' || sessionId === 'current') {
     const label = sessionId === 'dismiss' ? 'Dismissed' : "That's this session already."
     await ctx.answerCallbackQuery({ text: label }).catch(() => {})
-    const msg = ctx.callbackQuery.message
     if (msg && 'text' in msg && msg.text) {
-      await ctx.editMessageText(`${msg.text}\n\n${label}`).catch(() => {})
+      await ctx.editMessageText(`${msg.text}\n\n${label}`, keepKeyboard).catch(() => {})
     }
     return
   }
 
   await ctx.answerCallbackQuery({ text: 'Resuming…' }).catch(() => {})
-  const msg = ctx.callbackQuery.message
   if (msg && 'text' in msg && msg.text) {
-    await ctx.editMessageText(`${msg.text}\n\n▶️ Resuming ${sessionId.slice(0, 8)}…`).catch(() => {})
+    await ctx.editMessageText(`${msg.text}\n\n▶️ Resuming ${sessionId.slice(0, 8)}…`, keepKeyboard).catch(() => {})
   }
   try {
     await execFileAsync(SCRIPT_RESUME, [sessionId])
@@ -669,6 +711,30 @@ async function handleSessionSelect(ctx: Context, sessionId: string): Promise<voi
     process.stderr.write(`sessions: resume failed: ${err}\n`)
   }
 }
+
+// onMenuOutdated is disabled: the old hand-rolled keyboard never tracked
+// staleness at all — a button press always acted on the id embedded in it
+// at send time, no matter how much later it was pressed or how the
+// session list had changed meanwhile. @grammyjs/menu's default outdated
+// detection would hash each button's rendered label (which embeds a
+// relative time like "5m ago") against the label at press time, so it
+// would nearly always call a delayed press "outdated" — a real UX
+// regression the old implementation never had. `onMenuOutdated: false`
+// disables that check, restoring the original "just act on the payload"
+// behavior. autoAnswer is off because we always answerCallbackQuery
+// ourselves with a specific label ('Resuming…', 'Not authorized.', etc.) —
+// the plugin's default auto-answer (a bare, textless answer) would race
+// ours and could win, since it fires concurrently rather than after.
+const sessionsMenu = new Menu<Context>(SESSIONS_MENU_ID, { autoAnswer: false, onMenuOutdated: false }).dynamic(() => {
+  const { recent } = scanRecentSessions()
+  const range = new MenuRange<Context>()
+  for (const row of buildSessionsMenuRows(recent)) {
+    for (const button of row) range.text({ text: button.text, payload: button.payload }, handleSessionButton)
+    range.row()
+  }
+  return range
+})
+bot.use(sessionsMenu)
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -967,35 +1033,17 @@ bot.command('sessions', async ctx => {
   const { access, senderId } = gated
   if (!access.allowFrom.includes(senderId)) return
 
-  if (!TRANSCRIPTS_DIR) {
-    await ctx.reply(`Can't resolve this session's project directory — CLAUDE_PROJECT_DIR is unset.`)
+  const { recent, error } = scanRecentSessions()
+  if (error) {
+    await ctx.reply(error)
     return
   }
-
-  let files: string[]
-  try {
-    files = readdirSync(TRANSCRIPTS_DIR).filter(f => f.endsWith('.jsonl'))
-  } catch (err) {
-    await ctx.reply(`Couldn't read session transcripts: ${err}`)
-    return
-  }
-
-  const names = readSessionNames()
-  const entries = files.map(f => {
-    const full = join(TRANSCRIPTS_DIR!, f)
-    const id = f.slice(0, -'.jsonl'.length)
-    const mtimeMs = statSync(full).mtimeMs
-    return { id, mtimeMs, name: names[id] }
-  })
-
-  const recent = pickRecentSessions(entries, SESSIONS_LIMIT, Date.now(), CLAUDE_CODE_SESSION_ID)
   if (recent.length === 0) {
     await ctx.reply('No sessions found.')
     return
   }
 
-  const keyboard = new InlineKeyboard(buildSessionsKeyboard(recent))
-  await ctx.reply('Recent sessions:', { reply_markup: keyboard })
+  await ctx.reply('Recent sessions:', { reply_markup: sessionsMenu })
 })
 
 bot.command('usage', async ctx => {
@@ -1022,12 +1070,6 @@ bot.on('callback_query:data', async ctx => {
   const idleMatch = /^idle:(compact|pause|dismiss)$/.exec(data)
   if (idleMatch) {
     await handleIdleCallback(ctx, idleMatch[1] as 'compact' | 'pause' | 'dismiss')
-    return
-  }
-
-  const sessMatch = /^sess:(.+)$/.exec(data)
-  if (sessMatch) {
-    await handleSessionSelect(ctx, sessMatch[1])
     return
   }
 

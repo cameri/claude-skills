@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
+  `InlineKeyboard` + `bot.on('callback_query:data', ...)` regex dispatch
+  with the official `@grammyjs/menu` plugin (`sessions-menu.ts`,
+  `server.ts`). Same user-visible behavior — authorization check, the
+  'dismiss'/'current' no-ops, and the resume dispatch to
+  `resume-session.sh` — now expressed as a `Menu` with a `.dynamic()` range
+  that re-scans transcripts on every render. One judgment call: the plugin's
+  default staleness check hashes each button's rendered label against the
+  label at press time, and since our labels embed a relative timestamp
+  ("5m ago"), that would flag almost every delayed press as "outdated" — a
+  regression the old keyboard never had, since it always just acted on the
+  id baked into the button at send time. Disabled via
+  `onMenuOutdated: false` to keep that exact "act on the embedded payload,
+  no staleness check" behavior. Also switched `autoAnswer: false` and
+  answer every callback ourselves, since the plugin's default auto-answer
+  fires concurrently with (and could race) our own labeled
+  `answerCallbackQuery` calls ('Resuming…', 'Not authorized.', etc.). The
+  `perm:`/`idle:` inline keyboards (permission requests, idle sentinel) are
+  a separate flow and were left untouched.
+
 ### Fixed
 - `telegram-ng` (v0.3.1): `SCRIPT_COMPACT`/`SCRIPT_CLEAR`/`SCRIPT_RENAME`/
   `SCRIPT_RESUME` were hardcoded to a dev-checkout path

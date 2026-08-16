@@ -1,9 +1,13 @@
 /**
  * /sessions command support — pure functions, no side effects.
  *
- * Picks the most recent N Claude Code sessions and builds a plain-data
- * inline-keyboard layout for them. server.ts turns the returned array into
- * an actual grammy InlineKeyboard.
+ * Picks the most recent N Claude Code sessions and builds a plain-data menu
+ * row layout for them: one button per session (`text` + `payload`), plus a
+ * trailing Dismiss button. server.ts's `sessionsMenu` (a @grammyjs/menu
+ * `Menu`) turns the returned rows into an actual dynamic inline keyboard via
+ * `range.text({ text, payload }, handler)`, and reads `ctx.match` (the
+ * pressed button's payload) back out to learn which session id — or the
+ * 'dismiss'/'current' marker — was picked.
  */
 
 const SNIPPET_MAX_LEN = 40
@@ -46,39 +50,46 @@ function relativeTimeFor(mtimeMs: number, nowMs: number): string {
   return `${Math.floor(diffDay)}d ago`
 }
 
+export const SESSIONS_MENU_ID = 'sessions'
+
 const CALLBACK_DATA_MAX_BYTES = 64
-const CALLBACK_PREFIX = 'sess:'
+// @grammyjs/menu auto-generates each button's callback_data as
+// `${menuId}/${row}/${col}/${payload}/${hashType}${hash}`. With menu id
+// 'sessions', a single-hex-digit row/col (this menu never exceeds 11 rows:
+// up to 10 sessions + Dismiss), and a fixed 4-byte hash, the framing around
+// the payload costs this many bytes — leaving the rest of the 64-byte cap
+// for the payload itself.
+const FRAMING_OVERHEAD_BYTES = Buffer.byteLength(`${SESSIONS_MENU_ID}/0/0//h0000`, 'utf8')
+export const SESSION_PAYLOAD_MAX_BYTES = CALLBACK_DATA_MAX_BYTES - FRAMING_OVERHEAD_BYTES
 
-const DISMISS_ROW = [{ text: 'Dismiss', callback_data: 'sess:dismiss' }]
+const DISMISS_ROW = [{ text: 'Dismiss', payload: 'dismiss' }]
 
-export function buildSessionsKeyboard(
+export function buildSessionsMenuRows(
   sessions: ReturnType<typeof pickRecentSessions>,
-): Array<Array<{ text: string; callback_data: string }>> {
+): Array<Array<{ text: string; payload: string }>> {
   const rows = sessions.map(s => {
     if (s.isCurrent) {
       const text = `${s.displayLabel} · ${s.relativeTime} (current)`
-      return [{ text, callback_data: 'sess:current' }]
+      return [{ text, payload: 'current' }]
     }
     const text = `${s.displayLabel} · ${s.relativeTime}`
-    return [{ text, callback_data: buildCallbackData(s.id) }]
+    return [{ text, payload: truncatePayload(s.id) }]
   })
   rows.push(DISMISS_ROW)
   return rows
 }
 
-// Telegram caps callback_data at 64 bytes. `sess:` (5 bytes) + a standard
-// UUID (36 chars/bytes, ASCII) = 41 bytes — safely under the limit, so no
-// truncation is needed for standard UUID ids. Guarded anyway: if a
-// callback_data would exceed 64 bytes, truncate the id portion byte-by-byte
-// until it fits. Simplest correct behavior — not attempting to preserve
-// uniqueness beyond that.
-function buildCallbackData(id: string): string {
-  let data = CALLBACK_PREFIX + id
-  if (Buffer.byteLength(data, 'utf8') <= CALLBACK_DATA_MAX_BYTES) return data
+// A standard UUID (36 ASCII chars/bytes) fits comfortably under
+// SESSION_PAYLOAD_MAX_BYTES, so no truncation is needed for standard UUID
+// session ids. Guarded anyway: if a payload would exceed the budget,
+// truncate it byte-by-byte until it fits. Simplest correct behavior — not
+// attempting to preserve uniqueness beyond that.
+export function truncatePayload(id: string): string {
+  if (Buffer.byteLength(id, 'utf8') <= SESSION_PAYLOAD_MAX_BYTES) return id
 
-  let truncatedId = id
-  while (Buffer.byteLength(CALLBACK_PREFIX + truncatedId, 'utf8') > CALLBACK_DATA_MAX_BYTES) {
-    truncatedId = truncatedId.slice(0, -1)
+  let truncated = id
+  while (Buffer.byteLength(truncated, 'utf8') > SESSION_PAYLOAD_MAX_BYTES) {
+    truncated = truncated.slice(0, -1)
   }
-  return CALLBACK_PREFIX + truncatedId
+  return truncated
 }
