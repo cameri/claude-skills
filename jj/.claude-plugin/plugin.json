@@ -1,0 +1,12 @@
+{
+  "name": "jj",
+  "description": "Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for the everyday operations git users reach for out of habit (commit, split, squash, cleanup, checkout, rebase), several of which jj handles very differently from git.",
+  "version": "0.1.0",
+  "keywords": [
+    "jj",
+    "jujutsu",
+    "git",
+    "version-control",
+    "vcs"
+  ]
+}

@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `jj` plugin: six new actionable skills (`commit`, `split`, `squash`,
+  `cleanup`, `checkout`, `rebase`) for the everyday git-analogous operations,
+  filling in `/jj:commit`, `/jj:split`, `/jj:squash`, `/jj:cleanup` which
+  `working-with-jj/SKILL.md` referenced but never actually shipped, plus two
+  new ones (`checkout`, `rebase`) since those are done meaningfully
+  differently in jj than git. All six verified hands-on in a scratch jj repo
+  before writing (non-interactive `jj split <paths>`, `jj squash -u`/`-m` to
+  avoid the interactive-editor hang when both sides have descriptions, a
+  real `jj rebase` producing an unresolved `(conflict)` commit without
+  blocking, `jj new` vs `jj edit` per the jj FAQ's own recommendation and
+  conflict-corruption warning, and `jj workspace forget`/`empty()` for
+  cleanup). Also added the plugin's first `.claude-plugin/plugin.json`
+  (v0.1.0 — it previously had none, hence `claude plugin list` showing a raw
+  git commit hash instead of a semver version).
 - `lightning` (new plugin, v0.1.0): wraps the official Alby MCP server
   (`@getalby/mcp`) to expose Lightning tools (`parse_invoice`, `pay_invoice`,
   `get_balance`, `lookup_invoice`, etc.) over Nostr Wallet Connect, wired to

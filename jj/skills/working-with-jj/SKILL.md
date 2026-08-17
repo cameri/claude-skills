@@ -106,10 +106,12 @@ This is the jj equivalent of working in multiple branches simultaneously, withou
 
 ## Slash Commands
 
-- `/jj:commit [message]` - Stack commit with message generation
-- `/jj:split <pattern>` - Split by pattern (test, docs, config)
-- `/jj:squash [revision]` - Merge commits
-- `/jj:cleanup` - Remove empty workspaces
+- `/jj:commit [message]` - Describe `@` (`jj describe`), or describe and stack a new change on top (`jj commit`)
+- `/jj:split <paths>` - Split a change in two, by file path (non-interactive) or interactively
+- `/jj:squash [--from/--into]` - Fold changes from one change into another (amend/fixup-equivalent)
+- `/jj:cleanup` - Abandon stray empty changes and forget stale workspaces (not "remove empty workspaces" — see the skill for what "empty" and "stale" actually mean here)
+- `/jj:checkout <rev>` - Switch to an existing change or bookmark via `jj new` (default) or `jj edit` (rare) — see the skill for which to use
+- `/jj:rebase` - Move changes onto a new parent; conflicts land in the result instead of blocking, see the skill for the `-r`/`-s`/`-b` and `-d`/`-A`/`-B` axes
 
 ## Git Submodules
 
@@ -128,7 +130,7 @@ Repository blocks git write commands via hook. Prefer jj equivalents:
 - `git status` → `jj status`
 - `git commit` → `/jj:commit`
 - `git log` → `jj log`
-- `git checkout` → `jj new`
+- `git checkout` → `jj new` (usually) or `jj edit` (rarely) — see the [[checkout]] skill, the two are not interchangeable
 
 ## `jj restore` — Use With Care
 
