@@ -64,6 +64,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `sandbox-manager` `telegram-reply-check.py` (v0.6.3): the Stop hook that
+  forces a reply before ending a Telegram-originated turn didn't distinguish
+  the new `telegram-ng` v0.8.0 `poll_answer` notifications (informational
+  by design — "voted for: ..." / "retracted their vote") from real inbound
+  messages, so it mechanically forced a reply on every single vote. Now
+  detects a `poll_id="` attribute in the channel tag and skips the
+  reply requirement for that notification specifically; a later real
+  message still requires its own reply as before. Found by Cameri,
+  2026-08-16, right after polls shipped.
 - `telegram-ng` (v0.6.1): the idle-detection prompt ("⏸ Quiet for a while...")
   broadcast to every chat_id in the allowlist, not just whoever was actually
   talking — so an unrelated allowlisted contact got pinged for a

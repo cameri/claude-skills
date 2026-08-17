@@ -83,6 +83,7 @@ def main():
             continue
 
     last_channel_seen = False
+    last_requires_reply = False
     replied_since = False
 
     for entry in entries:
@@ -104,6 +105,10 @@ def main():
             if channel_tag in text:
                 last_channel_seen = True
                 replied_since = False  # a new inbound message needs its own reply
+                # poll_answer notifications (identified by a poll_id attribute)
+                # are informational-only by design — a vote/retraction isn't
+                # a request, so it shouldn't force a reply on every turn.
+                last_requires_reply = 'poll_id="' not in text
 
         elif entry_type == "assistant" and last_channel_seen:
             content = message.get("content")
@@ -116,7 +121,7 @@ def main():
                     ):
                         replied_since = True
 
-    if last_channel_seen and not replied_since:
+    if last_channel_seen and last_requires_reply and not replied_since:
         print(
             json.dumps(
                 {
