@@ -312,6 +312,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./replicator"
+    },
+    {
+      "name": "lightning",
+      "description": "Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server over Nostr Wallet Connect.",
+      "tools": ["claude"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./lightning"
     }
   ]
 }
