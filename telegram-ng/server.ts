@@ -1483,6 +1483,11 @@ async function handleInbound(
     return
   }
 
+  // Start the typing indicator immediately on receipt, rather than waiting
+  // for Claude to decide to call start_typing — reply() (or an explicit
+  // stop_typing) always clears it, so there's no dangling-forever case here.
+  startTyping(chat_id)
+
   // Ack reaction — lets the user know we're processing. Fire-and-forget.
   // Telegram only accepts a fixed emoji whitelist — if the user configures
   // something outside that set the API rejects it and we swallow.

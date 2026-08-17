@@ -41,6 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vote, per explicit product decision) — documented in the MCP instructions
   block. New `formatPollAnswer` pure helper in `inbound-context.ts`,
   unit-tested.
+- `telegram-ng` (v0.9.0): `handleInbound` now calls the existing `startTyping`
+  helper itself as soon as a message passes the access gate and isn't a
+  permission-reply intercept, instead of waiting for Claude to decide to
+  call the `start_typing` tool. Placed after the permission-reply
+  short-circuit specifically so that path (which never sends a `reply`)
+  can't leave a typing indicator re-firing forever with nothing to clear
+  it — every other path already stops it via `reply`'s existing
+  `stopTyping` call. Prompted by Cameri wanting typing-indicator-first as
+  the standing default for every Telegram turn (see phoenix-server
+  `CLAUDE.md` Telegram Communication section) without relying on the model
+  to remember to call the tool.
 
 ### Changed
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
