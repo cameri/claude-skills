@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` `post-restart-check` skill (v0.8.0): checks three
+  failure modes that have each independently broken this workspace after a
+  container restart — a dropped SSH commit-signing `.pub` file (auto-fixed
+  by regenerating from the private key), a missing `docker-buildx-plugin`,
+  and an ad-hoc `pip install` that vanished on rebuild. Built by
+  `/replicator:meditate`'s 2026-08-16 cycle from a queue entry recorded
+  2026-08-14, reinforced by a fourth SSH-pubkey recurrence on 2026-08-16.
+- `repo-hygiene-sweep` (new plugin, v0.1.0): sweeps the workspace repo plus
+  every standalone repo listed under root `CLAUDE.md`'s "Standalone repos"
+  heading for uncommitted or unpushed work, using the right VCS per repo
+  (`jj` vs `git`) rather than assuming one. Built by `/replicator:meditate`'s
+  2026-08-16 cycle from a queue entry recorded 2026-08-14 (Cameri's literal
+  "do we have any uncommitted files laying around?" ask on 2026-08-12).
 - `sandbox-manager` `session-start-notify.py` (v0.7.0): `/resume` now sends
   its own Telegram notification ("Resumed session: &lt;name&gt;.") instead of
   being silently skipped — it resolves the friendly name from
