@@ -75,6 +75,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `telegram-ng` (v0.9.1): the `/sessions` picker's "current" flag relied on
+  `CLAUDE_CODE_SESSION_ID` matching a transcript filename — broken the
+  moment a session is resumed after an `/exit`-triggered restart, since the
+  new process's env var no longer matches the transcript file actually
+  still being appended to (verified live: the resumed conversation kept
+  growing under its original id while the fresh process reported a
+  different one). The real live session showed up as a distinct, seemingly
+  resumable "previous session" instead of "(current)"; tapping it fired a
+  pointless self-resume with no visible effect. `pickRecentSessions` (in
+  `sessions-menu.ts`) now derives "current" from recency alone — the single
+  freshest transcript by `mtimeMs` — dropping the `currentSessionId`
+  parameter and its env-var call site entirely. Found by Cameri, 2026-08-17,
+  right after restarting to pick up the v0.9.0 typing change above.
 - `sandbox-manager` `telegram-reply-check.py` (v0.6.3): the Stop hook that
   forces a reply before ending a Telegram-originated turn didn't distinguish
   the new `telegram-ng` v0.8.0 `poll_answer` notifications (informational

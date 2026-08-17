@@ -12,20 +12,23 @@
 
 const SNIPPET_MAX_LEN = 40
 
+// "current" is the single freshest transcript by mtime, not an id match
+// against CLAUDE_CODE_SESSION_ID — that env var doesn't reliably track
+// which transcript file a resumed process is actually still appending to
+// (see the comment at its former call site in server.ts).
 export function pickRecentSessions(
   entries: Array<{ id: string; mtimeMs: number; name?: string; firstMessageSnippet?: string }>,
   limit: number,
   nowMs: number,
-  currentSessionId?: string | null,
 ): Array<{ id: string; displayLabel: string; relativeTime: string; isCurrent: boolean }> {
   return [...entries]
     .sort((a, b) => b.mtimeMs - a.mtimeMs)
     .slice(0, limit)
-    .map(e => ({
+    .map((e, i) => ({
       id: e.id,
       displayLabel: displayLabelFor(e),
       relativeTime: relativeTimeFor(e.mtimeMs, nowMs),
-      isCurrent: Boolean(currentSessionId) && e.id === currentSessionId,
+      isCurrent: i === 0,
     }))
 }
 

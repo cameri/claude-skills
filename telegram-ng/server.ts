@@ -638,8 +638,16 @@ async function handleIdleCallback(ctx: Context, choice: 'compact' | 'pause' | 'd
 // Recent-session picker. CLAUDE_PROJECT_DIR is set by Claude Code on every
 // MCP subprocess it spawns (verified against the running process); Claude
 // Code's own transcript dir naming replaces '/' with '-'.
+//
+// "current" is derived from recency (the freshest transcript file), not
+// from CLAUDE_CODE_SESSION_ID: after an /exit-triggered restart resumes the
+// prior conversation, that env var no longer matches the transcript file
+// actually being appended to (verified live — the resumed session kept
+// growing under its original id while the new process reported a
+// different one), so equality-matching it silently flagged the wrong
+// session as current and made the real one look like a distinct,
+// resumable "previous session".
 const CLAUDE_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR
-const CLAUDE_CODE_SESSION_ID = process.env.CLAUDE_CODE_SESSION_ID ?? null
 const TRANSCRIPTS_DIR = CLAUDE_PROJECT_DIR
   ? join(homedir(), '.claude', 'projects', CLAUDE_PROJECT_DIR.replace(/\//g, '-'))
   : null
@@ -689,7 +697,7 @@ function scanRecentSessions(): { recent: ReturnType<typeof pickRecentSessions>; 
     return { id, mtimeMs, name: names[id] }
   })
 
-  return { recent: pickRecentSessions(entries, SESSIONS_LIMIT, Date.now(), CLAUDE_CODE_SESSION_ID) }
+  return { recent: pickRecentSessions(entries, SESSIONS_LIMIT, Date.now()) }
 }
 
 // Shared handler for every button in sessionsMenu. `ctx.match` is the
