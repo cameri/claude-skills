@@ -1,0 +1,13 @@
+{
+  "name": "lightning",
+  "description": "Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server (@getalby/mcp) over Nostr Wallet Connect, wired to a self-hosted NWC-compatible wallet such as Alby Hub.",
+  "version": "0.1.0",
+  "keywords": [
+    "lightning",
+    "bitcoin",
+    "nwc",
+    "alby",
+    "payments",
+    "mcp"
+  ]
+}

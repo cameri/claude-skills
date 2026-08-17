@@ -76,6 +76,20 @@ HOOK_DEFS = {
         "needs": [],
         "config_keys": [],
     },
+    "pay-invoice-guard": {
+        "event": "PreToolUse",
+        "matcher": "mcp__plugin_lightning_lightning__pay_invoice",
+        "timeout": 10,
+        "needs": ["pay_invoice_authorized_chat_id"],
+        "config_keys": ["pay_invoice_authorized_chat_id", "telegram_channel_plugin"],
+    },
+    "plugin-version-check": {
+        "event": "Stop",
+        "matcher": None,
+        "timeout": 10,
+        "needs": [],
+        "config_keys": ["plugins_repo_path"],
+    },
 }
 
 
@@ -163,6 +177,8 @@ def main():
     parser.add_argument("--timezone")
     parser.add_argument("--handoff-doc-path")
     parser.add_argument("--idle-state-dir")
+    parser.add_argument("--pay-invoice-authorized-chat-id")
+    parser.add_argument("--plugins-repo-path")
     parser.add_argument(
         "--force-statusline",
         action="store_true",
@@ -182,6 +198,8 @@ def main():
         "timezone": args.timezone,
         "handoff_doc_path": args.handoff_doc_path,
         "idle_state_dir": args.idle_state_dir,
+        "pay_invoice_authorized_chat_id": args.pay_invoice_authorized_chat_id,
+        "plugins_repo_path": args.plugins_repo_path,
     }
     provided_config = {k: v for k, v in provided_config.items() if v}
 

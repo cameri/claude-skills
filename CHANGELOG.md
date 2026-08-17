@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `lightning` (new plugin, v0.1.0): wraps the official Alby MCP server
+  (`@getalby/mcp`) to expose Lightning tools (`parse_invoice`, `pay_invoice`,
+  `get_balance`, `lookup_invoice`, etc.) over Nostr Wallet Connect, wired to
+  a self-hosted NWC-compatible wallet. Credentials load from
+  `~/.claude/channels/lightning/.env` at MCP-server startup via a small
+  shell wrapper (`.mcp.json` can't declare a secret-bearing env block for a
+  third-party npx package). Built to give root CLAUDE.md's long-standing
+  Lightning Payment Policy an actual tool to enforce against — those
+  `parse_invoice`/`pay_invoice` names existed only as policy prose before.
+- `sandbox-manager` `pay-invoice-guard` and `plugin-version-check` hooks
+  (v0.9.0, `setup-hooks` skill): `pay-invoice-guard` (PreToolUse) blocks any
+  `pay_invoice` call from the new `lightning` plugin unless the transcript's
+  most recent inbound message came from the configured authorized Telegram
+  chat — a mechanical backstop for the Lightning Payment Policy so a
+  prompt-injection attempt can't talk the model into paying regardless of
+  what the policy prose says. `plugin-version-check` (Stop) blocks ending a
+  turn that changed a plugin's files without bumping its version, backstopping
+  root CLAUDE.md's Plugin Versioning policy the same way `telegram-reply-check`
+  already backstops the Telegram reply rule. Both are opt-in, not part of the
+  default seven-hook install.
 - `sandbox-manager` `post-restart-check` skill (v0.8.0): checks three
   failure modes that have each independently broken this workspace after a
   container restart — a dropped SSH commit-signing `.pub` file (auto-fixed

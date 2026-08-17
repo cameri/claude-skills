@@ -1,6 +1,6 @@
 ---
 name: setup-hooks
-description: Installs a curated set of Claude Code hooks (a destructive `rm` guard, a channel-reply enforcement Stop hook, usage-threshold Telegram alerts, an idle-state tracker, a session handoff-doc reader, a new-session Telegram notifier, and a statusline usage-cache wrapper) into this sandbox's own `~/.claude/settings.json`. Use when the user asks to set up hooks, adopt hooks into sandbox-manager, install the usage-alert/telegram-reply-check/destructive-var-guard hooks, or replicate this session's hook configuration elsewhere.
+description: Installs a curated set of Claude Code hooks (a destructive `rm` guard, a channel-reply enforcement Stop hook, usage-threshold Telegram alerts, an idle-state tracker, a session handoff-doc reader, a new-session Telegram notifier, a statusline usage-cache wrapper, a Lightning pay_invoice authorization gate, and a plugin-version-bump reminder) into this sandbox's own `~/.claude/settings.json`. Use when the user asks to set up hooks, adopt hooks into sandbox-manager, install the usage-alert/telegram-reply-check/destructive-var-guard hooks, or replicate this session's hook configuration elsewhere.
 allowed-tools:
   - Bash
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
 <essential_principles>
 Every bundled hook script in `hooks/` is portable and contains no secrets, chat IDs, or hardcoded paths of its own — personal values (a Telegram chat ID, a bot-token `.env` path, a timezone, a handoff-doc path) are read at runtime from `~/.claude/channels/sandbox-manager/hooks-config.json`, written by this skill's install script, never baked into the plugin's tracked files. Do not hand-edit a hook script to insert a chat ID or path — always go through `scripts/install-hooks.py` so the value lands in the config file instead.
 
-This skill only ever *adds* hook registrations — it never removes or rewrites a hook the user already has that isn't one of these seven, and it skips re-adding a hook whose command is already present in `settings.json` (idempotent). If `statusLine` is already set to something else, it warns and leaves it alone unless told to force-overwrite.
+This skill only ever *adds* hook registrations — it never removes or rewrites a hook the user already has that isn't one of these nine, and it skips re-adding a hook whose command is already present in `settings.json` (idempotent). If `statusLine` is already set to something else, it warns and leaves it alone unless told to force-overwrite.
 
 Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requires a working Telegram bot already configured for some channel plugin on this box (these hooks call the Telegram Bot API directly, or check for a specific channel plugin's reply-tool usage — they do not set up Telegram from scratch). If none exists, tell the user those three need a Telegram channel plugin installed and paired first, and offer to install just the Telegram-independent hooks (`destructive-var-guard`, `idle-state-tracker`, `whats-next-check`, `statusline-wrapper`).
 </essential_principles>
@@ -27,10 +27,12 @@ Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requ
 | `whats-next-check` | SessionStart | No | If a handoff doc exists (default `$CLAUDE_PROJECT_DIR/whats-next.md`), tells Claude to read and resume it. |
 | `session-start-notify` | SessionStart | Yes: chat ID + bot env path | Sends a Telegram message when a genuinely new session starts (skips resume/compact). |
 | `statusline-wrapper` | statusLine (not a hook event) | No | Wraps `ccstatusline` (via `npx`), caching context/rate-limit numbers to disk on every render for `usage-alert` to read. |
+| `pay-invoice-guard` | PreToolUse (the `lightning` plugin's `pay_invoice` tool) | No (needs an authorized chat ID, not a bot token) | Blocks any Lightning payment unless the transcript's most recent inbound message came from the configured authorized Telegram chat — a mechanical backstop for CLAUDE.md's Lightning Payment Policy. Only install where the `lightning` plugin is actually enabled. |
+| `plugin-version-check` | Stop | No | Blocks ending a turn that changed files inside a plugin directory (has `.claude-plugin/plugin.json`) without bumping that plugin's version — a mechanical backstop for CLAUDE.md's Plugin Versioning policy. Exempts brand-new, never-committed plugin directories. |
 </hook_catalog>
 
 <workflow>
-1. Ask the user which hooks they want (default: all seven) — use AskUserQuestion with the catalog above summarized, multiSelect enabled. If they only want a subset, use just that subset below.
+1. Ask the user which hooks they want (default: the original seven — `destructive-var-guard`, `telegram-reply-check`, `usage-alert`, `idle-state-tracker`, `whats-next-check`, `session-start-notify`, `statusline-wrapper`) — use AskUserQuestion with the catalog above summarized, multiSelect enabled. `pay-invoice-guard` and `plugin-version-check` are opt-in extras, not part of the default set — only offer `pay-invoice-guard` where the `lightning` plugin is actually installed, and only offer `plugin-version-check` where this sandbox actually has write access to a plugins repo.
 
 2. If any selected hook needs Telegram config (`usage-alert`, `session-start-notify`, or the user wants `telegram-reply-check` tuned to a non-default plugin), gather it:
    - Detect the channel plugin name: check `enabledPlugins` in `~/.claude/settings.json` for a plugin whose name suggests a Telegram/messaging channel, and confirm with the user rather than assuming.
@@ -39,6 +41,8 @@ Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requ
    - Ask for a timezone only if installing `usage-alert` and the user cares about localized reset times (optional — defaults to UTC).
 
 3. If `whats-next-check` is selected and the user has an opinion on a non-default handoff path, capture `--handoff-doc-path`. Otherwise the default (`$CLAUDE_PROJECT_DIR/whats-next.md`) needs no input.
+
+3a. If `pay-invoice-guard` is selected, ask the user directly for the authorized chat ID (`--pay-invoice-authorized-chat-id`) — same "don't guess" rule as the Telegram chat ID above, since this one gates real payments. If `plugin-version-check` is selected and the plugins repo isn't at the default `/workspace/projects/skills`, capture `--plugins-repo-path`.
 
 4. Run the installer once with every selected hook and the gathered config, from this skill's own directory:
 
@@ -53,7 +57,7 @@ Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requ
      --timezone <iana-tz>
    ```
 
-   Omit any `--hook` flags for hooks not selected, and omit any `--telegram-*`/`--timezone`/`--handoff-doc-path` flag that isn't needed by the selection. Consider running once first with `--dry-run` to preview the diff if the user seems unsure, then re-run for real.
+   Omit any `--hook` flags for hooks not selected, and omit any `--telegram-*`/`--timezone`/`--handoff-doc-path`/`--pay-invoice-authorized-chat-id`/`--plugins-repo-path` flag that isn't needed by the selection. Consider running once first with `--dry-run` to preview the diff if the user seems unsure, then re-run for real.
 
 5. Report what was installed (script paths written, hook events registered) and what was left untouched because it already existed. If `usage-alert` or `session-start-notify` was installed, remind the user the Telegram bot token itself was never touched by this skill — it stays wherever their existing channel plugin already stores it.
 
