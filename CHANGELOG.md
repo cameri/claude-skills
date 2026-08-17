@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` `session-start-notify.py` (v0.7.0): `/resume` now sends
+  its own Telegram notification ("Resumed session: &lt;name&gt;.") instead of
+  being silently skipped — it resolves the friendly name from
+  `~/.claude/sessions/*.json` (the same registry `telegram-ng`'s
+  `/sessions` picker reads), falling back to the short session id when no
+  name is on record. `compact` is still skipped (mid-conversation, not a
+  real boundary). Requested by Cameri after a `/resume` gave no feedback
+  that the switch had happened, 2026-08-17. TDD:
+  `session-start-notify.test.sh` covers `build_notification_text` for all
+  four source/lookup combinations.
 - `telegram-ng` (v0.7.0): four Bot API 10.x-driven improvements. `start_typing`/
   `stop_typing` tools replace the old one-shot `sendChatAction` call at
   message receipt, which silently expired after ~5s and was never re-armed
