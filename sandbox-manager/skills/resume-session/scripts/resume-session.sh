@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-# Sends /resume <name> + Enter to the tmux pane running this Claude Code session.
+# Sends /resume <name> + Enter to the pane running this Claude Code session
+# (tmux or herdr, whichever the container uses).
 set -euo pipefail
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../lib" && pwd)/pane-io.sh"
 
 if [ $# -ne 1 ] || [ -z "$1" ]; then
   echo "Usage: $0 <session-name>" >&2
   exit 1
 fi
 
-if [ -z "${TMUX:-}" ]; then
-  echo "Not running inside tmux — nothing to resume." >&2
+if [ -z "$(pane_io_active)" ]; then
+  echo "Not running inside tmux or herdr — nothing to resume." >&2
   exit 1
 fi
 
-pane_id=$(tmux display-message -p '#{pane_id}')
-pane_cmd=$(tmux display-message -p '#{pane_current_command}')
+pane_id=$(pane_io_current_id)
+pane_cmd=$(pane_io_current_cmd "$pane_id")
 
 case "$pane_cmd" in
   claude|node|bun)
@@ -24,7 +27,5 @@ case "$pane_cmd" in
     ;;
 esac
 
-# -l sends the text literally so the name can't be misread as tmux key names.
-tmux send-keys -t "$pane_id" -l -- "/resume $1"
-tmux send-keys -t "$pane_id" Enter
+pane_io_send "$pane_id" "/resume $1"
 echo "Sent /resume $1 to pane $pane_id"
