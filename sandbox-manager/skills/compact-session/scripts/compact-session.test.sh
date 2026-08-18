@@ -39,15 +39,12 @@ assert_contains() {
   esac
 }
 
-# Sets up a temp dir with a stub tmux on PATH, a fresh send-keys log, and
-# exports STUB_PANE_CMD / STUB_PANE_ID for the stub's display-message replies.
 setup() {
   TEST_TMP="$(mktemp -d)"
   STUB_DIR="$TEST_TMP/bin"
   mkdir -p "$STUB_DIR"
   cat > "$STUB_DIR/tmux" <<'EOF'
 #!/usr/bin/env bash
-# Stub tmux: records send-keys calls, answers display-message -p from env vars.
 case "$1" in
   display-message)
     fmt="$3"
@@ -62,8 +59,6 @@ case "$1" in
     ;;
   send-keys)
     shift
-    # Record each arg delimited by \x1f (unit separator) so args containing
-    # spaces don't get confused with arg boundaries, one call per line.
     { printf '%s\x1f' "$@"; printf '\n'; } >> "$TMUX_STUB_LOG"
     ;;
   *)
@@ -73,9 +68,38 @@ case "$1" in
 esac
 EOF
   chmod +x "$STUB_DIR/tmux"
+  cat > "$STUB_DIR/herdr" <<'EOF'
+#!/usr/bin/env bash
+case "$1" in
+  pane)
+    case "$2" in
+      process-info)
+        cat <<JSON
+{"result":{"process_info":{"foreground_processes":[{"argv":["${STUB_PANE_ARGV0:-claude}"],"name":"MainThread"}]}}}
+JSON
+        ;;
+      run)
+        shift 2
+        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
+        ;;
+      *)
+        echo "stub herdr: unhandled pane subcommand: $*" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "stub herdr: unhandled command: $*" >&2
+    exit 1
+    ;;
+esac
+EOF
+  chmod +x "$STUB_DIR/herdr"
   export PATH="$STUB_DIR:$PATH"
   export TMUX_STUB_LOG="$TEST_TMP/send-keys.log"
+  export HERDR_STUB_LOG="$TEST_TMP/pane-run.log"
   : > "$TMUX_STUB_LOG"
+  : > "$HERDR_STUB_LOG"
 }
 
 teardown() {
@@ -137,6 +161,20 @@ export STUB_PANE_ID="%1"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(d) exits non-zero when not in tmux" "1" "$rc"
 assert_eq "(d) no send-keys logged when not in tmux" "" "$(cat "$TMUX_STUB_LOG")"
+teardown
+
+# --- (e) herdr mode: one pane-run call with the composed text ---
+setup
+unset TMUX
+export HERDR_ENV=1
+export HERDR_PANE_ID="w1:p1"
+export STUB_PANE_ARGV0="claude"
+out="$("$TARGET" "keep the API design decisions" 2>&1)"; rc=$?
+assert_eq "(e) exits zero for a claude pane with an arg, herdr mode" "0" "$rc"
+line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
+assert_eq "(e) exactly one pane-run invocation logged" "1" "$line_count"
+assert_eq "(e) pane-run sends pane id and composed text" \
+  "w1:p1${us}/compact keep the API design decisions${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
 teardown
 
 echo
