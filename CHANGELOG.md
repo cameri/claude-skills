@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` `pane-io.sh` shared library (v0.10.0): a multiplexer-agnostic
+  pane-control layer (`pane_io_active`, `pane_io_current_id`,
+  `pane_io_current_cmd`, `pane_io_send`) that detects tmux vs herdr at runtime
+  via `$TMUX`/`$HERDR_ENV`. All 9 session-control scripts
+  (`restart-session`, `exit-session`, `background-session`, `branch-session`,
+  `reload-plugins`, `rename-session`, `resume-session`, `export-session`,
+  `compact-session`) now source it instead of calling `tmux` directly, so
+  they work under either multiplexer without a hard cutover. `exit-session`
+  additionally calls `herdr session stop` after sending `/exit` in herdr
+  mode, since herdr — unlike tmux — doesn't tear a session down just because
+  its pane's foreground process exited (a live-tested behavioral
+  difference); without that explicit stop the container would never
+  actually restart on `/exit`. Established test coverage for all 9 scripts
+  via one shared-pattern test file each (previously only `compact-session`
+  had a test).
 - `jj` plugin: six new actionable skills (`commit`, `split`, `squash`,
   `cleanup`, `checkout`, `rebase`) for the everyday git-analogous operations,
   filling in `/jj:commit`, `/jj:split`, `/jj:squash`, `/jj:cleanup` which
