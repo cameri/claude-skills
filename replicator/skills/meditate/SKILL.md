@@ -25,8 +25,10 @@ skill implements that spec's seven-step cycle. Read it once if this is your
 first run in a session — the vocabulary (gene, mute, cycle, watchlist,
 speculative build) is defined there.
 
-State lives in `docs/replicator/` (workspace repo — commit and push at the
-end of the cycle). The ledger CLI is invoked as
+State lives in `docs/replicator/` (`docs/` is its own standalone git repo,
+`git@github.com:cameri/docs.git` — split out of the workspace repo on
+2026-08-16; commit and push there with `git -C /workspace/docs`, not `jj`,
+at the end of the cycle). The ledger CLI is invoked as
 `bun run /workspace/projects/skills/replicator/scripts/ledger-cli.ts
 <command> ...` — it defaults to `REPLICATOR_STATE_DIR=/workspace/docs/replicator`,
 so no env var needs setting in this workspace.
@@ -298,19 +300,20 @@ that and why — a no-op cycle is not a failed cycle, but it must be
 visible, not silent.
 
 Then, commit in **each repo that actually changed** — `docs/replicator/`
-lives in the main workspace `jj` repo (this includes any ledger change
+lives in `docs/`'s own standalone git repo (this includes any ledger change
 Step 6 just made — `saveLedger` writes under `docs/replicator/`, so it's
-picked up by the same `jj status` check below); anything built or edited
-under `projects/skills/` (a new skill, an extended existing one) lives in
-that directory's own standalone git repo. Never run `jj` from `/workspace`
-expecting it to pick up `projects/skills/` changes — it won't, and the
-work silently stays uncommitted there.
+picked up by the same `git -C /workspace/docs status` check below); anything
+built or edited under `projects/skills/` (a new skill, an extended existing
+one) lives in that directory's own standalone git repo too. Never run `jj`
+from `/workspace` expecting it to pick up either — it won't (neither
+`docs/` nor `projects/skills/` is part of the workspace `jj` repo; `docs/`
+is in fact `.gitignore`d from it), and the work silently stays uncommitted
+in the repo that actually owns it.
 
-1. Workspace repo: `cd /workspace && jj status`. If anything under
-   `docs/replicator/` changed, `jj describe -m "replicator: cycle <today>"`,
-   then `jj bookmark move main --to @` and `jj git push --bookmark main`
-   — in this workspace `jj git push` alone does not move `main`, so skipping
-   the bookmark move silently pushes nothing.
+1. `docs/` repo: `git -C /workspace/docs status --short`. If anything under
+   `replicator/` changed, `git -C /workspace/docs add -A && git -C
+   /workspace/docs commit -m "replicator: cycle <today>" && git -C
+   /workspace/docs push origin main`.
 2. Skills repo (only if this cycle built or edited anything under
    `projects/skills/`): `git -C /workspace/projects/skills status`; if
    dirty, `git -C /workspace/projects/skills add -A && git -C

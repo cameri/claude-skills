@@ -124,6 +124,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the standing default for every Telegram turn (see phoenix-server
   `CLAUDE.md` Telegram Communication section) without relying on the model
   to remember to call the tool.
+- `telegram-ng` (v0.10.0): new `bot-api-reference` skill — a curated, offline
+  reference to the Telegram Bot API surface (`updates-and-polling`,
+  `messages-and-entities`, `groups-and-privacy`, `files-and-media`,
+  `inline-keyboards-and-callbacks`), sourced from a live fetch of
+  https://core.telegram.org/bots/api and https://core.telegram.org/bots/features
+  on 2026-08-18 (Bot API 10.2), so future changes to `server.ts` don't require
+  re-fetching and re-reading the full upstream spec from scratch. Intentionally
+  skips 10.x features `telegram-ng` doesn't use (Rich Messages, Gifts, Stories,
+  Business accounts, Suggested Posts, Passport, Games, Payments).
 
 ### Changed
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
@@ -147,6 +156,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `replicator` (v0.7.1): `meditate` skill's Step 7 commit instructions still
+  told the cycle to commit `docs/replicator/` via `jj` from the workspace
+  repo. `docs/` was split into its own standalone git repo
+  (`git@github.com:cameri/docs.git`) on 2026-08-16 and is now `.gitignore`d
+  from the workspace repo — following the stale instructions verbatim would
+  silently no-op (`jj status` sees nothing under a gitignored path) and
+  leave the ledger/trace uncommitted. The 2026-08-16 cycle happened to catch
+  this itself and committed correctly via `git`, but the written
+  instructions never got updated to match; fixed now so a future cycle
+  doesn't have to re-derive it. Caught live during the 2026-08-18 cycle.
 - `telegram-ng` (v0.9.2): fix stale comment claiming sandbox-manager scripts only self-detect tmux panes; comment now documents that both `$TMUX`/`$TMUX_PANE` (tmux) and `$HERDR_ENV`/`$HERDR_PANE_ID` (herdr) env vars work identically, with the actual multiplexer detection logic in the `sandbox-manager` scripts themselves (see `pane-io.sh`).
 - `telegram-ng` (v0.9.1): the `/sessions` picker's "current" flag relied on
   `CLAUDE_CODE_SESSION_ID` matching a transcript filename — broken the

@@ -1,6 +1,6 @@
 {
   "name": "replicator",
   "description": "Grows and prunes this instance's own skill set — captures reusable procedures during work, and nightly meditates on usage history, recent sessions, and frontier sources to build or mute skills with scrutiny. Publishes a gene registry over Nostr and mirrors it to a GitHub gist; cross-instance voting and adoption not yet built.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "keywords": ["skills", "automation", "self-improvement", "cronjobs"]
 }
