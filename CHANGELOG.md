@@ -156,6 +156,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `cronjobs` (v0.0.4): the MCP server's `Cron` scheduler was constructed with
+  a hardcoded `timezone: "UTC"`, so every job — including natural-language
+  ones like "every day at 3am" whose whole point is to hide cron's UTC
+  assumption — actually fired in UTC regardless of the container's `$TZ`
+  (`America/Toronto` here). A "3am" job fired at 3am UTC (11pm ET the prior
+  night), a "8am" job fired at 4am ET, etc. — a consistent 4-5h-early offset
+  depending on DST. Root-caused live on 2026-08-18 after three jobs
+  (`replicator:meditate`, the Claude-version-update check, its 8am
+  restart-reminder) all showed the same offset. Now resolves the scheduler's
+  timezone from `$TZ` (falling back to the JS runtime's local timezone) once
+  at startup and passes it to every `Cron` instance, including the
+  `add-job` probe used to compute the `nextRun` shown back to the caller.
+  Requires restarting the `cronjobs` MCP server (e.g. `/reload-plugins` or a
+  session restart) to pick up the fix — existing jobs' stored cron
+  expressions need no migration, they're timezone-agnostic strings that
+  just get interpreted correctly once the server restarts.
 - `replicator` (v0.7.1): `meditate` skill's Step 7 commit instructions still
   told the cycle to commit `docs/replicator/` via `jj` from the workspace
   repo. `docs/` was split into its own standalone git repo

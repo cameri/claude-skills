@@ -25,6 +25,11 @@ const JOBS_FILE = join(STATE_DIR, "jobs.json");
 
 mkdirSync(STATE_DIR, { recursive: true });
 
+// All "at TIME"/raw-cron schedules are meant in the server's local time, not
+// UTC — croner defaults to UTC unless told otherwise, which silently ran
+// every job ~4-5h off from what its schedule string implied.
+const TIMEZONE = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 interface Job {
   id: string;
   task: string;
@@ -232,7 +237,7 @@ function startJob(job: Job): void {
     }, delay);
     activeJobs.set(job.id, { stop: () => clearTimeout(timer) });
   } else {
-    const cron = new Cron(job.expression, { timezone: "UTC" }, () => {
+    const cron = new Cron(job.expression, { timezone: TIMEZONE }, () => {
       fireNotification(job);
     });
     activeJobs.set(job.id, cron);
@@ -326,7 +331,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 
       if (parsed.type === "cron") {
         try {
-          const probe = new Cron(parsed.value, { paused: true });
+          const probe = new Cron(parsed.value, { paused: true, timezone: TIMEZONE });
           const next = probe.nextRun();
           probe.stop();
           if (next) job.nextRun = next.toISOString();
