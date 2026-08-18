@@ -487,11 +487,14 @@ const IDLE_THRESHOLD_MS = 45 * 60 * 1000
 const IDLE_CHECK_INTERVAL_MS = 60 * 1000
 const IDLE_COMPACT_CAP = 1
 
-// Sibling sandbox-manager scripts. Each script self-detects its tmux pane
-// via the $TMUX/$TMUX_PANE env vars, which this process inherits from its
-// parent `claude` process (verified: child processes of the CLI see the
-// same tmux session even though `bun run --cwd` changes cwd to the plugin
-// root) — so no separate pane-registry lookup is needed.
+// Sibling sandbox-manager scripts. Each script self-detects its pane via
+// $TMUX/$TMUX_PANE (tmux) or $HERDR_ENV/$HERDR_PANE_ID (herdr) env vars,
+// which this process inherits from its parent `claude` process the same
+// way regardless of which multiplexer the container uses (verified: child
+// processes of the CLI see the same session even though `bun run --cwd`
+// changes cwd to the plugin root) — so no separate pane-registry lookup or
+// code branch is needed here; the actual multiplexer detection lives in
+// the sandbox-manager scripts themselves (see pane-io.sh).
 //
 // Resolved from the installed plugin's cache path (versioned, changes on
 // every sandbox-manager update) rather than hardcoded, so this works for a

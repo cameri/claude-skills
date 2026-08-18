@@ -147,6 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a separate flow and were left untouched.
 
 ### Fixed
+- `telegram-ng` (v0.9.2): fix stale comment claiming sandbox-manager scripts only self-detect tmux panes; comment now documents that both `$TMUX`/`$TMUX_PANE` (tmux) and `$HERDR_ENV`/`$HERDR_PANE_ID` (herdr) env vars work identically, with the actual multiplexer detection logic in the `sandbox-manager` scripts themselves (see `pane-io.sh`).
 - `telegram-ng` (v0.9.1): the `/sessions` picker's "current" flag relied on
   `CLAUDE_CODE_SESSION_ID` matching a transcript filename — broken the
   moment a session is resumed after an `/exit`-triggered restart, since the
