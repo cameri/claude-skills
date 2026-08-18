@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Sends /reload-plugins + Enter to the tmux pane running this Claude Code session.
+# Sends /reload-plugins + Enter to the pane running this Claude Code session
+# (tmux or herdr, whichever the container uses).
 set -euo pipefail
 
-if [ -z "${TMUX:-}" ]; then
-  echo "Not running inside tmux — nothing to reload." >&2
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../lib" && pwd)/pane-io.sh"
+
+if [ -z "$(pane_io_active)" ]; then
+  echo "Not running inside tmux or herdr — nothing to reload." >&2
   exit 1
 fi
 
-pane_id=$(tmux display-message -p '#{pane_id}')
-pane_cmd=$(tmux display-message -p '#{pane_current_command}')
+pane_id=$(pane_io_current_id)
+pane_cmd=$(pane_io_current_cmd "$pane_id")
 
 case "$pane_cmd" in
   claude|node|bun)
@@ -19,5 +22,5 @@ case "$pane_cmd" in
     ;;
 esac
 
-tmux send-keys -t "$pane_id" "/reload-plugins" Enter
+pane_io_send "$pane_id" "/reload-plugins"
 echo "Sent /reload-plugins to pane $pane_id"
