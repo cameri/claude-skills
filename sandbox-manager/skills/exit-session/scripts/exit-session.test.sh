@@ -123,6 +123,7 @@ line_count="$(wc -l < "$TMUX_STUB_LOG" | tr -d ' ')"
 assert_eq "(c) exactly two send-keys invocations logged" "2" "$line_count"
 assert_eq "(c) sends /exit literally" "-t${us}%3${us}-l${us}--${us}/exit${us}" "$(sed -n '1p' "$TMUX_STUB_LOG")"
 assert_eq "(c) sends Enter" "-t${us}%3${us}Enter${us}" "$(sed -n '2p' "$TMUX_STUB_LOG")"
+assert_eq "(c) no herdr session stop in tmux mode" "" "$(cat "$HERDR_SESSION_STOP_LOG")"
 teardown
 
 # --- (d) herdr mode: sends /exit via pane run ---

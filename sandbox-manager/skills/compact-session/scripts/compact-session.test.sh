@@ -100,6 +100,7 @@ EOF
   export HERDR_STUB_LOG="$TEST_TMP/pane-run.log"
   : > "$TMUX_STUB_LOG"
   : > "$HERDR_STUB_LOG"
+  unset TMUX HERDR_ENV HERDR_PANE_ID
 }
 
 teardown() {

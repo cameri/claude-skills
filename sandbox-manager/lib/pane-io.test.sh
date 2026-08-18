@@ -148,6 +148,13 @@ assert_eq "current_cmd: herdr mode uses argv[0], not the unreliable name field" 
   "$(bash -c "source '$LIB'; pane_io_current_cmd 'w1:p1'")"
 teardown
 
+setup
+export HERDR_ENV=1
+export STUB_PANE_ARGV0="/usr/local/bin/node"
+assert_eq "current_cmd: herdr mode basenames a full path correctly" "node" \
+  "$(bash -c "source '$LIB'; pane_io_current_cmd 'w1:p1'")"
+teardown
+
 # --- pane_io_send ---
 setup
 export TMUX="/tmp/fake,1,0"

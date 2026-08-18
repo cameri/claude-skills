@@ -35,9 +35,10 @@ pane_io_current_cmd() {
       # The JSON's "name" field is unreliable (e.g. reports "MainThread" for
       # a node process, verified live against herdr 0.8.0) - argv[0] is the
       # actual command, basenamed to match tmux's bare-name convention.
-      herdr pane process-info --pane "$pane_id" \
-        | jq -r '.result.process_info.foreground_processes[0].argv[0] // empty' \
-        | xargs -r basename
+      local argv0
+      argv0="$(herdr pane process-info --pane "$pane_id" \
+        | jq -r '.result.process_info.foreground_processes[0].argv[0] // empty')"
+      echo "${argv0##*/}"
       ;;
     tmux)
       tmux display-message -p '#{pane_current_command}'
