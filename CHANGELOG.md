@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `telegram-ng` (v0.11.0): inbound support for Telegram message reactions —
+  `bot.on('message_reaction', ...)` delivers a `notifications/claude/channel`
+  event whenever a paired sender reacts to (or unreacts from, or swaps a
+  reaction on) any message the bot can see, gated through the same `gate()`
+  allowlist as regular messages. Required explicitly listing
+  `allowed_updates: ['message', 'callback_query', 'poll_answer',
+  'message_reaction']` on `bot.start()` — Telegram's default update set
+  silently excludes `message_reaction` unless requested, and specifying any
+  `allowed_updates` list replaces rather than extends that default, so the
+  three previously-implicit types had to be listed alongside it or they'd
+  have silently stopped arriving too. New pure `formatReactionChange` helper
+  in `inbound-context.ts` reads the old/new reaction sets and reports
+  add/remove/swap in one sentence; no new message-id → text cache needed
+  since the model already has its own sent messages (with their Telegram
+  message_id) in its own transcript from the `reply` tool's return value.
+
 - `sandbox-manager` `pane-io.sh` shared library (v0.10.0): a multiplexer-agnostic
   pane-control layer (`pane_io_active`, `pane_io_current_id`,
   `pane_io_current_cmd`, `pane_io_send`) that detects tmux vs herdr at runtime

@@ -7,7 +7,7 @@
  * which the host renders as XML tag attributes — safeName mirrors the
  * sanitization already applied to attachment names for the same reason.
  */
-import type { MessageEntity, MessageOrigin } from 'grammy/types'
+import type { MessageEntity, MessageOrigin, ReactionType } from 'grammy/types'
 
 export function safeName(s: string | undefined): string | undefined {
   return s?.replace(/[<>\[\]\r\n;]/g, '_')
@@ -75,4 +75,26 @@ export function formatPollAnswer(optionIds: number[], options: string[]): string
   if (optionIds.length === 0) return 'retracted their vote'
   const chosen = optionIds.map(i => safeName(options[i]) ?? `option ${i}`)
   return `voted for: ${chosen.join(', ')}`
+}
+
+function reactionLabel(r: ReactionType): string {
+  if (r.type === 'emoji') return r.emoji
+  if (r.type === 'paid') return '⭐'
+  return 'a custom emoji'
+}
+
+// message_reaction updates carry the full old/new reaction sets rather than
+// a single delta — a user can only have one reaction per message in a normal
+// chat (multiple only when the chat allows it), but the sets are compared
+// wholesale so an add, remove, or swap all read naturally either way.
+export function formatReactionChange(oldReaction: ReactionType[], newReaction: ReactionType[]): string {
+  const oldLabels = oldReaction.map(reactionLabel)
+  const newLabels = newReaction.map(reactionLabel)
+  if (newLabels.length === 0) {
+    return oldLabels.length ? `removed their ${oldLabels.join(', ')} reaction` : 'reaction cleared'
+  }
+  if (oldLabels.length === 0 || oldLabels.join(',') === newLabels.join(',')) {
+    return `reacted ${newLabels.join(', ')}`
+  }
+  return `changed their reaction from ${oldLabels.join(', ')} to ${newLabels.join(', ')}`
 }

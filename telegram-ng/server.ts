@@ -29,7 +29,7 @@ import { promisify } from 'util'
 import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
 import { pickRecentSessions, buildSessionsMenuRows, SESSIONS_MENU_ID } from './sessions-menu'
 import { formatUsageMessage, type UsageCache } from './usage-cache'
-import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer } from './inbound-context'
+import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer, formatReactionChange } from './inbound-context'
 
 const execFileAsync = promisify(execFile)
 
@@ -1300,6 +1300,32 @@ bot.on('poll_answer', async ctx => {
   })
 })
 
+bot.on('message_reaction', async ctx => {
+  const result = gate(ctx)
+  if (result.action !== 'deliver') return // reactions never trigger pairing prompts, just silently drop
+
+  const reaction = ctx.messageReaction!
+  const from = ctx.from
+  if (!from) return // anonymous (acting as a channel/group) — nothing to attribute this to
+
+  const content = formatReactionChange(reaction.old_reaction, reaction.new_reaction)
+  void mcp.notification({
+    method: 'notifications/claude/channel',
+    params: {
+      content,
+      meta: {
+        chat_id: String(reaction.chat.id),
+        message_id: String(reaction.message_id),
+        user: from.username ?? String(from.id),
+        user_id: String(from.id),
+        ts: new Date(reaction.date * 1000).toISOString(),
+      },
+    },
+  }).catch(err => {
+    process.stderr.write(`telegram channel: failed to deliver message_reaction to Claude: ${err}\n`)
+  })
+})
+
 bot.on('message:photo', async ctx => {
   const caption = ctx.message.caption ?? '(photo)'
   // Defer download until after the gate approves — any user can send photos,
@@ -1569,6 +1595,13 @@ void (async () => {
   for (let attempt = 1; ; attempt++) {
     try {
       await bot.start({
+        // Telegram's default update set (used when this is omitted) excludes
+        // message_reaction — it must be requested explicitly or reactions
+        // never arrive at all, silently. Everything else here (message,
+        // callback_query, poll_answer) was already being delivered by
+        // default; listing them keeps that behavior unchanged now that the
+        // default set no longer applies once any explicit list is given.
+        allowed_updates: ['message', 'callback_query', 'poll_answer', 'message_reaction'],
         onStart: info => {
           attempt = 0
           botUsername = info.username

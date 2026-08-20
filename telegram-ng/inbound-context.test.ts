@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer } from './inbound-context'
+import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer, formatReactionChange } from './inbound-context'
 
 describe('safeName', () => {
   test('strips delimiter chars that could break out of the <channel> tag', () => {
@@ -150,5 +150,43 @@ describe('formatPollAnswer', () => {
 
   test('sanitizes delimiter characters in option text', () => {
     expect(formatPollAnswer([0], ['<script>'])).toBe('voted for: _script_')
+  })
+})
+
+describe('formatReactionChange', () => {
+  const emoji = (e: string) => [{ type: 'emoji', emoji: e } as any]
+
+  test('reports a fresh reaction when there was none before', () => {
+    expect(formatReactionChange([], emoji('👍'))).toBe('reacted 👍')
+  })
+
+  test('reports a removed reaction when the new set is empty', () => {
+    expect(formatReactionChange(emoji('👍'), [])).toBe('removed their 👍 reaction')
+  })
+
+  test('reports a swap from one emoji to another', () => {
+    expect(formatReactionChange(emoji('👍'), emoji('❤'))).toBe('changed their reaction from 👍 to ❤')
+  })
+
+  test('treats an identical old/new set as just reacted (no-op edge case)', () => {
+    expect(formatReactionChange(emoji('🔥'), emoji('🔥'))).toBe('reacted 🔥')
+  })
+
+  test('handles both sets empty without throwing', () => {
+    expect(formatReactionChange([], [])).toBe('reaction cleared')
+  })
+
+  test('joins multiple simultaneous reactions', () => {
+    expect(formatReactionChange([], [...emoji('👍'), ...emoji('❤')])).toBe('reacted 👍, ❤')
+  })
+
+  test('labels a paid reaction with a star', () => {
+    expect(formatReactionChange([], [{ type: 'paid' } as any])).toBe('reacted ⭐')
+  })
+
+  test('labels a custom emoji reaction generically', () => {
+    expect(formatReactionChange([], [{ type: 'custom_emoji', custom_emoji_id: 'abc' } as any])).toBe(
+      'reacted a custom emoji',
+    )
   })
 })
