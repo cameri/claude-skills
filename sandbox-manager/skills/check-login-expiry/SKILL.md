@@ -10,7 +10,7 @@ allowed-tools:
 <essential_principles>
 The CLI shows its login-expiry banner from `claudeAiOauth.refreshTokenExpiresAt` in `~/.claude/.credentials.json`, warning once that's within 3 days of now, with `daysLeft = ceil(remaining_ms / 86400000)`. This skill reads the exact same field with the exact same formula instead of scraping the tmux pane for the banner text — more reliable, and it needs no state file: once `/login` runs, `refreshTokenExpiresAt` jumps back out past the 3-day window and the check goes quiet on its own.
 
-Only one account/credentials file is in scope — confirmed with Cameri (2026-08-13) that claude-ricardo and claude-gina share the same underlying account, so checking this instance's credentials file is sufficient; no need to also read `containers/claude-gina/.claude/.credentials.json`.
+Only one account/credentials file is in scope — confirmed with Cameri (2026-08-13) that claude-ricardo and claude-gina share the same underlying account, so checking this instance's credentials file is sufficient; no need to also read `containers/claude-gina/home/.claude/.credentials.json` (path moved under a consolidated `home/` mount 2026-08-20).
 
 This is not a channel-triggered skill like its siblings in this plugin — it fires when a daily cron job (added via the `cronjobs` plugin) invokes it. Stay silent on Telegram when there's nothing to report, matching this workspace's convention for periodic checks (e.g. the daily Claude Code version-update job) — don't send a "still fine" message every day, only send when `warn` is true.
 </essential_principles>
