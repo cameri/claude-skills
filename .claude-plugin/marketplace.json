@@ -145,7 +145,7 @@
     },
     {
       "name": "jj",
-      "description": "Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS.",
+      "description": "Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for the everyday operations git users reach for out of habit (commit, split, squash, cleanup, checkout, rebase).",
       "tools": [
         "claude"
       ],
@@ -252,7 +252,7 @@
     },
     {
       "name": "sandbox-manager",
-      "description": "Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane.",
+      "description": "Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health.",
       "tools": [
         "claude"
       ],
@@ -323,6 +323,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./lightning"
+    },
+    {
+      "name": "repo-hygiene-sweep",
+      "description": "Sweep every standalone repo in a multi-repo workspace for uncommitted or unpushed work, without missing the ones a plain `git status`/`jj status` from the workspace root can't see.",
+      "tools": ["claude"],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./repo-hygiene-sweep"
     }
   ]
 }

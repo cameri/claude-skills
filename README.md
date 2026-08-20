@@ -15,13 +15,16 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs | Claude + Cursor |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts | Claude |
 | [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history | Claude + Cursor |
-| [jj](./jj/) | Jujutsu (jj) version control system skill — stack-based workflows, change curation, and jj best practices for Git-compatible VCS | Claude |
+| [jj](./jj/) | Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for everyday operations (commit, split, squash, cleanup, checkout, rebase) | Claude |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory | Claude |
+| [lightning](./lightning/) | Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server over Nostr Wallet Connect | Claude |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast | Claude + Cursor |
 | [netshoot](./netshoot/) | Network troubleshooting inside Docker container networks using nicolaka/netshoot | Claude |
 | [nostr](./nostr/) | Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs | Claude |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API | Claude + Cursor |
-| [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions and (soon) install plugins — by driving its own tmux pane | Claude |
+| [replicator](./replicator/) | Grows and prunes this instance's own skill set — captures reusable procedures during work, and nightly meditates on usage history and frontier sources to build or mute skills with scrutiny; publishes a gene registry over Nostr and mirrors it to a GitHub gist | Claude |
+| [repo-hygiene-sweep](./repo-hygiene-sweep/) | Sweep every standalone repo in a multi-repo workspace for uncommitted or unpushed work, without missing the ones a plain `git status`/`jj status` from the workspace root can't see | Claude |
+| [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health | Claude |
 | [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop | Claude |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache | Claude + Cursor |
 | [telegram](./telegram/) | Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription | Claude |
@@ -33,17 +36,17 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Skill | Description |
 |---|---|
-| `/actual-budget:configure` | Set up Actual Budget credentials — save the server URL and password |
-| `/actual-budget:budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
+| `/actual-budget:access` | Set up Actual Budget credentials — save the server URL and password |
+| `/actual-budget:query-budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
 | `/actual-budget:add-transaction` | Add a transaction — spending, income, or any financial event |
 
 ### finance-manager
 
 | Skill | Description |
 |---|---|
-| `/finance-manager:setup` | Onboard the plugin for first use (household, accounts, hot/cold wallets, ownership, connecting Actual Budget/Paperless-ngx) or review/add/remove tracked entries and periodic sync jobs |
+| `/finance-manager:setup-finance-manager` | Onboard the plugin for first use (household, accounts, hot/cold wallets, ownership, connecting Actual Budget/Paperless-ngx) or review/add/remove tracked entries and periodic sync jobs |
 | `/finance-manager:reconcile-statement` | Reconcile a bank statement against ActualBudget — syncs accounts, matches transactions, self-improves reconciliation rules |
-| `/finance-manager:paperless-workflows` | Create or fix Paperless-ngx workflows so bank statement documents auto-tag correctly |
+| `/finance-manager:manage-paperless-workflows` | Create or fix Paperless-ngx workflows so bank statement documents auto-tag correctly |
 | `/finance-manager:query-mempool` | Look up Bitcoin transactions, addresses, and wallet descriptor (single-sig or multisig) balances/history via the mempool.space API |
 | `/finance-manager:review-finances` | Run a household financial review — execution audit, net worth/liquidity check, tax/expense optimization scan, and a single-sitting report with goal tracking and up to 3 next actions |
 
@@ -57,6 +60,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `github-manager:manage-ci` | Handles GitHub CI events; alerts on failures via Telegram |
 | `github-manager:manage-projects` | Handles GitHub Projects v2 events; notifies on lifecycle changes, escalates external activity via Telegram |
 | `github-manager:manage-admin` | Handles GitHub security alerts, collaborator changes, pushes, and admin events |
+| `github-manager:create-stories` | Parses a PRD and creates a structured hierarchy of GitHub issues (stories + sub-issues) with milestone assignment and project board integration |
 
 ### journal
 
@@ -73,7 +77,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `elevenlabs:agents` | Build real-time voice AI agents and assistants |
 | `elevenlabs:music` | Generate instrumental tracks, songs, and background music from prompts |
 | `elevenlabs:sound-effects` | Generate sound effects, ambient sounds, and audio textures from text |
-| `elevenlabs:setup-api-key` | Configure an ElevenLabs API key (ELEVENLABS_API_KEY) |
+| `elevenlabs:access` | Configure an ElevenLabs API key (ELEVENLABS_API_KEY) |
 | `elevenlabs:elevenlabs-transcribe` | Batch or realtime audio transcription via CLI scripts |
 
 ### executable-skepticism
@@ -86,28 +90,39 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Skill | Description |
 |---|---|
-| `/nats:configure` | Configure the NATS server URL for agent communication |
-| `/nats:status` | Show connection info and all discovered agents with their capabilities |
-| `/nats:discover` | Discover all agents on the NATS network and list their capabilities |
-| `/nats:call` | Invoke a capability on a specific agent by agent ID |
-| `/nats:broadcast` | Broadcast a capability invocation to all agents and collect responses |
-| `/nats:message` | Send a free-form message directly to another agent |
+| `/nats:access` | Configure the NATS server URL for agent communication |
+| `/nats:show-nats-status` | Show connection info and all discovered agents with their capabilities |
+| `/nats:discover-agents` | Discover all agents on the NATS network and list their capabilities |
+| `/nats:invoke-agent` | Invoke a capability on a specific agent by agent ID |
+| `/nats:broadcast-agents` | Broadcast a capability invocation to all agents and collect responses |
+| `/nats:send-message` | Send a free-form message directly to another agent |
 
 ### paperless
 
 | Skill | Description |
 |---|---|
-| `/paperless:configure` | Save the instance URL, username, and password; verify connection |
-| `/paperless:search` | Full-text search, similarity search, or autocomplete |
-| `/paperless:upload` | Upload a local file with optional metadata |
-| `/paperless:content` | Display the full OCR-extracted text of a document by ID |
-| `/paperless:view` | Download the archived PDF; when called from Telegram, sends the file to chat |
+| `/paperless:access` | Save the instance URL, username, and password; verify connection |
+| `/paperless:search-documents` | Full-text search, similarity search, or autocomplete |
+| `/paperless:upload-document` | Upload a local file with optional metadata |
+| `/paperless:view-content` | Display the full OCR-extracted text of a document by ID |
+| `/paperless:view-document` | Download the archived PDF; when called from Telegram, sends the file to chat |
 
 ### sandbox-manager
 
 | Skill | Description |
 |---|---|
 | `sandbox-manager:restart-session` | Fires automatically on a `/clear` channel message; sends `/clear` + Enter to the tmux pane running this Claude Code session |
+| `sandbox-manager:rename-session` | Names or renames the current session; fires on a `/rename <name>` channel message |
+| `sandbox-manager:resume-session` | Restores a named session, replacing the current conversation; fires on a `/resume <name>` channel message |
+| `sandbox-manager:branch-session` | Branches the current conversation at the current point; fires on a `/branch` channel message |
+| `sandbox-manager:compact-session` | Compacts the current conversation (optionally with retention instructions); fires on a `/compact` channel message |
+| `sandbox-manager:background-session` | Hands the current work to a background agent, freeing the interactive pane; fires on a `/background` channel message |
+| `sandbox-manager:export-session` | Exports the current conversation to a file; fires on a `/export [path]` channel message |
+| `sandbox-manager:exit-session` | Hard-exits the session (vs. `/clear`'s soft reset); fires on a `/exit` channel message |
+| `sandbox-manager:manage-plugins` | Adds plugin marketplaces, or installs/updates/enables/disables/uninstalls a plugin for this sandbox's own running session |
+| `sandbox-manager:setup-hooks` | Installs the curated hook set (rm guard, channel-reply enforcement, usage alerts, idle tracker, session handoff reader, new-session notifier, statusline cache wrapper, and more) |
+| `sandbox-manager:check-login-expiry` | Checks whether this session's login is about to expire and reports over Telegram if so; fires on a daily cronjobs job |
+| `sandbox-manager:post-restart-check` | Post-restart health check — SSH signing key still has its public half, Docker Buildx present, no Containerfile pip package silently dropped by a rebuild |
 
 ### cronjobs
 
@@ -125,17 +140,18 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Skill | Description |
 |---|---|
-| `/technitium-dns:configure` | Save the server URL and API token (or username/password) |
-| `/technitium-dns:query` | Query DNS stats — top clients, top domains, query counts, cache info |
-| `/technitium-dns:zone` | List, create, delete, enable, or disable DNS zones |
-| `/technitium-dns:record` | Add, list, update, or delete A, AAAA, CNAME, MX, TXT, SRV records |
+| `/technitium-dns:access` | Save the server URL and API token (or username/password) |
+| `/technitium-dns:query-dns-stats` | Query DNS stats — top clients, top domains, query counts, cache info |
+| `/technitium-dns:manage-dns-zones` | List, create, delete, enable, or disable DNS zones |
+| `/technitium-dns:manage-dns-records` | Add, list, update, or delete A, AAAA, CNAME, MX, TXT, SRV records |
+| `/technitium-dns:manage-blocking` | Block or allow domains — check status, add/remove domain overrides, manage block list URLs |
 
 ### wallabag
 
 | Skill | Description |
 |---|---|
-| `/wallabag:configure` | Save the instance URL and OAuth credentials |
-| `/wallabag:save` | Save a URL to Wallabag to read later |
+| `/wallabag:access` | Save the instance URL and OAuth credentials |
+| `/wallabag:save-url` | Save a URL to Wallabag to read later |
 
 ### webhooks
 
@@ -172,6 +188,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Skill | Description |
 |---|---|
 | `jj:working-with-jj` | Use Jujutsu (jj) instead of git for all version control operations in this workspace — commits, history, branching, pushing |
+| `/jj:commit` | Describes the current working-copy change (jj's equivalent of `git commit`), optionally stacking a new empty change on top |
+| `/jj:split` | Splits the current (or a specified) change into two, by file/path or interactively — jj's equivalent of `git add -p && git commit` |
+| `/jj:squash` | Moves changes from one change into another (usually working copy into parent) — jj's equivalent of `git commit --amend` or a fixup squash |
+| `/jj:rebase` | Moves changes onto a different parent — jj's equivalent of `git rebase`, without stopping for conflicts |
+| `/jj:checkout` | Switches to an existing change or bookmark — jj's equivalent of `git checkout`/`git switch` |
+| `/jj:cleanup` | Removes stray empty changes and stale/orphaned workspaces |
 
 ### nostr
 
@@ -198,12 +220,30 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 ### telegram-ng
 
-Fork of Anthropic's official `telegram` plugin — see [telegram-ng/README.md](./telegram-ng/README.md). Not yet the live driver for this workspace; `telegram` above remains active pending cutover.
+Fork of Anthropic's official `telegram` plugin — see [telegram-ng/README.md](./telegram-ng/README.md). This is the live channel driver for this workspace; `telegram` above is the unforked predecessor, kept in the repo for reference/other users.
 
 | Skill | Description |
 |---|---|
 | `/telegram-ng:configure` | Save the bot token and review access policy |
 | `/telegram-ng:access` | Manage Telegram channel access — pairings, allowlists, DM/group policy |
+| `telegram-ng:bot-api-reference` | Reference for Telegram's Bot API surface — consulted before modifying server.ts to add or change Telegram behavior |
+
+### lightning
+
+MCP-only — no `SKILL.md` skills. Ships an MCP server (`@getalby/mcp`) wired to a self-hosted NWC wallet; use its `parse_invoice`/`pay_invoice`/balance/transaction tools directly.
+
+### replicator
+
+| Skill | Description |
+|---|---|
+| `replicator:capture` | Queue a candidate skill the moment you notice something reusable was just learned during a session |
+| `replicator:meditate` | Run the nightly replicator cycle — review gene usage, look inward/outward for skills worth building, build with scrutiny, prune stale ones, write a trace |
+
+### repo-hygiene-sweep
+
+| Skill | Description |
+|---|---|
+| `repo-hygiene-sweep:repo-hygiene-sweep` | Checks every repo in a multi-repo workspace — the workspace repo plus every standalone repo listed in its root CLAUDE.md — for uncommitted or unpushed work |
 
 ## Commands
 

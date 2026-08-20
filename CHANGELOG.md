@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- README.md: caught up with reality after drifting out of sync with plugin
+  changes — added missing `lightning`, `replicator`, and `repo-hygiene-sweep`
+  plugin rows/skill tables; fixed slash-command names that had silently
+  diverged from actual skill folder names across `actual-budget`, `nats`,
+  `paperless`, `wallabag`, `elevenlabs`, `finance-manager`, and
+  `technitium-dns` (which was also missing its `manage-blocking` skill
+  entirely); expanded `jj` and `sandbox-manager` skill tables from 1 listed
+  skill each to their actual 7 and 12; added `github-manager:create-stories`;
+  corrected the `telegram-ng` status note (it's the live channel driver now,
+  not "pending cutover"); updated stale `jj`/`sandbox-manager` one-line
+  descriptions to match current `plugin.json`. Also registered
+  `repo-hygiene-sweep` in `.claude-plugin/marketplace.json`, which had never
+  been added despite the plugin existing since its introducing commit — it
+  was undiscoverable/uninstallable via `/plugin install` until now.
+
 ### Added
 - `telegram-ng` (v0.11.0): inbound support for Telegram message reactions —
   `bot.on('message_reaction', ...)` delivers a `notifications/claude/channel`
