@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Redacted real personal/instance identity that had leaked into tracked
+  plugin content: a hardcoded Telegram chat ID (`sandbox-manager`'s
+  `check-login-expiry`), a hardcoded personal git-identity email
+  (`github-manager/CLAUDE.md`), and named references to the maintainer by
+  first name in operational skill instructions (`replicator`'s `capture`
+  and `meditate`, `sandbox-manager`'s `check-login-expiry`) — all replaced
+  with portable/generic phrasing so installing these plugins doesn't reveal
+  whose instance they came from. Moved `container-management`'s
+  `references/environment.md` (real internal IPs, real Cloudflare/Tailscale
+  domains, a real webhook path) out of the plugin entirely to
+  `docs/infra/container-management-environment.md` (workspace-local, not
+  shipped) — the plugin's copy is now a generic template pointing there.
+  Replaced the same real IP used as a live example in `netshoot` with the
+  RFC 5737 documentation-reserved `192.0.2.1`. Left git-commit-author
+  emails alone (already public via GitHub regardless, and explicitly
+  out of scope per the maintainer).
+
 ### Fixed
 - README.md: caught up with reality after drifting out of sync with plugin
   changes — added missing `lightning`, `replicator`, and `repo-hygiene-sweep`

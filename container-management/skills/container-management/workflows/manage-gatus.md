@@ -113,7 +113,7 @@ Alert providers are defined under `alerting:` at the top of the config.
 ```yaml
 alerting:
   custom:
-    url: "http://10.0.6.2:3456/webhook/<webhook_id>"
+    url: "http://<host-ip>:3456/webhook/<webhook_id>"
     method: POST
     body: |
       {

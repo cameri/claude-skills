@@ -25,7 +25,7 @@ future session could run instead of re-deriving.
 1. If `$ARGUMENTS` says to build it now (e.g. "now", "build it"), skip
    queueing — invoke the normal skill-authoring flow directly
    (`create-agent-skills` or `superpowers:writing-skills`) and stop.
-   Nightly scrutiny is the default path, not a requirement Cameri can't
+   Nightly scrutiny is the default path, not a requirement the user can't
    override in the moment.
 2. Otherwise, compose a queue entry:
    - **What was learned** — 2-4 sentences, specific enough that a

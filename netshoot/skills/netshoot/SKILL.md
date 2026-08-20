@@ -12,7 +12,7 @@ Run network diagnostics inside the Docker container network using the nicolaka/n
 # From /workspace/containers/
 ./scripts/netshoot curl http://forgejo:3000
 ./scripts/netshoot ping gatus
-./scripts/netshoot nc -zv 10.0.6.2 5432
+./scripts/netshoot nc -zv 192.0.2.1 5432
 ```
 
 **The script must be run from `/workspace/containers/`** so it can load `.env` via `--env-file .env`.
@@ -63,9 +63,9 @@ NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot curl -f http://<container>:
 
 **Test TCP port connectivity:**
 ```bash
-./scripts/netshoot nc -zv 10.0.6.2 5432      # PostgreSQL
-./scripts/netshoot nc -zv 10.0.6.2 6379      # Redis
-./scripts/netshoot nc -zv 10.0.6.2 27017     # MongoDB
+./scripts/netshoot nc -zv 192.0.2.1 5432      # PostgreSQL
+./scripts/netshoot nc -zv 192.0.2.1 6379      # Redis
+./scripts/netshoot nc -zv 192.0.2.1 27017     # MongoDB
 ```
 
 **DNS resolution:**

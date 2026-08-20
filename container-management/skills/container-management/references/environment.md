@@ -15,13 +15,7 @@ Three shared Docker networks are defined in the root `compose.yml`. Services con
 </networks>
 
 <external_dependencies>
-These services run on `10.0.6.2` (the host), not in Docker:
-
-| Service | Address |
-|---------|---------|
-| Redis | `10.0.6.2:6379` |
-| PostgreSQL | `10.0.6.2:5432` |
-| MongoDB | `10.0.6.2:27017` |
+Some services run on the host's own IP (not in Docker) rather than a container network — see your own `docs/infra/container-management-environment.md` (workspace-local, not shipped with this plugin) for the actual host/port table in your instance. Common candidates: Redis, PostgreSQL, MongoDB.
 
 Services that depend on these connect directly by IP. Do not add them to Docker networks.
 </external_dependencies>
@@ -30,7 +24,7 @@ Services that depend on these connect directly by IP. Do not add them to Docker 
 Located at `/workspace/containers/scripts/`:
 
 - **`netshoot` skill** — launches a diagnostics container for network troubleshooting. Script at `projects/claude-skills/netshoot/scripts/netshoot`. Supports `NETSHOOT_NETWORK` env var. Example: `NETSHOOT_NETWORK=containers_gatus ../projects/claude-skills/netshoot/scripts/netshoot curl http://forgejo:3000`
-- **`pgdb`** — PostgreSQL database/user management on 10.0.6.2. Commands: `create-db`, `create-user`, `grant`, `list-db`, `list-users`, `list-tables`, `query`
+- **`pgdb`** — PostgreSQL database/user management on the host (see your `docs/infra/container-management-environment.md` for the actual address). Commands: `create-db`, `create-user`, `grant`, `list-db`, `list-users`, `list-tables`, `query`
 - **`bw`** — Bitwarden secrets retrieval. Auto-unlocks vault using credentials from `.env`. Commands: `search`, `get`, `password`, `username`, `field`, `list`, `sync`
 - **`scan`** / **`scan-batch`** — container image security scanning via HarborGuard
 - **`scan-secrets`** — secret scanning in files
@@ -65,16 +59,16 @@ All containers must have a `dev.dozzle.group` label for log organization:
 </dozzle_groups>
 
 <public_access>
-- **Cloudflare tunnels** (public): `status.tnsor.network`, `nostrcheck.tnsor.network`, `blog.ricardocabral.io`
-- **Tailscale** (private, `*.panther-lizard.ts.net`): all services with TsDproxy config
-- **Host ports**: Akkadian Agent on `10.0.6.2:3000`
+- **Cloudflare tunnels** (public): your own domains — see `docs/infra/container-management-environment.md`
+- **Tailscale** (private): your own tailnet — all services with TsDproxy config
+- **Host ports**: any host-networked service — see `docs/infra/container-management-environment.md` for the actual addresses
 </public_access>
 
 <gatus_monitoring>
 Gatus config: `/workspace/containers/gatus/config/config.yaml`
 
 - Hot-reloads on config change — no restart needed
-- Alert providers: `telegram` and `custom` (webhook to `http://10.0.6.2:3456/webhook/f37af80f`)
+- Alert providers: `telegram` and `custom` (webhook URL is workspace-local — see `docs/infra/container-management-environment.md`, never hardcode it here)
 - Standard thresholds: failure-threshold 3, success-threshold 2, send-on-resolved true
 - Higher thresholds (10/2): DNS services, Immich (slower to stabilize)
 

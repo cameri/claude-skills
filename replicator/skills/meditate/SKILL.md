@@ -60,7 +60,7 @@ so no env var needs setting in this workspace.
    is the agent runtime driving this cycle (e.g. `claude-code`), the model
    is the specific model family running it (e.g. `claude-sonnet-5`); both
    are available from the session's own operating context, never asked of
-   Cameri. Idempotent — recording the same pair twice is a no-op, so this
+   the user. Idempotent — recording the same pair twice is a no-op, so this
    runs every cycle regardless of whether Step 7 (Publish) is eligible
    this cycle.
 
@@ -108,14 +108,14 @@ scheduled review — a routine only gets attention in a cycle that actually
 turned up something about it, so accumulating more routines never raises
 this step's baseline cost.
 
-Graduation between skills and routines is always Cameri-confirmed, never
+Graduation between skills and routines is always user-confirmed, never
 automatic:
 - If a routine's pattern has crisped into one discrete invocable step,
   propose it for Step 4's build queue this cycle and mark the
   `routines.md` entry `graduated → <plugin>:<skill>` once built.
 - If a stale or rarely-invoked gene's spirit keeps recurring in a broader
   multi-step way rather than as its own trigger, propose reframing it as a
-  routine instead of pruning it — flag it to Cameri the same way removal
+  routine instead of pruning it — flag it to the user the same way removal
   candidates already are in Step 5, don't apply it automatically.
 
 ## Step 3 — Outward scan
@@ -152,7 +152,7 @@ Handle the result:
 - **Score 3-4:** discard the finding; log it in the trace as "considered,
   rejected — safety" with the subagent's reasoning.
 - **Score 1-2:** discard, log it in the trace, **and** trigger active
-  defense: reply over Telegram to Cameri (`chat_id` from `sources.md`'s
+  defense: reply over Telegram to the user (`chat_id` from `sources.md`'s
   owner note) with the subagent's evidence, and add the source to
   `sources.md`'s `## Blocklisted` section with the date and reason.
 
@@ -203,7 +203,7 @@ invalid, etc.), leave that entry in `queue.md` rather than dropping it, and
 append a one-line failure note to it with today's date. Track consecutive
 failures by counting prior failure notes on the same entry: on the 3rd
 consecutive failure, stop retrying it automatically, say so plainly in the
-trace, and flag it to Cameri in the Telegram summary as needing a manual
+trace, and flag it to the user in the Telegram summary as needing a manual
 look.
 
 If a watchlist entry was picked as this cycle's speculative build, note in
@@ -220,9 +220,9 @@ seasonal genes). Read `ledger.json` for `cycles.reportOnlyPruning`:
   `removalCandidates` in the trace as "would mute" / "would flag for
   removal." Once `cycles.count` shows ≥5 cycles with stable, sane-looking
   `classify`/`prune` output (skim recent traces), say so plainly in the
-  trace and ask Cameri — in the next Telegram summary — whether to turn
+  trace and ask the user — in the next Telegram summary — whether to turn
   report-only off. Only run `ledger-cli.ts set-report-only --value false`
-  after Cameri says yes. Never flip it yourself without that.
+  after the user says yes. Never flip it yourself without that.
 - **If `false`:** for each gene in `toMute`, run `ledger-cli.ts mute --key
   <gene> --reason decay`, and disable it — `claude plugin disable
   <plugin>@cameri-skills` if the gene is a whole plugin (Claude Code has no
@@ -234,14 +234,14 @@ seasonal genes). Read `ledger.json` for `cycles.reportOnlyPruning`:
 
 **Harm is different from staleness.** If at any point this cycle a gene is
 observed causing active harm (not just going unused), mute it immediately
-regardless of report-only mode, and flag it to Cameri as an incident in the
+regardless of report-only mode, and flag it to the user as an incident in the
 Telegram summary — not batched with routine pruning.
 
 The replicator applies the same rule to itself: propose its own removal
 (`propose-removal --key "replicator:meditate"`) only if this cycle's
 activity, or a pattern across recent traces, shows real harm (wasted
 spend, bad builds, an injection incident it couldn't contain) — and wait
-for Cameri's confirm exactly like any other removal candidate.
+for the user's confirm exactly like any other removal candidate.
 
 **6. Publish (registry).** Check whether the replicator's own Nostr
 identity exists at `$REPLICATOR_CREDENTIALS_DIR/.env` (default
@@ -325,5 +325,5 @@ in the repo that actually owns it.
    rather than reporting the cycle as clean.
 4. If anything user-visible changed (built, muted, watchlisted, a source
    change, an incident, or a registry publish): reply over Telegram to
-   Cameri with a short summary. A pure no-op cycle stays silent — no ping
+   the user with a short summary. A pure no-op cycle stays silent — no ping
    for "nothing happened."

@@ -38,7 +38,7 @@ if [ $# -eq 0 ]; then
     echo "  $0 ping gatus"
     echo "  $0 dig forgejo"
     echo "  $0 nslookup immich-server"
-    echo "  $0 nc -zv 10.0.6.2 5432"
+    echo "  $0 nc -zv 192.0.2.1 5432"
     echo "  $0 ss -tuln"
     echo "  $0 nmap -p 3000 forgejo"
     echo "  $0 ctop"
