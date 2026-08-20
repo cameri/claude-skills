@@ -183,7 +183,7 @@
       "source": "./autoresearch"
     },
     {
-      "name": "docker-maintenance",
+      "name": "container-management",
       "description": "Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
       "tools": [
         "claude",
@@ -194,7 +194,7 @@
         "name": "Ricardo Arturo Cabral Mejía",
         "email": "cameri@users.noreply.github.com"
       },
-      "source": "./docker-maintenance"
+      "source": "./container-management"
     },
     {
       "name": "netshoot",

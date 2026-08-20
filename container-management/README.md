@@ -1,4 +1,4 @@
-# docker-maintenance
+# container-management
 
 Claude Code skill for maintaining Docker Compose services and custom images.
 
@@ -15,12 +15,12 @@ Claude Code skill for maintaining Docker Compose services and custom images.
 
 | Skill | Trigger |
 |-------|---------|
-| `docker-maintenance` | "update containers", "maintain docker", "update <service>" |
+| `container-management` | "update containers", "maintain docker", "update <service>" |
 
 ## Usage
 
 ```
-/docker-maintenance
+/container-management
 ```
 
 Or invoke directly: "update the sops container" / "show the update log" / "which container needs updating?"

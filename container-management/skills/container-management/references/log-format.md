@@ -8,7 +8,7 @@ Create with this header if the file doesn't exist:
 ```markdown
 # Container Update Log
 
-> Managed by the `docker-maintenance` skill.
+> Managed by the `container-management` skill.
 > One entry per update attempt. Format: date, service, type, changes, result.
 
 ---

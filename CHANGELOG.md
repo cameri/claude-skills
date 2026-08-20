@@ -135,6 +135,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Business accounts, Suggested Posts, Passport, Games, Payments).
 
 ### Changed
+- `docker-maintenance` renamed to `container-management` (v0.2.2): plugin
+  dir, inner skill dir, `plugin.json`/`SKILL.md`/marketplace entry, and all
+  cross-references (root README, containers/AGENTS.md) updated to the new
+  name. No functional change — same workflows, same routing.
+
 - `telegram-ng` (v0.6.0): replaced the `/sessions` picker's hand-rolled
   `InlineKeyboard` + `bot.on('callback_query:data', ...)` regex dispatch
   with the official `@grammyjs/menu` plugin (`sessions-menu.ts`,

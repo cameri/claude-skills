@@ -1,5 +1,5 @@
 ---
-name: docker-maintenance
+name: container-management
 description: Update Docker base images with sha256 pinning, manage Containerfile dependencies, test builds, and keep an audit log. Use when updating containers or checking for stale images.
 ---
 
