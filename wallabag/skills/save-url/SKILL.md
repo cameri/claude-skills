@@ -25,7 +25,7 @@ Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from 
 </context>
 
 <setup>
-Load credentials from `~/.claude/channels/wallabag/${ENV}.env`. If the file doesn't exist or any key is missing, tell the user to run `/wallabag:configure-wallabag env=$ENV setup` first and stop.
+Load credentials from `~/.claude/channels/wallabag/${ENV}.env`. If the file doesn't exist or any key is missing, tell the user to run `/wallabag:access env=$ENV setup` first and stop.
 </setup>
 
 <argument_parsing>
@@ -48,7 +48,7 @@ TOKEN=$(http --ignore-stdin -f POST "${WALLABAG_URL%/}/oauth/v2/token" \
   password="$WALLABAG_PASSWORD" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 ```
 
-If the token is empty, report an authentication failure and suggest running `/wallabag:configure-wallabag env=$ENV` to verify credentials.
+If the token is empty, report an authentication failure and suggest running `/wallabag:access env=$ENV` to verify credentials.
 
 **Save the entry:**
 
@@ -67,7 +67,7 @@ Omit `tags` and `title` fields if not provided.
 - **HTTP 200** — success. Report:
   > 📥 Saved! "*{title}*" added to Wallabag (entry #{id}).
   If `http_status` in the response is `403`, add a note that the fetcher was blocked (e.g. Cloudflare) and the content may not be captured correctly.
-- **HTTP 401** — token expired or invalid; suggest re-running `/wallabag:configure-wallabag env=$ENV`.
+- **HTTP 401** — token expired or invalid; suggest re-running `/wallabag:access env=$ENV`.
 - **Other error** — show the status code and response body.
 </display_results>
 

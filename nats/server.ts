@@ -316,7 +316,7 @@ const mcp = new Server(
       "Broadcast subject: claude.agents.broadcast.<capability>",
       "",
       "Agent cache is stored at ~/.claude/channels/nats/agents.json.",
-      "Run /nats:configure to change the NATS server URL.",
+      "Run /nats:access to change the NATS server URL.",
     ].join("\n"),
   },
 );
@@ -388,7 +388,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   const args = (req.params.arguments ?? {}) as Record<string, unknown>;
 
   if (req.params.name !== "get_agents" && !nc) {
-    return { content: [{ type: "text", text: "NATS not connected — check /nats:configure" }], isError: true };
+    return { content: [{ type: "text", text: "NATS not connected — check /nats:access" }], isError: true };
   }
 
   try {

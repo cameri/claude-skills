@@ -344,6 +344,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [nats 0.0.6] - 2026-08-21
+
+### Fixed
+- `README.md` and `server.ts`: the credential skill was renamed to `access`
+  a while back, but this plugin's own README quick-start/skill table and two
+  runtime error/help strings in `server.ts` still told users to run the
+  nonexistent `/nats:configure` — found via a `graphify` knowledge-graph pass
+  over the whole `skills` marketplace, which flagged the README's reference
+  as an AMBIGUOUS edge. Corrected all four to `/nats:access`.
+
+## [wallabag 0.0.3] - 2026-08-21
+
+### Fixed
+- `README.md` and `skills/save-url/SKILL.md`: same drift as `nats` above,
+  also caught by the `graphify` pass. The README quick-start still referenced
+  the pre-rename `/wallabag:configure` and `/wallabag:save`; `save-url`'s own
+  SKILL.md pointed users at a third, never-existent `/wallabag:configure-wallabag`
+  in three places. Corrected all to the real skill names, `/wallabag:access`
+  and `/wallabag:save-url`.
+
 ## [telegram-ng 0.3.0] - 2026-08-15
 
 ### Added

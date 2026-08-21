@@ -8,7 +8,7 @@ invoked point-to-point or via broadcast.
 ## Quick start
 
 ```
-/nats:configure NATS_URL=nats://my-server:4222
+/nats:access NATS_URL=nats://my-server:4222
 ```
 
 Then restart Claude Code with the channel flag:
@@ -28,7 +28,7 @@ on the network.
 
 | Skill | Command | Description |
 |---|---|---|
-| configure | `/nats:configure` | Save the NATS server URL, test connectivity |
+| access | `/nats:access` | Save the NATS server URL, test connectivity |
 | status | `/nats:status` | Show agent status, NATS URL, and known agents |
 | discover | `/nats:discover` | Ping the network and list all discovered agents |
 | call | `/nats:call` | Invoke a capability on a specific agent |

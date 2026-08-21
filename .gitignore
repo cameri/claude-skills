@@ -1,2 +1,6 @@
 node_modules/
 **/*.env
+
+# graphify extraction cache (graph outputs themselves live at /workspace/graphify-out,
+# set via GRAPHIFY_OUT in the installed post-commit/post-checkout hooks)
+graphify-out/
