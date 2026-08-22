@@ -30,6 +30,7 @@ import { shouldPromptIdle, nextIdleAction } from './idle-sentinel'
 import { pickRecentSessions, buildSessionsMenuRows, SESSIONS_MENU_ID } from './sessions-menu'
 import { formatUsageMessage, type UsageCache } from './usage-cache'
 import { safeName, truncateQuoted, extractLinkEntities, formatForwardOrigin, formatPollAnswer, formatReactionChange } from './inbound-context'
+import { formatPermissionInput, truncateForTelegram, PERMISSION_MESSAGE_MAX_CHARS } from './permission-request'
 
 const execFileAsync = promisify(execFile)
 
@@ -455,6 +456,12 @@ const pendingPermissions = new Map<string, { tool_name: string; description: str
 // Groups are intentionally excluded — the security thread resolution was
 // "single-user mode for official plugins." Anyone in access.allowFrom
 // already passed explicit pairing; group members haven't.
+//
+// The full description + input preview are shown in THIS first message, not
+// gated behind "See more" — a sender approving from a push-notification
+// preview or a quick glance must not be able to Allow/Deny a tool call
+// without ever seeing what it actually does. "See more" only appears when
+// the content had to be truncated to fit Telegram's message-length cap.
 mcp.setNotificationHandler(
   z.object({
     method: z.literal('notifications/claude/channel/permission_request'),
@@ -469,11 +476,19 @@ mcp.setNotificationHandler(
     const { request_id, tool_name, description, input_preview } = params
     pendingPermissions.set(request_id, { tool_name, description, input_preview })
     const access = loadAccess()
-    const text = `🔐 Permission: ${tool_name}`
+
+    const prettyInput = formatPermissionInput(input_preview)
+    const rawText = `🔐 Permission: ${tool_name}\n\n${description}\n\n${prettyInput}`
+    const { text, truncated } = truncateForTelegram(
+      rawText,
+      PERMISSION_MESSAGE_MAX_CHARS,
+      '\n…(truncated — tap See more for the full input)',
+    )
+
     const keyboard = new InlineKeyboard()
-      .text('See more', `perm:more:${request_id}`)
-      .text('✅ Allow', `perm:allow:${request_id}`)
-      .text('❌ Deny', `perm:deny:${request_id}`)
+    if (truncated) keyboard.text('See more', `perm:more:${request_id}`).row()
+    keyboard.text('✅ Allow', `perm:allow:${request_id}`).text('❌ Deny', `perm:deny:${request_id}`)
+
     for (const chat_id of access.allowFrom) {
       void bot.api.sendMessage(chat_id, text, { reply_markup: keyboard }).catch(e => {
         process.stderr.write(`permission_request send to ${chat_id} failed: ${e}\n`)
@@ -1249,17 +1264,13 @@ bot.on('callback_query:data', async ctx => {
       return
     }
     const { tool_name, description, input_preview } = details
-    let prettyInput: string
-    try {
-      prettyInput = JSON.stringify(JSON.parse(input_preview), null, 2)
-    } catch {
-      prettyInput = input_preview
-    }
-    const expanded =
+    const prettyInput = formatPermissionInput(input_preview)
+    const rawExpanded =
       `🔐 Permission: ${tool_name}\n\n` +
       `tool_name: ${tool_name}\n` +
       `description: ${description}\n` +
       `input_preview:\n${prettyInput}`
+    const { text: expanded } = truncateForTelegram(rawExpanded, PERMISSION_MESSAGE_MAX_CHARS, '\n…(truncated)')
     const keyboard = new InlineKeyboard()
       .text('✅ Allow', `perm:allow:${request_id}`)
       .text('❌ Deny', `perm:deny:${request_id}`)

@@ -42,6 +42,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was undiscoverable/uninstallable via `/plugin install` until now.
 
 ### Security
+- `telegram-ng` (v0.12.0): a `permission_request` notification's first
+  Telegram message now shows the tool's `description` and pretty-printed
+  `input_preview` (e.g. the actual Bash command) directly, instead of a
+  bare `🔐 Permission: Bash` with Allow/Deny buttons and the real content
+  gated behind a separate "See more" tap. Reported by the maintainer: a
+  push-notification preview or a quick glance previously let a sender
+  Allow/Deny a tool call without ever seeing what it actually does — an
+  approval flow that's supposed to require informed consent shouldn't be
+  answerable blind. "See more" now only appears when the combined message
+  would exceed Telegram's plain-text length cap; the formatting/truncation
+  logic was extracted into a new `permission-request.ts` module with unit
+  tests (previously untested inline logic in `server.ts`).
+
 - `agent-resources` (v0.2.0): added an explicit sensitive-data/PII/OSINT
   checklist alongside the existing portability checklist, wired into every
   skill in the plugin that generates or audits content — `portability.md`'s
