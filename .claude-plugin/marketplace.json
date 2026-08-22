@@ -345,6 +345,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./audiobookshelf"
+    },
+    {
+      "name": "agent-resources",
+      "description": "Build and audit Claude Code skills, hooks, MCP servers, and subagents — the toolkit for extending Claude Code itself.",
+      "tools": ["claude", "cursor"],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./agent-resources"
     }
   ]
 }

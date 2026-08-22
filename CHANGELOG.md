@@ -357,6 +357,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [agent-resources 0.1.0] - 2026-08-22
+
+### Added
+- New plugin: `agent-resources`, migrated from the `taches-cc-resources` fork
+  (`phoenix-server/taches-cc-resources`, MIT-licensed). 7 skills
+  (create-agent-skills, create-hooks, create-mcp-servers, create-subagents
+  copied as-is; audit-skill, audit-subagent, heal-skill authored fresh from
+  thin slash commands into real trigger-worthy skills) and 2 subagents
+  (skill-auditor, subagent-auditor). Part of retiring the separate
+  taches-cc-resources marketplace — see
+  `docs/superpowers/specs/2026-08-22-agent-resources-migration-design.md`.
+
 ## [audiobookshelf 0.1.0] - 2026-08-22
 
 ### Added

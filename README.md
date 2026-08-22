@@ -7,6 +7,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Plugin | Description | Tools |
 |---|---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets | Claude + Cursor |
+| [agent-resources](./agent-resources/) | Build and audit Claude Code skills, hooks, MCP servers, and subagents | Claude + Cursor |
 | [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
 | [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
 | [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
@@ -39,6 +40,18 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | `/actual-budget:access` | Set up Actual Budget credentials — save the server URL and password |
 | `/actual-budget:query-budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
+
+### agent-resources
+
+| Skill | Description |
+|---|---|
+| `/agent-resources:create-agent-skills` | Expert guidance for creating, writing, building, and refining Claude Code Skills |
+| `/agent-resources:create-hooks` | Create Claude Code hooks (PreToolUse, PostToolUse, Stop, SessionStart, UserPromptSubmit) |
+| `/agent-resources:create-mcp-servers` | Expert guidance for building MCP servers for Claude integrations (Python/TypeScript) |
+| `/agent-resources:create-subagents` | Expert guidance for creating, building, and using Claude Code subagents |
+| `/agent-resources:audit-skill` | Audit a SKILL.md file for YAML compliance, pure XML structure, progressive disclosure, and best practices |
+| `/agent-resources:audit-subagent` | Audit a subagent configuration file for role definition, prompt quality, and tool selection |
+| `/agent-resources:heal-skill` | Apply corrections to a skill's SKILL.md based on mistakes discovered during execution, with approval workflow |
 
 ### audiobookshelf
 
@@ -320,7 +333,7 @@ After reloading, all plugin skills are available (e.g. `/paperless:configure`, `
 
 Cursor reads the same `SKILL.md` format as Claude Code (frontmatter `name`/`description`, discovered from `.cursor/skills/<name>/SKILL.md`) and the same `.mcp.json` shape (`{"mcpServers": {...}}`, read from `~/.cursor/mcp.json`). No plugin content needs to change for Cursor — only how it's discovered.
 
-The 10 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`, `audiobookshelf`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
+The 11 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`, `audiobookshelf`, `agent-resources`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
 
 ### 1. Symlink each skill directory
 
