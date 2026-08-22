@@ -42,6 +42,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was undiscoverable/uninstallable via `/plugin install` until now.
 
 ### Added
+- `sandbox-manager` `plugin-version-check` hook (v0.11.0): now also blocks
+  ending a turn where a plugin's `skills/` directory gained, lost, or
+  renamed a skill (detected via `git status` add/delete/rename codes on
+  `<plugin>/skills/*/SKILL.md`) unless README.md or
+  `.claude-plugin/marketplace.json` changed in the same turn — a mechanical
+  backstop for CLAUDE.md's skill-drift note, closing the exact gap that let
+  three plugins go undocumented until the 2026-08-20 README audit caught it
+  by hand. Built by `replicator:meditate`'s 2026-08-22 cycle (Step 2 inward
+  candidate — the memory note itself reads as a repeatable check, not a
+  one-time fact) as an extension of the existing hook rather than a new one,
+  per the existing `skill_structural_by_plugin`/`docs_changed` gate; a plain
+  content edit to an existing `SKILL.md` does not trigger it.
+
 - `telegram-ng` (v0.11.0): inbound support for Telegram message reactions —
   `bot.on('message_reaction', ...)` delivers a `notifications/claude/channel`
   event whenever a paired sender reacts to (or unreacts from, or swaps a

@@ -28,7 +28,7 @@ Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requ
 | `session-start-notify` | SessionStart | Yes: chat ID + bot env path | Sends a Telegram message when a genuinely new session starts (skips resume/compact). |
 | `statusline-wrapper` | statusLine (not a hook event) | No | Wraps `ccstatusline` (via `npx`), caching context/rate-limit numbers to disk on every render for `usage-alert` to read. |
 | `pay-invoice-guard` | PreToolUse (the `lightning` plugin's `pay_invoice` tool) | No (needs an authorized chat ID, not a bot token) | Blocks any Lightning payment unless the transcript's most recent inbound message came from the configured authorized Telegram chat — a mechanical backstop for CLAUDE.md's Lightning Payment Policy. Only install where the `lightning` plugin is actually enabled. |
-| `plugin-version-check` | Stop | No | Blocks ending a turn that changed files inside a plugin directory (has `.claude-plugin/plugin.json`) without bumping that plugin's version — a mechanical backstop for CLAUDE.md's Plugin Versioning policy. Exempts brand-new, never-committed plugin directories. |
+| `plugin-version-check` | Stop | No | Blocks ending a turn that changed files inside a plugin directory (has `.claude-plugin/plugin.json`) without bumping that plugin's version — a mechanical backstop for CLAUDE.md's Plugin Versioning policy. Also blocks if a plugin's `skills/` directory gained, lost, or renamed a skill without README.md/marketplace.json changing alongside it — a backstop for CLAUDE.md's skill-drift note. Exempts brand-new, never-committed plugin directories. |
 </hook_catalog>
 
 <workflow>
