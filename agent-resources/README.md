@@ -14,13 +14,6 @@ Claude Code plugin for building and auditing the pieces that extend Claude Code 
 | audit-subagent | `/agent-resources:audit-subagent` | Audit a subagent configuration file for role definition, prompt quality, and tool selection |
 | heal-skill | `/agent-resources:heal-skill` | Apply corrections to a skill's SKILL.md based on mistakes discovered during execution, with approval workflow |
 
-## Agents
-
-| Agent | Description |
-|---|---|
-| skill-auditor | Expert skill auditor invoked by `audit-skill` — evaluates SKILL.md files against best practices |
-| subagent-auditor | Expert subagent auditor invoked by `audit-subagent` — evaluates subagent configs against best practices |
-
 This content is adapted from `phoenix-server/taches-cc-resources` (MIT-licensed).
 
 ## License

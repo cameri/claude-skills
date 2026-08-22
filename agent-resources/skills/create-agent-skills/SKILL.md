@@ -58,9 +58,9 @@ The skill body doesn't load until *after* Claude decides to invoke it. All "when
 
 **7. Skills Must Be Portable**
 Never hardcode project-specific values inside a skill. This includes:
-- Absolute file paths (`/workspace/projects/akkadian-agent/`)
-- Repo names or usernames (`cameri/akkadian-agent`)
-- Container or service names (`akkadian-agent`)
+- Absolute file paths (`/workspace/projects/your-service/`)
+- Repo names or usernames (`your-org/your-service`)
+- Container or service names (`your-service`)
 - Health signals, port numbers, or package manager assumptions
 - Trusted user lists
 

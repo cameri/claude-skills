@@ -7,11 +7,11 @@ A portable skill contains zero project-specific values. It reads context at runt
 
 **Non-portable (hardcoded):**
 ```
-Repo: cameri/akkadian-agent
-Local path: /workspace/projects/akkadian-agent/
-Service: akkadian-agent
+Repo: your-org/your-service
+Local path: /workspace/projects/your-service/
+Service: your-service
 Health signal: "Nest application successfully started"
-Trusted users: cameri, phoenix-server
+Trusted users: alice, bob
 ```
 
 **Portable (runtime discovery):**
@@ -27,7 +27,7 @@ Discover service names from compose file keys.
 Never write absolute paths to repos, workspaces, or tools (`/workspace/projects/...`, `/home/user/...`). These paths are environment-specific. If a workflow needs to `cd` into a repo, the path must come from CLAUDE.md or be inferred from the webhook payload.
 
 **Rule 2: No hardcoded repo names or usernames**
-`cameri/akkadian-agent`, `phoenix-server`, `dependabot[bot]` are project-specific. Put them in the plugin's CLAUDE.md and have the skill read from there.
+`your-org/your-service`, `bob`, `dependabot[bot]` are project-specific. Put them in the plugin's CLAUDE.md and have the skill read from there.
 
 **Rule 3: No hardcoded service names or health signals**
 Container names, health check strings, and port numbers belong in a CLAUDE.md or in a structured metadata file. A skill that only knows how to health-check one service is useless for any other.
@@ -44,11 +44,11 @@ Project-specific values belong in one of two places:
 ## Managed Repos
 | Repo | Local path | Compose service | Health signal |
 |------|-----------|-----------------|---------------|
-| cameri/akkadian-agent | /workspace/projects/akkadian-agent | akkadian-agent | "Nest application successfully started" |
+| your-org/your-service | /workspace/projects/your-service | your-service | "Nest application successfully started" |
 
 ## Trusted Principals
-- cameri
-- phoenix-server
+- alice
+- bob
 - dependabot[bot]
 - github-actions[bot]
 ```

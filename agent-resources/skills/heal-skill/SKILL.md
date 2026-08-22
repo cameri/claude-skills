@@ -15,6 +15,10 @@ Update a skill's SKILL.md and related files based on corrections discovered duri
 Analyze the conversation to detect which skill is running, reflect on what went wrong, propose specific fixes, get user approval, then apply changes with optional commit.
 </objective>
 
+<context>
+Skill detection: !`ls -1 ./skills/*/SKILL.md | head -5`
+</context>
+
 <quick_start>
 <workflow>
 1. **Detect skill** from conversation context (invocation messages, recent SKILL.md references)
@@ -32,8 +36,6 @@ Identify the skill from conversation context:
 - Look for skill invocation messages
 - Check which SKILL.md was recently referenced
 - Examine current task context
-
-Run `ls -1 ./skills/*/SKILL.md` (or the equivalent path for this plugin) to see candidate skills if it's not obvious from context.
 
 Set: `SKILL_NAME=[skill-name]` and `SKILL_DIR=./skills/$SKILL_NAME`
 
