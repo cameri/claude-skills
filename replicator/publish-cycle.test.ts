@@ -59,7 +59,7 @@ describe('filterPublicGenes', () => {
 })
 
 describe('buildPublishPlan', () => {
-  test('assembles exactly changed genes + 2 lists + 1 profile, in that order', () => {
+  test('assembles exactly changed genes + 2 lists + 1 profile + 1 announcement, in that order', () => {
     let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
     l = registerGene(l, 'b:b', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
     l = registerGene(l, 'c:c', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
@@ -68,12 +68,21 @@ describe('buildPublishPlan', () => {
 
     const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
 
-    expect(plan).toHaveLength(4)
+    expect(plan).toHaveLength(5)
     expect(plan[0].label).toBe('b:b')
     expect(plan[0].kind).toBe(GENE_RECORD_KIND)
     expect(plan[1].label).toBe('core')
     expect(plan[2].label).toBe('active')
     expect(plan[3].label).toBe('profile')
+    expect(plan[4].label).toBe('announcement')
+    expect(plan[4].kind).toBe(1)
+  })
+
+  test('no announcement when nothing changed since lastPublish', () => {
+    let l = registerGene(emptyLedger(), 'a:a', 'preexisting', '2026-08-14T03:00:00Z', '2026-08-14')
+    l = { ...l, cycles: { ...l.cycles, lastPublish: '2026-08-15' } }
+    const plan = buildPublishPlan(l, 'Replicator deus', 'a'.repeat(64), ALL_PUBLIC)
+    expect(plan.some(r => r.label === 'announcement')).toBe(false)
   })
 
   test('no gene record content parses to an object carrying invocations/seasonal/core/muteThresholdWeeks', () => {

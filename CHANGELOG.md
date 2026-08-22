@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `replicator` (v0.8.0): each weekly publish cycle that has at least one
+  changed gene now also publishes a companion kind-1 Nostr note announcing
+  the changed genes (key + state) and the active list, with `nostr:naddr...`
+  mentions and matching `a` tags linking to each. Uses `naddr`, not
+  `nevent` — the gene/list records are addressable events (NIP-01, kind
+  30000–39999) identified by kind+pubkey+d-tag rather than a fixed event
+  id, so `nevent` would go stale the moment the same address is republished
+  with new content while `naddr` always resolves to the current version.
+  New pure `buildAnnouncementRecord` in `announcement.ts` (returns `null`
+  on an empty change set, so no announcement fires on a no-op cycle),
+  wired into `buildPublishPlan`; `nostr-tools/nip19`'s `naddrEncode` was
+  already a dependency via `identity.ts`, so no new package needed.
+
 ### Security
 - Redacted real personal/instance identity that had leaked into tracked
   plugin content: a hardcoded Telegram chat ID (`sandbox-manager`'s

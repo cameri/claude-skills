@@ -1,6 +1,7 @@
 import type { Ledger } from './ledger'
 import { buildGeneRecord, buildProfileRecord, type PublishRecord } from './publisher'
 import { buildLists } from './lists'
+import { buildAnnouncementRecord } from './announcement'
 import { isPublicSource, type VisibilityMap } from './repo-visibility'
 
 // Genes whose plugin isn't confirmed to live in a public repo never reach
@@ -34,7 +35,8 @@ export function buildPublishPlan(
   const geneRecords = changed.map(key => buildGeneRecord(key, publishable.genes[key]))
   const listRecords = buildLists(publishable, pubkeyHex)
   const profileRecord = buildProfileRecord(speciesName, publishable.harnessModels)
-  return [...geneRecords, ...listRecords, profileRecord]
+  const announcement = buildAnnouncementRecord(changed, publishable, pubkeyHex)
+  return [...geneRecords, ...listRecords, profileRecord, ...(announcement ? [announcement] : [])]
 }
 
 // Nostr's replaceable gene events persist on relays untouched between

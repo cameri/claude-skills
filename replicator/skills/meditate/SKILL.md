@@ -274,7 +274,13 @@ gene/list/profile records to Nostr if something changed since then — a
 gene whose plugin isn't confirmed public in
 `docs/replicator/repo-visibility.json` never reaches a record or a list
 regardless (fail-closed; re-run `scripts/check-repo-visibility.ts` after
-installing a new plugin so it's eligible to publish at all). An
+installing a new plugin so it's eligible to publish at all). When at
+least one gene changed, the batch also includes one kind-1 note
+announcing the changed genes by key/state with `nostr:naddr...` mentions
+(and matching `a` tags) linking to each — `naddr`, not `nevent`, since
+these are addressable/parameterized-replaceable events (NIP-01) identified
+by kind+pubkey+d-tag rather than a fixed event id. No announcement is
+published on a cycle where nothing changed. An
 eligible cycle with nothing changed still advances `cycles.lastPublish`
 (so the next attempt is scheduled another 7 days out, not retried
 immediately) without making any Nostr network call. The same run also
