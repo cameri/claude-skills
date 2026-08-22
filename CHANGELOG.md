@@ -357,6 +357,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [replicator 0.7.3] - 2026-08-22
+
+### Fixed
+- `agents/quarantine.md` and `meditate/SKILL.md`: split the outward-scan
+  quarantine agent's single 1-5 `SCORE` into two independent axes — a new
+  `SAFETY: <clear|flagged>` line (set only when one of the six hard-flag
+  categories is present) and a `SCORE` that now purely rates
+  skill-worthiness, with 3-4 explicitly documented as the ordinary result
+  for a safe source with nothing skill-shaped to report. Previously a low
+  score meant both "nothing new" and "actually dangerous" with no way to
+  tell which from the number alone, which forced the outward-scan step
+  into an unscripted judgment call three cycles running (2026-08-18,
+  2026-08-19, 2026-08-22) to avoid false-positive blocklisting legitimate
+  frontier-research sources. `meditate`'s Step 3 now branches on `SAFETY`
+  first for the active-defense/blocklist decision; `SCORE` only decides
+  watchlist inclusion among `SAFETY: clear` results.
+
 ## [nats 0.0.6] - 2026-08-21
 
 ### Fixed
