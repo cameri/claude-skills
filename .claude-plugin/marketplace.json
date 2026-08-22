@@ -367,6 +367,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./consider"
+    },
+    {
+      "name": "research-tools",
+      "description": "Deliberately-invoked research skills — competitive analysis, deep-dive investigation, feasibility checks, landscape mapping, options comparison, and technical implementation research.",
+      "tools": ["claude", "cursor"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./research-tools"
     }
   ]
 }

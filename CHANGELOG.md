@@ -381,6 +381,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to auto-trigger on the same kind of moment. Part of retiring the separate
   taches-cc-resources marketplace.
 
+## [research-tools 0.1.0] - 2026-08-22
+
+### Added
+- New plugin: `research-tools`, migrated from the `taches-cc-resources` fork's
+  `/research:*` slash commands. 6 skills — competitive, deep-dive,
+  feasibility, landscape, options, technical — each authored fresh from a
+  thin `$ARGUMENTS`-driven command into a full SKILL.md with its own
+  workflow and success criteria grounded in what that command actually
+  asked for. Unlike `consider` (Task 2), these stay as 6 separate skills
+  rather than being folded into one router, and every one of them is
+  deliberately explicit-invocation-only rather than auto-triggering:
+  real research burns real tokens (web search/fetch across multiple
+  sources), and this workspace's own Usage Awareness norm is not to start
+  expensive, open-ended work unprompted. Part of retiring the separate
+  taches-cc-resources marketplace.
+
 ## [audiobookshelf 0.1.0] - 2026-08-22
 
 ### Added

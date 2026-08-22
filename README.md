@@ -27,6 +27,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API | Claude + Cursor |
 | [replicator](./replicator/) | Grows and prunes this instance's own skill set — captures reusable procedures during work, and nightly meditates on usage history and frontier sources to build or mute skills with scrutiny; publishes a gene registry over Nostr and mirrors it to a GitHub gist | Claude |
 | [repo-hygiene-sweep](./repo-hygiene-sweep/) | Sweep every standalone repo in a multi-repo workspace for uncommitted or unpushed work, without missing the ones a plain `git status`/`jj status` from the workspace root can't see | Claude |
+| [research-tools](./research-tools/) | Deliberately-invoked research skills — competitive analysis, deep-dive investigation, feasibility checks, landscape mapping, options comparison, and technical implementation research | Claude + Cursor |
 | [sandbox-manager](./sandbox-manager/) | Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health | Claude |
 | [simple-english](./simple-english/) | Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop | Claude |
 | [technitium-dns](./technitium-dns/) | Manage a self-hosted Technitium DNS Server — zones, records, stats, and cache | Claude + Cursor |
@@ -272,6 +273,17 @@ MCP-only — no `SKILL.md` skills. Ships an MCP server (`@getalby/mcp`) wired to
 | Skill | Description |
 |---|---|
 | `/consider:consider` | Apply a decision-making framework to a real choice, tradeoff, or risky plan |
+
+### research-tools
+
+| Skill | Description |
+|---|---|
+| `/research-tools:competitive` | Research the competitive landscape for a product or feature — who else solves this, how, and where the gaps are |
+| `/research-tools:deep-dive` | Comprehensive, multi-source investigation of a topic — how it works, why it exists, limitations, current trends |
+| `/research-tools:feasibility` | Honest reality check — can this actually be done given technical, resource, and external constraints |
+| `/research-tools:landscape` | Map a domain's players, tools, trends, and gaps |
+| `/research-tools:options` | Structured side-by-side comparison of options with a recommendation |
+| `/research-tools:technical` | Research implementation approaches, libraries, and patterns with honest tradeoffs |
 
 ## Commands
 
