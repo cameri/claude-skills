@@ -42,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was undiscoverable/uninstallable via `/plugin install` until now.
 
 ### Added
+- `telegram-ng` (v0.11.1): MCP server instructions now tell the model to
+  phrase choices/follow-up actions as tappable `/command`-style options
+  instead of plain questions the user has to type an answer to. Confirmed
+  live against a real Telegram client (2026-08-22) that command entities
+  only recognize lowercase letters, digits, and underscores — a hyphenated
+  option (`/handle-directly`) rendered as plain text while the
+  underscore-joined one (`/trigger_restart`) rendered tappable — so the
+  guidance explicitly calls out underscores for multi-word actions.
+
 - `sandbox-manager` `plugin-version-check` hook (v0.11.0): now also blocks
   ending a turn where a plugin's `skills/` directory gained, lost, or
   renamed a skill (detected via `git status` add/delete/rename codes on
