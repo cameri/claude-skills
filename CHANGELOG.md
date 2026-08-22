@@ -357,6 +357,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [audiobookshelf 0.1.0] - 2026-08-22
+
+### Added
+- New plugin: `audiobookshelf`, for interacting with a self-hosted Audiobookshelf
+  instance via its REST API (Bearer-token auth). Two skills: `access` (save
+  server URL + API key to `~/.claude/channels/audiobookshelf/.env`, test the
+  connection) and `query-library` (list libraries, browse/search items, view
+  item details, check listening progress), following the same pattern as
+  `technitium-dns`/`actual-budget`. Built while standing up a real instance
+  with an empty library — `GET /api/libraries`, `GET
+  /api/libraries/<id>/items`, and `GET /api/me` were live-verified; per-library
+  search, item details, series, authors, and progress updates are documented
+  from Audiobookshelf's public API reference but not yet live-verified (no
+  items existed to test against), and the skill says so explicitly rather than
+  presenting them as confirmed.
+
 ## [replicator 0.7.3] - 2026-08-22
 
 ### Fixed

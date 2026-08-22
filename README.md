@@ -7,6 +7,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Plugin | Description | Tools |
 |---|---|---|
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets | Claude + Cursor |
+| [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
 | [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
 | [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
 | [container-management](./container-management/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes | Claude + Cursor |
@@ -38,6 +39,13 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | `/actual-budget:access` | Set up Actual Budget credentials — save the server URL and password |
 | `/actual-budget:query-budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
+
+### audiobookshelf
+
+| Skill | Description |
+|---|---|
+| `/audiobookshelf:access` | Set up Audiobookshelf credentials — save the server URL and API key |
+| `/audiobookshelf:query-library` | List libraries, browse or search items, view item details, check listening progress |
 | `/actual-budget:add-transaction` | Add a transaction — spending, income, or any financial event |
 
 ### finance-manager
@@ -312,7 +320,7 @@ After reloading, all plugin skills are available (e.g. `/paperless:configure`, `
 
 Cursor reads the same `SKILL.md` format as Claude Code (frontmatter `name`/`description`, discovered from `.cursor/skills/<name>/SKILL.md`) and the same `.mcp.json` shape (`{"mcpServers": {...}}`, read from `~/.cursor/mcp.json`). No plugin content needs to change for Cursor — only how it's discovered.
 
-The 9 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
+The 10 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`, `audiobookshelf`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
 
 ### 1. Symlink each skill directory
 

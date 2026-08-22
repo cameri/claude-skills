@@ -334,6 +334,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./repo-hygiene-sweep"
+    },
+    {
+      "name": "audiobookshelf",
+      "description": "Interact with a self-hosted Audiobookshelf instance via its REST API — list libraries, browse and search library items, and check listening progress.",
+      "tools": ["claude", "cursor"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./audiobookshelf"
     }
   ]
 }
