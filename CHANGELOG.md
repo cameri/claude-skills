@@ -357,6 +357,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [sandbox-manager 0.12.0] - 2026-08-22
+
+### Added
+- 3 new skills migrated from taches-cc-resources: `whats-next` (handoff-doc
+  writing — already the format this session's own whats-next.md handoffs
+  use), `add-to-todos` and `check-todos` (direct support for the TO-DOS.md
+  convention documented in root CLAUDE.md). Part of retiring the
+  taches-cc-resources marketplace.
+
 ## [agent-resources 0.1.0] - 2026-08-22
 
 ### Added

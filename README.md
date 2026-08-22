@@ -146,6 +146,9 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral MejÃ
 | `sandbox-manager:setup-hooks` | Installs the curated hook set (rm guard, channel-reply enforcement, usage alerts, idle tracker, session handoff reader, new-session notifier, statusline cache wrapper, and more) |
 | `sandbox-manager:check-login-expiry` | Checks whether this session's login is about to expire and reports over Telegram if so; fires on a daily cronjobs job |
 | `sandbox-manager:post-restart-check` | Post-restart health check â€” SSH signing key still has its public half, Docker Buildx present, no Containerfile pip package silently dropped by a rebuild |
+| `sandbox-manager:whats-next` | Writes a comprehensive `whats-next.md` handoff document so work can resume with zero information loss after a context reset or restart |
+| `sandbox-manager:add-to-todos` | Adds an item to `TO-DOS.md` with full context from the conversation, checking for near-duplicates first |
+| `sandbox-manager:check-todos` | Lists outstanding items from `TO-DOS.md` and helps pick one to work on next |
 
 ### cronjobs
 
