@@ -306,6 +306,7 @@ This shows which hooks matched, command execution, and output. See [references/t
 - **Path safety**: Use absolute paths with `$CLAUDE_PROJECT_DIR` to avoid path injection
 - **JSON validation**: Validate hook config with `jq` before use to catch syntax errors
 - **Selective blocking**: Be conservative with blocking hooks to avoid workflow disruption
+- **No embedded secrets or personal identity**: Never hardcode a real chat ID, API token, email, internal hostname, or IP into a hook script meant to ship in a plugin — read it at runtime from a gitignored config file instead (see `agent-resources:create-agent-skills`'s `references/portability.md`)
 
 **Testing protocol**:
 ```bash

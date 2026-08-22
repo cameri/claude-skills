@@ -1,5 +1,7 @@
 <overview>
 Skills must work across different users, repos, and environments without modification. Hardcoding project-specific values into a skill ties it to one context and silently breaks it everywhere else.
+
+A related but distinct failure: a skill authored inside one maintainer's real environment can end up embedding *that maintainer's* personal or organizational identity — not just an environment-specific value that breaks elsewhere, but one that actively identifies who built it, where they work, or who they know. This matters most for a skill meant to ship publicly (a shared plugin, marketplace listing, or open-source repo): non-portable values are a functionality bug, but personal/sensitive values are a privacy leak. Treat both checks as required, not just the portability one.
 </overview>
 
 <what_portability_means>
@@ -35,6 +37,22 @@ Container names, health check strings, and port numbers belong in a CLAUDE.md or
 **Rule 4: No hardcoded environment assumptions**
 Don't assume the Docker builder is legacy. Don't assume `pnpm` is the package manager. Discover these from the project's files (`Dockerfile`, `package.json`, `pnpm-lock.yaml`, `yarn.lock`).
 </portability_rules>
+
+<sensitive_and_osint_rules>
+These are not "non-portable" in the ordinary sense (a working example that only fits one environment) — they actively expose who built the skill or who they know, even in a private repo that later goes public or gets forked. Scrub them regardless of whether the skill is ever meant to be portable:
+
+**Rule 5: No real personal names, handles, or first-name references**
+An example, a comment, or a "for X's workflow" note that names an actual person (maintainer, coworker, family member) by name or handle identifies them even out of context. Use a role or placeholder instead ("the user", "a teammate", "alice"/"bob" as clearly-fictional stand-ins).
+
+**Rule 6: No real contact info or account identifiers**
+Email addresses, phone numbers, physical addresses, Telegram/Discord/Slack chat IDs or user IDs, social handles, bank/wallet/account numbers — these identify a real person or let someone find them, regardless of whether the skill "needs" a real value to demonstrate the pattern. Use an obviously-fake placeholder (an RFC 5737 documentation IP, `user@example.com`, a round fake ID like `000000`).
+
+**Rule 7: No real infrastructure identifiers**
+Internal IP addresses, real domain names for private services, real Cloudflare/Tailscale/VPN hostnames, real webhook paths or API keys — these are OSINT breadcrumbs that can help someone map a real deployment. Generic placeholders or a pointer to a private, gitignored config file (see `where_specific_values_go` below) both work; a real value never belongs in tracked skill content.
+
+**Rule 8: When in doubt, genericize and ask**
+If a skill was bulk-copied or adapted from a real working setup (a fork of your own tooling, an example lifted from a live session), assume it carries real identity until checked — that is exactly how leaks happen (a real username/repo/path baked into an example is a documented recurrence in this plugin's own history). Scan for the maintainer's own name, org, domains, and account IDs specifically, not just generic "does this look like a path." If a value's necessity or sensitivity is unclear, ask the user before publishing rather than guessing either way.
+</sensitive_and_osint_rules>
 
 <where_specific_values_go>
 Project-specific values belong in one of two places:
@@ -106,4 +124,8 @@ Before finalizing a skill, verify:
 - [ ] Project-specific values documented in CLAUDE.md
 - [ ] Skill reads CLAUDE.md (or equivalent) at runtime for project-specific values
 - [ ] Discovery commands used where values can be inferred from filesystem
+- [ ] No real personal names, handles, emails, phone numbers, or physical addresses
+- [ ] No real chat/user/account IDs, tokens, or secrets
+- [ ] No real internal IPs, private domains, or webhook paths
+- [ ] If adapted from a real working setup, actively scanned for the maintainer's own identity — not just checked for obvious placeholders
 </portability_checklist>

@@ -162,4 +162,5 @@ A production-ready MCP server has:
 - Response optimization for list/search operations
 - All validation checkpoints passed
 - No errors in logs
+- No real API keys, tokens, internal hostnames/IPs, or personal identifiers hardcoded in server code, templates, or examples meant to ship in a plugin — env vars and gitignored config only (see `agent-resources:create-agent-skills`'s `references/portability.md`)
 </success_criteria>

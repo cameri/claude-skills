@@ -81,6 +81,12 @@ Evaluate against each criterion:
 - [ ] Project-specific values documented in the plugin's CLAUDE.md
 - [ ] Skill reads CLAUDE.md (or equivalent) at runtime for project-specific values
 
+### Sensitive Data / PII / OSINT (see `references/portability.md`'s sensitive_and_osint_rules — required even for a skill that isn't meant to be portable)
+- [ ] No real personal names, handles, emails, phone numbers, or physical addresses
+- [ ] No real chat/user/account IDs, tokens, or secrets
+- [ ] No real internal IPs, private domains, or webhook paths
+- [ ] If this skill was bulk-copied or adapted from a real working setup, actively scanned for the maintainer's own identity (not just checked for obvious placeholders) — this is exactly how a real username/repo/path leaked into a bulk-copied example previously
+
 ### Content Quality
 - [ ] Principles are actionable (not vague platitudes)
 - [ ] Steps are specific (not "do the thing")

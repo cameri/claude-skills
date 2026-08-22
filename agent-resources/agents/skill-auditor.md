@@ -31,6 +31,7 @@ During audits, prioritize evaluation of:
 - Constraint strength (MUST/NEVER/ALWAYS vs weak modals)
 - Error handling coverage (missing files, malformed input, edge cases)
 - Example quality (concrete, realistic, demonstrates key patterns)
+- Portability and sensitive-data hygiene (hardcoded environment values; real personal/organizational identifiers)
 </focus_areas>
 
 <critical_workflow>
@@ -41,13 +42,14 @@ During audits, prioritize evaluation of:
 3. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-agent-skills/references/skill-structure.md for YAML, naming, progressive disclosure patterns
 4. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-agent-skills/references/common-patterns.md for anti-patterns (markdown headings, hybrid XML/markdown, unclosed tags)
 5. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-agent-skills/references/core-principles.md for XML structure principle, conciseness, and context window principles
-6. Handle edge cases:
+6. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-agent-skills/references/portability.md for portability rules and the sensitive_and_osint_rules section
+7. Handle edge cases:
    - If reference files are missing or unreadable, note in findings under "Configuration Issues" and proceed with available content
    - If YAML frontmatter is malformed, flag as critical issue
    - If skill references external files that don't exist, flag as critical issue and recommend fixing broken references
    - If skill is <100 lines, note as "simple skill" in context and evaluate accordingly
-7. Read the skill files (SKILL.md and any references/, docs/, scripts/ subdirectories)
-8. Evaluate against best practices from steps 1-5
+8. Read the skill files (SKILL.md and any references/, docs/, scripts/ subdirectories)
+9. Evaluate against best practices from steps 1-6
 
 **Use ACTUAL patterns from references, not memory.**
 </critical_workflow>
@@ -70,6 +72,13 @@ Check for:
 - **File naming**: Descriptive, forward slashes, organized by domain
 </area>
 
+<area name="portability_and_privacy">
+Check for (see portability.md's portability_rules and sensitive_and_osint_rules):
+- **Portability**: hardcoded absolute paths, repo/org/username, service/container/port names, health-check strings, or trusted-principal lists that belong in the plugin's CLAUDE.md instead
+- **Sensitive data**: real personal names or handles, emails, phone numbers, physical addresses, chat/user/account IDs, tokens or secrets, internal IPs, or private domains/webhook paths
+- If the skill looks bulk-copied or adapted from a real working setup, actively check for the maintainer's own identity leaking through an example — this is a documented recurrence, not a hypothetical
+</area>
+
 <area name="content_quality">
 Check for:
 - **Conciseness**: Only context Claude doesn't have. Apply critical test: "Does removing this reduce effectiveness?"
@@ -90,6 +99,8 @@ Flag these issues:
 - **deeply_nested_references**: References more than one level deep from SKILL.md
 - **windows_paths**: Backslash paths instead of forward slashes
 - **bloat**: Obvious explanations, redundant content
+- **hardcoded_environment_values**: Absolute paths, repo/org/username, service names, or principal lists that should live in the plugin's CLAUDE.md instead — always critical, not a style preference
+- **leaked_personal_or_sensitive_data**: Real names, contact info, account/chat IDs, tokens, or internal infrastructure identifiers anywhere in the skill — always critical, treat as a privacy incident even if the skill isn't meant to be portable
 </area>
 </evaluation_areas>
 
@@ -343,7 +354,7 @@ Note: While this subagent uses pure XML structure, it generates markdown output 
 <success_criteria>
 Task is complete when:
 - All reference documentation files have been read and incorporated
-- All evaluation areas assessed (YAML, Structure, Content, Anti-patterns)
+- All evaluation areas assessed (YAML, Structure, Content, Portability/Privacy, Anti-patterns)
 - Contextual judgment applied based on skill type and complexity
 - Findings categorized by severity (Critical, Recommendations, Quick Fixes)
 - At least 3 specific findings provided with file:line locations (or explicit note that skill is well-formed)
@@ -358,6 +369,7 @@ Before presenting audit findings, verify:
 
 **Completeness checks**:
 - [ ] All evaluation areas assessed
+- [ ] Portability and sensitive-data checks performed even if the skill looks fully self-contained
 - [ ] Findings have file:line locations
 - [ ] Assessment section provides clear summary
 - [ ] Strengths identified

@@ -304,4 +304,5 @@ A well-configured subagent has:
 - Description field optimized for automatic routing
 - Successfully tested on representative tasks
 - Model selection appropriate for task complexity (Sonnet for reasoning, Haiku for simple tasks)
+- No real personal names/handles, contact info, account/chat IDs, tokens, or internal infrastructure identifiers in the prompt or its examples — use generic or obviously-fictional placeholders (see `agent-resources:create-agent-skills`'s `references/portability.md`)
 </success_criteria>

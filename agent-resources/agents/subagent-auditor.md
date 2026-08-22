@@ -69,6 +69,12 @@ These issues significantly hurt effectiveness - flag as critical:
 - No hybrid XML/markdown structure
 - Note: Markdown formatting WITHIN content (bold, italic, lists, code blocks) is acceptable
 
+**portability_and_sensitive_data**:
+- No hardcoded absolute paths, repo/org/username, or service names that should come from the plugin's CLAUDE.md instead
+- No real personal names or handles, emails, phone numbers, physical addresses, chat/user/account IDs, tokens/secrets, internal IPs, or private domains anywhere in the prompt (role, constraints, or examples) — a subagent prompt built from a real working example is exactly where a maintainer's identity tends to leak in
+- Anti-pattern: an example that names an actual person, org, or real infrastructure detail instead of a clearly-fictional placeholder
+- Pass: any illustrative values are generic or obviously fictional
+
 </area>
 
 <area name="recommended" priority="should-fix">
@@ -230,7 +236,7 @@ Minor issues easily resolved:
 <validation>
 Before completing the audit, verify:
 
-1. **Completeness**: All evaluation areas assessed
+1. **Completeness**: All evaluation areas assessed, including portability_and_sensitive_data even when the subagent looks fully self-contained
 2. **Precision**: Every issue has file:line reference where applicable
 3. **Accuracy**: Line numbers verified against actual file content
 4. **Actionability**: Recommendations are specific and implementable

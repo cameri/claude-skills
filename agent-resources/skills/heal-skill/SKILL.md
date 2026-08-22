@@ -51,6 +51,7 @@ Determine:
 - **Root cause**: Outdated API, incorrect parameters, wrong endpoint, missing context
 - **Scope of impact**: Single section or multiple? Related files affected?
 - **Proposed fix**: Which files, which sections, before/after for each
+- If the fix introduces a new example or value, check it isn't a real personal name/handle, contact detail, account/chat ID, token, or internal infrastructure identifier from this session — use a generic or clearly-fictional placeholder instead (see `agent-resources:create-agent-skills`'s `references/portability.md`)
 </step_2>
 
 <step_3 name="scan_affected_files">

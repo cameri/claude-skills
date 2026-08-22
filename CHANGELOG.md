@@ -41,7 +41,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   been added despite the plugin existing since its introducing commit — it
   was undiscoverable/uninstallable via `/plugin install` until now.
 
+### Security
+- `agent-resources` (v0.2.0): added an explicit sensitive-data/PII/OSINT
+  checklist alongside the existing portability checklist, wired into every
+  skill in the plugin that generates or audits content — `portability.md`'s
+  new `sensitive_and_osint_rules` section (real names/handles, contact info,
+  chat/account IDs, tokens, internal IPs/domains), the `create-agent-skills`
+  `audit-skill` workflow checklist, the `skill-auditor` and
+  `subagent-auditor` subagents' evaluation areas, and one-line pointers in
+  `create-hooks`, `create-mcp-servers`, `create-subagents`, and `heal-skill`.
+  Prompted by this plugin's own history of a real PII leak (a maintainer's
+  username/repo/path baked into a bulk-copied example, caught during the
+  2026-08-22 migration's pre-merge review) — this generalizes that one-off
+  catch into a standing check so future skills/subagents/hooks/MCP servers
+  built or audited with this plugin don't reintroduce the same class of
+  leak. Also added a new root `CLAUDE.md` to the `cameri/skills` repo itself
+  (this repo being public) so the same caution — scrub real personal/
+  infrastructure identifiers before committing, ask when in doubt — applies
+  even in a session where the `agent-resources` plugin isn't loaded at all.
+
 ### Added
+- `sandbox-manager` `claude-subcommand-guard` hook (v0.13.0): new PreToolUse
+  (Bash) guard, added to `setup-hooks`'s default hook set. Blocks running
+  `claude <word> ...` when `<word>` looks like a subcommand (a bare
+  lowercase/hyphen token) but isn't one of the real top-level subcommands
+  verified against `claude --help`'s Commands section (`agents`, `auth`,
+  `auto-mode`, `doctor`, `gateway`, `import`, `install`, `mcp`, `plugin`/
+  `plugins`, `project`, `setup-token`, `ultrareview`, `update`/`upgrade`,
+  plus `ssh` per the settings schema). Built after `claude marketplace
+  remove taches-cc-resources` (real command: `claude plugin marketplace
+  remove ...`) silently launched a full second agentic `claude` session
+  instead of erroring — the CLI treats an unrecognized subcommand as a
+  literal prompt string — and that nested session's own telegram-ng MCP
+  connection collided with the main session's live Telegram poller (one
+  poller per bot token), killing Telegram until a full restart. Detection
+  is deliberately narrow (bare lowercase/hyphen first non-flag token only)
+  so a quoted natural-language prompt passed to `claude` isn't
+  misidentified as a subcommand attempt.
+
+- `telegram-ng` (v0.11.2): MCP server instructions now include a "Tool
+  preferences" section covering defaults that were previously undocumented
+  or only living in one maintainer's own CLAUDE.md — typing indicator
+  auto-starts on inbound messages so explicit `start_typing` is only for
+  edge cases, `stream_draft` is a good default even for short replies,
+  `format:'rich'` is preferred whenever a reply has code/commands/tables,
+  incoming `message_reaction` events are informational and don't always
+  need a response, and `edit_message` is for in-flight progress while
+  `reply` is what should actually ping the user's device. Kept generic and
+  portable on purpose — e.g. no fixed meaning is assigned to any reaction
+  emoji, since that's a matter of personal taste any installer can tell the
+  model themselves.
+
 - `telegram-ng` (v0.11.1): MCP server instructions now tell the model to
   phrase choices/follow-up actions as tappable `/command`-style options
   instead of plain questions the user has to type an answer to. Confirmed
