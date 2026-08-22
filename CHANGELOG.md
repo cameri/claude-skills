@@ -369,6 +369,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   taches-cc-resources marketplace — see
   `docs/superpowers/specs/2026-08-22-agent-resources-migration-design.md`.
 
+## [consider 0.1.0] - 2026-08-22
+
+### Added
+- New plugin: `consider`, migrated from the `taches-cc-resources` fork. Folds
+  7 of that project's 12 `/consider:*` slash commands (inversion,
+  first-principles, second-order, pareto, via-negativa, opportunity-cost,
+  eisenhower-matrix) into a single auto-triggering router skill instead of 7
+  separate commands, so it can trigger on a real decision/tradeoff moment
+  without being asked by name, and without 7 near-identical skills competing
+  to auto-trigger on the same kind of moment. Part of retiring the separate
+  taches-cc-resources marketplace.
+
 ## [audiobookshelf 0.1.0] - 2026-08-22
 
 ### Added

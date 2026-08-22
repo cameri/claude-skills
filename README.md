@@ -10,6 +10,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [agent-resources](./agent-resources/) | Build and audit Claude Code skills, hooks, MCP servers, and subagents | Claude + Cursor |
 | [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
 | [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
+| [consider](./consider/) | Apply a decision-making framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment | Claude + Cursor |
 | [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
 | [container-management](./container-management/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes | Claude + Cursor |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API | Claude + Cursor |
@@ -265,6 +266,12 @@ MCP-only — no `SKILL.md` skills. Ships an MCP server (`@getalby/mcp`) wired to
 | Skill | Description |
 |---|---|
 | `repo-hygiene-sweep:repo-hygiene-sweep` | Checks every repo in a multi-repo workspace — the workspace repo plus every standalone repo listed in its root CLAUDE.md — for uncommitted or unpushed work |
+
+### consider
+
+| Skill | Description |
+|---|---|
+| `/consider:consider` | Apply a decision-making framework to a real choice, tradeoff, or risky plan |
 
 ## Commands
 

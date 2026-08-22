@@ -356,6 +356,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./agent-resources"
+    },
+    {
+      "name": "consider",
+      "description": "Apply a proven decision-making or thinking-model framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment.",
+      "tools": ["claude", "cursor"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./consider"
     }
   ]
 }
