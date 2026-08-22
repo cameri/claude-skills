@@ -90,6 +90,13 @@ HOOK_DEFS = {
         "needs": [],
         "config_keys": ["plugins_repo_path"],
     },
+    "claude-subcommand-guard": {
+        "event": "PreToolUse",
+        "matcher": "Bash",
+        "timeout": 10,
+        "needs": [],
+        "config_keys": [],
+    },
 }
 
 
