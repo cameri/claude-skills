@@ -357,6 +357,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
 
+## [agent-resources 0.1.1] - 2026-08-22
+
+### Fixed
+- 4 references using `@skills/create-agent-skills/...` / `@skills/create-subagents/...`
+  path syntax (`agents/skill-auditor.md`, `agents/subagent-auditor.md`,
+  `skills/create-subagents/SKILL.md`,
+  `skills/create-subagents/references/writing-subagent-prompts.md`) — that
+  syntax resolved in the source `taches-cc-resources` fork, where `skills/`
+  sat at repo root, but silently failed to resolve once this content moved
+  into a plugin, degrading `audit-skill`/`audit-subagent` to memory-based
+  auditing instead of reading the real reference docs they dispatch to.
+  Replaced with `${CLAUDE_PLUGIN_ROOT}/skills/...`, the convention already
+  used elsewhere in this repo (e.g. `create-hooks/SKILL.md`).
+- `create-agent-skills/workflows/create-domain-expertise-skill.md` (a live
+  workflow routed to from `SKILL.md` in 3 places) referenced `create-plans`,
+  a skill that was explicitly dropped from this migration's scope and isn't
+  shipped anywhere in this repo — a "Step 11: Document in create-plans"
+  section plus 7 other mentions. Reframed the step as cross-referencing
+  "a project-planning skill, if you have one installed" instead of naming a
+  specific nonexistent skill; the underlying domain-expertise-authoring
+  workflow itself is unaffected and still fully usable.
+- README.md: the root plugin table's `research-tools` row and
+  `.claude-plugin/marketplace.json`'s `research-tools` entry were both marked
+  `Claude + Cursor`, but all 6 of its skills declare
+  `allowed-tools: WebSearch, WebFetch` — Claude Code tools with no Cursor
+  equivalent — so it's actually Claude-only. Corrected both, and updated the
+  root README's Cursor-support summary sentence (stale count/list — it had
+  never been updated when `consider` and `research-tools` landed as
+  Claude+Cursor) to the recounted total of 12 plugins.
+- `README.md` (this plugin's own): removed the sentence naming the private
+  intermediate fork (`phoenix-server/taches-cc-resources`) — that repo isn't
+  visible to anyone installing this plugin, isn't required by the MIT
+  license (which only requires preserving the real upstream project's
+  copyright notice), and directly contradicted this plugin's own
+  `create-agent-skills/references/portability.md` "no hardcoded repo names"
+  rule. Now credits the real upstream project under its MIT license
+  (Copyright (c) 2025 Lex Christopherson), matching `consider/README.md`'s
+  existing style.
+
+## [consider 0.1.1] - 2026-08-22
+
+### Fixed
+- No functional change; version bump only, to keep this plugin's own README
+  consistent with `agent-resources` and `research-tools` in how it credits
+  the upstream project (it already avoided naming the private intermediate
+  fork, so no wording change was needed here).
+
+## [research-tools 0.1.1] - 2026-08-22
+
+### Fixed
+- `README.md`: removed the sentence naming the private intermediate fork
+  (`phoenix-server/taches-cc-resources`) in favor of crediting the real
+  upstream project under its MIT license (Copyright (c) 2025 Lex
+  Christopherson) — same fix and rationale as `agent-resources 0.1.1`.
+- `.claude-plugin/marketplace.json`: `tools` field corrected from
+  `["claude", "cursor"]` to `["claude"]` — all 6 skills declare
+  `allowed-tools: WebSearch, WebFetch`, which have no Cursor equivalent.
+
 ## [sandbox-manager 0.12.0] - 2026-08-22
 
 ### Added

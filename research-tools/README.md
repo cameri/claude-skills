@@ -28,7 +28,7 @@ off expensive, open-ended work unprompted. None of these 6 should ever
 auto-fire on a passing mention of "research" or "compare"; they fire only
 when a user actually asks for that kind of investigation.
 
-This content is adapted from `phoenix-server/taches-cc-resources` (MIT-licensed).
+Adapted from the upstream project under its MIT license (Copyright (c) 2025 Lex Christopherson).
 
 ## License
 

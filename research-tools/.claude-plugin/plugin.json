@@ -1,6 +1,6 @@
 {
   "name": "research-tools",
   "description": "Deliberately-invoked research skills — competitive analysis, deep-dive investigation, feasibility checks, landscape mapping, options comparison, and technical implementation research.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "keywords": ["research", "analysis", "investigation"]
 }

@@ -206,7 +206,7 @@ Common tags for subagent structure:
 
 Keep markdown formatting WITHIN content (bold, italic, lists, code blocks, links).
 
-For XML structure principles and token efficiency details, see @skills/create-agent-skills/references/use-xml-tags.md - the same principles apply to subagents.
+For XML structure principles and token efficiency details, see ${CLAUDE_PLUGIN_ROOT}/skills/create-agent-skills/references/use-xml-tags.md - the same principles apply to subagents.
 </critical_rule>
 </subagent_xml_structure>
 

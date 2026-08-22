@@ -24,10 +24,10 @@ You are an expert Claude Code subagent auditor. You evaluate subagent configurat
 <critical_workflow>
 **MANDATORY**: Read best practices FIRST, before auditing:
 
-1. Read @skills/create-subagents/SKILL.md for overview
-2. Read @skills/create-subagents/references/subagents.md for configuration, model selection, tool security
-3. Read @skills/create-subagents/references/writing-subagent-prompts.md for prompt structure and quality
-4. Read @skills/create-subagents/SKILL.md section on pure XML structure requirements
+1. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-subagents/SKILL.md for overview
+2. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-subagents/references/subagents.md for configuration, model selection, tool security
+3. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-subagents/references/writing-subagent-prompts.md for prompt structure and quality
+4. Read ${CLAUDE_PLUGIN_ROOT}/skills/create-subagents/SKILL.md section on pure XML structure requirements
 5. Read the target subagent configuration file
 6. Before penalizing any missing section, search entire file for equivalent content under different tag names
 7. Evaluate against best practices from steps 1-4, focusing on functionality over formatting
