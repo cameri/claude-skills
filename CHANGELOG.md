@@ -58,6 +58,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hardcoded-UTC timezone) that was never cleanly killed, overlapping with
   the fixed post-2026-08-18 process. This closes that gap at the process
   level rather than the scheduling level.
+- `cronjobs` (v0.1.2): moved the v0.1.1 pid lock from `~/.claude/channels/cronjobs/server.pid`
+  (persistent — survives restarts) to `/tmp` (should not), and added a
+  process-start-time check alongside the pid so a coincidental pid reuse
+  after a restart can't be mistaken for the original instance. Prompted by
+  catching, live, exactly the failure mode v0.1.1 was meant to prevent: a
+  `ps aux` check found **five** concurrent `bun server.ts` processes for
+  this plugin, three from container boot and two more each left behind by
+  this session's own earlier plugin-update reloads — confirming the actual
+  root cause is that Claude Code's plugin reload does not terminate the
+  previous MCP server child process, it just leaves it running as an
+  orphan holding a stale in-memory copy of `jobs.json` forever. The pid
+  lock prevents new orphans from accumulating past the first post-fix
+  process, but can't retroactively kill ones that already exist, and can't
+  fix the reload behavior itself (outside this plugin's code) — a lingering
+  pre-fix orphan will make a future reload's new process refuse to start
+  (visible as the plugin failing to reconnect) until someone manually
+  kills the orphan. Worth checking for stray `bun server.ts` processes
+  after any cronjobs reload until the harness-level orphaning is fixed
+  upstream.
 
 ### Security
 - Redacted real personal/instance identity that had leaked into tracked

@@ -10,7 +10,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -22,28 +22,43 @@ import { Cron } from "croner";
 
 const STATE_DIR = join(homedir(), ".claude", "channels", "cronjobs");
 const JOBS_FILE = join(STATE_DIR, "jobs.json");
-const PID_FILE = join(STATE_DIR, "server.pid");
+// /tmp, not STATE_DIR: STATE_DIR is persistent (jobs.json must survive restarts), but a pid
+// lock must NOT — a stale pid surviving a restart could collide with a reused pid and make
+// the real server refuse to start against itself. Process start-time is also recorded and
+// re-checked below so even a same-pid coincidence after a restart isn't mistaken for the
+// original process.
+const PID_FILE = join(tmpdir(), "claude-cronjobs-server.pid");
 
 mkdirSync(STATE_DIR, { recursive: true });
 
-function isProcessAlive(pid: number): boolean {
+function processStartTime(pid: number): string | null {
   try {
-    process.kill(pid, 0);
-    return true;
+    const stat = readFileSync(`/proc/${pid}/stat`, "utf-8");
+    return stat.slice(stat.lastIndexOf(")") + 2).split(" ")[19] ?? null;
   } catch {
-    return false;
+    return null; // /proc unavailable (non-Linux)
   }
 }
 
-// Prevents two processes both loading jobs.json from double-scheduling every job during a restart overlap.
+function isSameServerAlive(pid: number, recordedStartTime: string): boolean {
+  try {
+    process.kill(pid, 0);
+  } catch {
+    return false;
+  }
+  const currentStartTime = processStartTime(pid);
+  return currentStartTime === null ? true : currentStartTime === recordedStartTime;
+}
+
 if (existsSync(PID_FILE)) {
-  const existingPid = parseInt(readFileSync(PID_FILE, "utf-8").trim(), 10);
-  if (!isNaN(existingPid) && isProcessAlive(existingPid)) {
+  const [pidStr, recordedStartTime] = readFileSync(PID_FILE, "utf-8").trim().split(":");
+  const existingPid = parseInt(pidStr, 10);
+  if (!isNaN(existingPid) && recordedStartTime && isSameServerAlive(existingPid, recordedStartTime)) {
     process.stderr.write(`cronjobs: another instance is already running (pid ${existingPid}) — refusing to start a second one.\n`);
     process.exit(1);
   }
 }
-writeFileSync(PID_FILE, String(process.pid));
+writeFileSync(PID_FILE, `${process.pid}:${processStartTime(process.pid) ?? ""}`);
 
 // All "at TIME"/raw-cron schedules are meant in the server's local time, not
 // UTC — croner defaults to UTC unless told otherwise, which silently ran
