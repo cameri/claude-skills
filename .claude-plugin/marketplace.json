@@ -277,6 +277,19 @@
       "source": "./journal"
     },
     {
+      "name": "knowledge-wiki",
+      "description": "Maintains a self-updating, cross-linked markdown knowledge base — ingests durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./knowledge-wiki"
+    },
+    {
       "name": "executable-skepticism",
       "description": "A verification protocol for evaluating theories, papers, models, or any confident quantitative claim by routing the verdict through executable, falsifiable tests instead of prose.",
       "tools": [

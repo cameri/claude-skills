@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `knowledge-wiki` (v0.1.0, new plugin): maintains a self-updating,
+  cross-linked markdown knowledge base under `docs/wiki/` — a `maintain-wiki`
+  skill for ingesting durable facts/research into topic pages, querying the
+  wiki, and a `check-wiki.sh` consistency checker for broken relative links
+  and orphaned pages. Built by `/replicator:meditate` as a speculative build
+  from a 2026-08-16 outward-scan watchlist entry (Karpathy's "LLM Wiki"
+  incremental knowledge-compilation pattern).
 - `replicator` (v0.8.0): each weekly publish cycle that has at least one
   changed gene now also publishes a companion kind-1 Nostr note announcing
   the changed genes (key + state) and the active list, with `nostr:naddr...`

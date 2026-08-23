@@ -20,6 +20,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history | Claude + Cursor |
 | [jj](./jj/) | Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for everyday operations (commit, split, squash, cleanup, checkout, rebase) | Claude |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory | Claude |
+| [knowledge-wiki](./knowledge-wiki/) | Maintains a self-updating, cross-linked markdown knowledge base — ingests durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks | Claude |
 | [lightning](./lightning/) | Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server over Nostr Wallet Connect | Claude |
 | [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast | Claude + Cursor |
 | [netshoot](./netshoot/) | Network troubleshooting inside Docker container networks using nicolaka/netshoot | Claude |
@@ -90,6 +91,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Skill | Description |
 |---|---|
 | `journal:update-journal` | Reads session activity since the last update across every project on this machine plus the memory system, judges whether it continues the current journal's cycle or starts a new one, and writes/closes entries accordingly |
+
+### knowledge-wiki
+
+| Skill | Description |
+|---|---|
+| `knowledge-wiki:maintain-wiki` | Ingests durable facts/research into cross-linked markdown topic pages, answers lookups against the wiki, and checks it for broken links and orphaned pages |
 
 ### elevenlabs
 
