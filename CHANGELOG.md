@@ -44,6 +44,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wired into `buildPublishPlan`; `nostr-tools/nip19`'s `naddrEncode` was
   already a dependency via `identity.ts`, so no new package needed.
 
+### Fixed
+- `cronjobs` (v0.1.1): server now refuses to start a second instance against
+  the same `jobs.json` (a PID-file lock at `~/.claude/channels/cronjobs/server.pid`,
+  reclaimed automatically if the recorded pid is dead). Root-caused a bug
+  where two specific daily jobs had each fired twice on the same day — once
+  at a literal-UTC hour, once at the correct server-local hour. The in-process
+  scheduling logic (`stopJob` before every `startJob`) was already correct
+  and croner itself computes the right single occurrence, so the only
+  remaining way to get two live `Cron` instances for one job id was two OS
+  processes briefly overlapping during a restart, each loading `jobs.json`
+  independently — most likely an old pre-2026-08-18 process (still on the
+  hardcoded-UTC timezone) that was never cleanly killed, overlapping with
+  the fixed post-2026-08-18 process. This closes that gap at the process
+  level rather than the scheduling level.
+
 ### Security
 - Redacted real personal/instance identity that had leaked into tracked
   plugin content: a hardcoded Telegram chat ID (`sandbox-manager`'s

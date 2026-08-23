@@ -9,7 +9,7 @@
  * State: ~/.claude/channels/cronjobs/jobs.json
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -22,8 +22,28 @@ import { Cron } from "croner";
 
 const STATE_DIR = join(homedir(), ".claude", "channels", "cronjobs");
 const JOBS_FILE = join(STATE_DIR, "jobs.json");
+const PID_FILE = join(STATE_DIR, "server.pid");
 
 mkdirSync(STATE_DIR, { recursive: true });
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Prevents two processes both loading jobs.json from double-scheduling every job during a restart overlap.
+if (existsSync(PID_FILE)) {
+  const existingPid = parseInt(readFileSync(PID_FILE, "utf-8").trim(), 10);
+  if (!isNaN(existingPid) && isProcessAlive(existingPid)) {
+    process.stderr.write(`cronjobs: another instance is already running (pid ${existingPid}) — refusing to start a second one.\n`);
+    process.exit(1);
+  }
+}
+writeFileSync(PID_FILE, String(process.pid));
 
 // All "at TIME"/raw-cron schedules are meant in the server's local time, not
 // UTC — croner defaults to UTC unless told otherwise, which silently ran
@@ -403,6 +423,7 @@ process.stderr.write(`cronjobs: ${loaded} job(s) loaded\n`);
 
 const shutdown = () => {
   for (const id of activeJobs.keys()) stopJob(id);
+  try { unlinkSync(PID_FILE); } catch { /* already gone */ }
   process.exit(0);
 };
 
