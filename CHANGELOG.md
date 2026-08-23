@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `cronjobs` (v0.1.0): fired jobs now dispatch to an `Agent` subagent instead
+  of executing inline, so a long-running job no longer blocks the
+  interactive session/pane it fired in. `cronjob` SKILL.md's supported
+  schedule-expression table also stopped claiming raw cron and the
+  natural-language forms resolve in UTC — the server has always evaluated
+  `Cron(...)` with `timezone: TIMEZONE` (`process.env.TZ`, i.e. server-local
+  time), so the doc was wrong and any raw cron expression written by
+  following it literally would land at the wrong hour.
+- `sandbox-manager` (v0.14.0): `exit-session` now checks for outstanding
+  background work (a `run_in_background` shell, an Agent/fork dispatch, a
+  Monitor, a Workflow) before sending `/exit` — Claude Code's own
+  confirmation prompt for in-flight tasks only renders in the terminal, so a
+  remote (e.g. Telegram) `/exit` request used to leave the session hung
+  waiting on an unanswerable local prompt. It now warns on the originating
+  channel and waits for `/exit` (proceed anyway) or `/background` (hand off
+  first) instead of firing blind.
 - `knowledge-wiki` (v0.1.0, new plugin): maintains a self-updating,
   cross-linked markdown knowledge base under `docs/wiki/` — a `maintain-wiki`
   skill for ingesting durable facts/research into topic pages, querying the

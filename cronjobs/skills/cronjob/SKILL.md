@@ -3,6 +3,7 @@ name: cronjob
 description: Schedule recurring or one-time jobs. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/cronjob". When a job fires as a channel notification, execute it.
 user-invocable: true
 allowed-tools:
+  - Agent
   - mcp__plugin_cronjobs_cronjobs__add-job
   - mcp__plugin_cronjobs_cronjobs__list-jobs
   - mcp__plugin_cronjobs_cronjobs__remove-job
@@ -64,7 +65,7 @@ A notification arrives with:
 }
 ```
 
-Execute the task described. After completing, do NOT reply to the notification — perform the work silently unless you need to report results.
+Dispatch the task to a subagent rather than executing it inline — this keeps the interactive session (and whatever pane/channel exchange is live in it) free while the job runs. Call `Agent` with the task text as the prompt, verbatim plus the `schedule_id`/`fired_at` for context — the subagent starts with no memory of this conversation, so the prompt must be fully self-contained (it already should be, since these tasks are written to survive a fresh agent with no prior context). Omit `subagent_type` (defaults to general-purpose, which has full tool access) unless the task names a more specific agent. Do not block on the dispatch beyond kicking it off; the subagent reports via its own completion notification. After dispatching, do NOT reply to the notification yourself — the subagent, not this turn, is responsible for any results it needs to report.
 </workflow>
 
 <supported_expressions>
@@ -76,14 +77,14 @@ Execute the task described. After completing, do NOT reply to the notification �
 | `every 3 minutes` | Every 3 minutes |
 | `every hour` | Top of every hour |
 | `every 2 hours` | Every 2 hours |
-| `every day at 9am` | Daily at 09:00 UTC |
-| `every weekday at 3am` | Mon–Fri at 03:00 UTC |
-| `every weekend at noon` | Sat+Sun at 12:00 UTC |
-| `every monday at 10:30am` | Every Monday at 10:30 UTC |
-| `every friday` | Every Friday at midnight UTC |
-| `0 9 * * 1-5` | Raw 5-field cron expression |
+| `every day at 9am` | Daily at 09:00 server-local time |
+| `every weekday at 3am` | Mon–Fri at 03:00 server-local time |
+| `every weekend at noon` | Sat+Sun at 12:00 server-local time |
+| `every monday at 10:30am` | Every Monday at 10:30 server-local time |
+| `every friday` | Every Friday at midnight server-local time |
+| `0 9 * * 1-5` | Raw 5-field cron expression, also server-local time |
 
-All times are UTC. If the user specifies a timezone, note it and convert to UTC before scheduling.
+All times, including raw 5-field cron expressions, resolve in the server process's local timezone (`TZ` env var, falling back to the host's timezone) — not UTC. If the user specifies a different timezone, convert to server-local time before scheduling, and say what you converted it to when confirming the job.
 </supported_expressions>
 
 <success_criteria>
