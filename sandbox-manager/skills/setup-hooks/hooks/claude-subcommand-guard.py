@@ -33,6 +33,7 @@ false-positives on a real subcommand, rather than just widening the list
 blindly.
 """
 import json
+import os
 import re
 import shlex
 import sys
@@ -75,6 +76,10 @@ def first_subcommand_candidate(tokens):
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     try:
         payload = json.load(sys.stdin)
     except Exception:

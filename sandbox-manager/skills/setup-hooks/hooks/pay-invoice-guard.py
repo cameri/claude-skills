@@ -59,6 +59,10 @@ def block(reason):
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     config = load_config()
     authorized_chat_id = config.get("pay_invoice_authorized_chat_id")
     channel_plugin = config.get("telegram_channel_plugin", DEFAULT_CHANNEL_PLUGIN)

@@ -242,6 +242,10 @@ def run():
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     try:
         run()
     except Exception:

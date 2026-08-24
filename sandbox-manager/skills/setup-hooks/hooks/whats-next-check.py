@@ -46,6 +46,10 @@ def resolve_handoff_path():
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     try:
         sys.stdin.read()
     except Exception:

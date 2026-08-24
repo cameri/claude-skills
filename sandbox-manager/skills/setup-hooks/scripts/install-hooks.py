@@ -171,9 +171,22 @@ def main():
         "--hook",
         action="append",
         dest="hooks",
-        required=True,
         choices=sorted(HOOK_DEFS),
         help="Hook to install (repeatable).",
+    )
+    parser.add_argument(
+        "--disable",
+        choices=sorted(HOOK_DEFS),
+        help="Write a <name>.py.disabled sentinel next to the hook in "
+        "--hooks-dir, so it no-ops even if a future --hook run re-copies "
+        "the script. Standalone action - exits before any --hook install "
+        "logic runs.",
+    )
+    parser.add_argument(
+        "--enable",
+        choices=sorted(HOOK_DEFS),
+        help="Remove the <name>.py.disabled sentinel written by --disable, "
+        "if present. Standalone action, same as --disable.",
     )
     parser.add_argument("--hooks-dir", default=DEFAULT_HOOKS_DIR)
     parser.add_argument("--settings-path", default=DEFAULT_SETTINGS_PATH)
@@ -197,6 +210,26 @@ def main():
         help="Print what would change without writing anything.",
     )
     args = parser.parse_args()
+
+    if args.disable:
+        hooks_dir = os.path.expanduser(args.hooks_dir)
+        os.makedirs(hooks_dir, exist_ok=True)
+        sentinel = os.path.join(hooks_dir, f"{args.disable}.py.disabled")
+        open(sentinel, "a").close()
+        print(f"Disabled: {sentinel}")
+        return
+    if args.enable:
+        hooks_dir = os.path.expanduser(args.hooks_dir)
+        sentinel = os.path.join(hooks_dir, f"{args.enable}.py.disabled")
+        if os.path.exists(sentinel):
+            os.remove(sentinel)
+            print(f"Enabled: removed {sentinel}")
+        else:
+            print(f"Already enabled (no sentinel at {sentinel})")
+        return
+    if not args.hooks:
+        print("error: one of --hook (repeatable), --disable, or --enable is required", file=sys.stderr)
+        sys.exit(1)
 
     provided_config = {
         "telegram_chat_id": args.telegram_chat_id,

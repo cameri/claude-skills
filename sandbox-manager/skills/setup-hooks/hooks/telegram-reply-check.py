@@ -49,6 +49,10 @@ def get_text(message):
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     config = load_config()
     channel_plugin = config.get("telegram_channel_plugin", DEFAULT_CHANNEL_PLUGIN)
     channel_tag = f'<channel source="plugin:{channel_plugin}:telegram"'

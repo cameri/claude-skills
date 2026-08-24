@@ -73,6 +73,15 @@ actual="$(call "resume" "deadbeef-0000-0000-0000-000000000000" "$REGISTRY_DIR")"
 assert_eq "(d) resume falls back to the short session id" "Resumed session: deadbeef." "$actual"
 teardown
 
+# --- (e) a .disabled sentinel makes the script's main() no-op entirely ---
+setup
+touch "$TARGET.disabled"
+payload='{"source":"startup"}'
+out="$(echo "$payload" | python3 "$TARGET")"
+rm -f "$TARGET.disabled"
+assert_eq "(e) sentinel file makes main() print {}" "{}" "$out"
+teardown
+
 echo
 echo "$pass_count passed, $fail_count failed"
 [ "$fail_count" -eq 0 ]

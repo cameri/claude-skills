@@ -74,6 +74,10 @@ def read_version_worktree(repo_path, rel_path):
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     try:
         json.load(sys.stdin)
     except Exception:

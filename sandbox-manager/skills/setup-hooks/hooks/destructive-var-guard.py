@@ -12,6 +12,7 @@ substitute safely. A short allowlist of always-set variables (HOME, PWD,
 OLDPWD, CLAUDE_PROJECT_DIR) is also excluded to cut noise.
 """
 import json
+import os
 import re
 import sys
 
@@ -54,6 +55,10 @@ def find_risky_var(segment):
 
 
 def main():
+    if os.path.exists(f"{os.path.abspath(__file__)}.disabled"):
+        print(json.dumps({}))
+        return
+
     try:
         payload = json.load(sys.stdin)
     except Exception:

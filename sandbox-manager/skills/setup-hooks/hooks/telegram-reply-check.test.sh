@@ -65,6 +65,14 @@ decision="$(run_hook "$POLL_MSG" "$REGULAR_MSG")"
 assert_eq "(d) a later regular message still requires its own reply" "block" "$decision"
 teardown
 
+# --- (e) a .disabled sentinel suppresses the (a) block scenario ---
+setup
+touch "$TARGET.disabled"
+decision="$(run_hook "$REGULAR_MSG")"
+rm -f "$TARGET.disabled"
+assert_eq "(e) sentinel file suppresses the block" "" "$decision"
+teardown
+
 echo
 echo "$pass_count passed, $fail_count failed"
 [ "$fail_count" -eq 0 ]
