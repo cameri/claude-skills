@@ -1,6 +1,6 @@
 ---
 name: branch-session
-description: Creates a branch of the current Claude Code conversation at the current point by sending /branch followed by Enter to the tmux pane it runs in. Fires when a connected channel (e.g. Telegram) sends a message that is exactly /branch, or explicitly asks to branch or fork the current conversation.
+description: Creates a branch of the current Claude Code conversation at the current point by sending /branch followed by Enter to the pane it runs in (tmux or herdr). Fires when a connected channel (e.g. Telegram) sends a message that is exactly /branch, or explicitly asks to branch or fork the current conversation.
 user-invocable: false
 allowed-tools:
   - Bash
@@ -18,7 +18,7 @@ Forks this Claude Code session into a new branch at the current point on remote 
 </objective>
 
 <quick_start>
-Run the bundled script exactly as written — do not substitute a hand-written `tmux` command, since it validates the target pane before sending keys:
+Run the bundled script exactly as written — do not substitute a hand-written `tmux`/`herdr` command, since it validates the target pane before sending keys:
 
 ```bash
 bash scripts/branch-session.sh
@@ -28,10 +28,10 @@ bash scripts/branch-session.sh
 <workflow>
 1. Confirm the inbound channel message is `/branch` (case-sensitive, no extra text), or another clear, explicit request to branch/fork the current conversation — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. "Branching this conversation now.") — this still reaches the user, since the branch only fires after this turn ends.
-3. Run `scripts/branch-session.sh`. It auto-discovers the current tmux pane, refuses to fire if the pane isn't running Claude Code, then sends `/branch` + Enter.
+3. Run `scripts/branch-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/branch` + Enter.
 4. End the turn without further tool calls — anything queued after this point is discarded once the branch happens anyway.
 </workflow>
 
 <success_criteria>
-Script exits 0 and prints `Sent /branch to pane <id>`. If it exits non-zero (not in tmux, or pane running something unexpected), report the error on the channel instead of retrying with a modified command.
+Script exits 0 and prints `Sent /branch to pane <id>`. If it exits non-zero (not in tmux or herdr, or pane running something unexpected), report the error on the channel instead of retrying with a modified command.
 </success_criteria>

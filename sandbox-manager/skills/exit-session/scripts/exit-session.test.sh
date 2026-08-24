@@ -4,107 +4,25 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET="$SCRIPT_DIR/exit-session.sh"
+source "$(cd "$SCRIPT_DIR/../../../lib" && pwd)/test-stubs.sh"
 
 pass_count=0
 fail_count=0
 
-assert_eq() {
-  local desc="$1" expected="$2" actual="$3"
-  if [ "$expected" = "$actual" ]; then
-    pass_count=$((pass_count + 1)); echo "ok - $desc"
-  else
-    fail_count=$((fail_count + 1))
-    echo "not ok - $desc"; echo "    expected: $expected"; echo "    actual:   $actual"
-  fi
-}
-
-assert_contains() {
-  local desc="$1" haystack="$2" needle="$3"
-  case "$haystack" in
-    *"$needle"*) pass_count=$((pass_count + 1)); echo "ok - $desc" ;;
-    *) fail_count=$((fail_count + 1))
-       echo "not ok - $desc"; echo "    expected to contain: $needle"; echo "    actual: $haystack" ;;
-  esac
-}
-
-setup() {
-  TEST_TMP="$(mktemp -d)"
-  STUB_DIR="$TEST_TMP/bin"
-  mkdir -p "$STUB_DIR"
-  cat > "$STUB_DIR/tmux" <<'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  display-message)
-    fmt="$3"
-    if [ "$fmt" = "#{pane_id}" ]; then
-      echo "${STUB_PANE_ID:-%1}"
-    elif [ "$fmt" = "#{pane_current_command}" ]; then
-      echo "${STUB_PANE_CMD:-claude}"
-    else
-      echo "stub tmux: unknown display-message format: $fmt" >&2
-      exit 1
-    fi
-    ;;
-  send-keys)
-    shift
-    { printf '%s\x1f' "$@"; printf '\n'; } >> "$TMUX_STUB_LOG"
-    ;;
-  *) echo "stub tmux: unhandled tmux command: $*" >&2; exit 1 ;;
-esac
-EOF
-  chmod +x "$STUB_DIR/tmux"
-  cat > "$STUB_DIR/herdr" <<'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  pane)
-    case "$2" in
-      process-info)
-        cat <<JSON
-{"result":{"process_info":{"foreground_processes":[{"argv":["${STUB_PANE_ARGV0:-claude}"],"name":"MainThread"}]}}}
-JSON
-        ;;
-      run)
-        shift 2
-        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
-        ;;
-      *) echo "stub herdr: unhandled pane subcommand: $*" >&2; exit 1 ;;
-    esac
-    ;;
-  session)
-    case "$2" in
-      stop)
-        echo "$3" >> "$HERDR_SESSION_STOP_LOG"
-        ;;
-      *) echo "stub herdr: unhandled session subcommand: $*" >&2; exit 1 ;;
-    esac
-    ;;
-  *) echo "stub herdr: unhandled command: $*" >&2; exit 1 ;;
-esac
-EOF
-  chmod +x "$STUB_DIR/herdr"
-  export PATH="$STUB_DIR:$PATH"
-  export TMUX_STUB_LOG="$TEST_TMP/send-keys.log"
-  export HERDR_STUB_LOG="$TEST_TMP/pane-run.log"
-  export HERDR_SESSION_STOP_LOG="$TEST_TMP/session-stop.log"
-  : > "$TMUX_STUB_LOG"
-  : > "$HERDR_STUB_LOG"
-  : > "$HERDR_SESSION_STOP_LOG"
-  unset TMUX HERDR_ENV HERDR_PANE_ID HERDR_SESSION
-  export HERDR_SESSION="unused-session"
-}
-
-teardown() { rm -rf "$TEST_TMP"; }
-
-us="$(printf '\x1f')"
+# exit-session.sh reads $HERDR_SESSION for the herdr session-stop call;
+# other session-control scripts don't, so the shared setup() doesn't set a
+# default — each block below exports one right after calling setup.
 
 # --- (a) refuse when neither multiplexer is active ---
 setup
+export HERDR_SESSION="unused-session"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(a) exits non-zero when not in tmux or herdr" "1" "$rc"
 teardown
 
 # --- (b) tmux mode: refuse when pane isn't running claude ---
 setup
+export HERDR_SESSION="unused-session"
 export TMUX="/tmp/fake,1,0"
 export STUB_PANE_CMD="bash"
 out="$("$TARGET" 2>&1)"; rc=$?
@@ -114,6 +32,7 @@ teardown
 
 # --- (c) tmux mode: sends /exit + Enter ---
 setup
+export HERDR_SESSION="unused-session"
 export TMUX="/tmp/fake,1,0"
 export STUB_PANE_CMD="claude"
 export STUB_PANE_ID="%3"
@@ -128,6 +47,7 @@ teardown
 
 # --- (d) herdr mode: sends /exit via pane run ---
 setup
+export HERDR_SESSION="unused-session"
 export HERDR_ENV=1
 export HERDR_PANE_ID="w1:p1"
 export STUB_PANE_ARGV0="claude"

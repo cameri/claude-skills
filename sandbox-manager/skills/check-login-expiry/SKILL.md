@@ -8,7 +8,7 @@ allowed-tools:
 ---
 
 <essential_principles>
-The CLI shows its login-expiry banner from `claudeAiOauth.refreshTokenExpiresAt` in `~/.claude/.credentials.json`, warning once that's within 3 days of now, with `daysLeft = ceil(remaining_ms / 86400000)`. This skill reads the exact same field with the exact same formula instead of scraping the tmux pane for the banner text — more reliable, and it needs no state file: once `/login` runs, `refreshTokenExpiresAt` jumps back out past the 3-day window and the check goes quiet on its own.
+The CLI shows its login-expiry banner from `claudeAiOauth.refreshTokenExpiresAt` in `~/.claude/.credentials.json`, warning once that's within 3 days of now, with `daysLeft = ceil(remaining_ms / 86400000)`. This skill reads the exact same field with the exact same formula instead of scraping the pane (tmux or herdr) for the banner text — more reliable, and it needs no state file: once `/login` runs, `refreshTokenExpiresAt` jumps back out past the 3-day window and the check goes quiet on its own.
 
 Only this instance's credentials file is in scope. If you run multiple Claude Code instances that share the same underlying account, one instance's `~/.claude/.credentials.json` check covers all of them — confirm that assumption holds for your own setup before relying on it, and check each instance separately if they use different accounts.
 

@@ -1,6 +1,7 @@
 node_modules/
 **/*.env
 .superpowers/
+__pycache__/
 
 # graphify extraction cache (graph outputs themselves live at /workspace/graphify-out,
 # set via GRAPHIFY_OUT in the installed post-commit/post-checkout hooks)

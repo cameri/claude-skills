@@ -6,96 +6,10 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$SCRIPT_DIR/pane-io.sh"
+source "$SCRIPT_DIR/test-stubs.sh"
 
 pass_count=0
 fail_count=0
-
-assert_eq() {
-  local desc="$1" expected="$2" actual="$3"
-  if [ "$expected" = "$actual" ]; then
-    pass_count=$((pass_count + 1))
-    echo "ok - $desc"
-  else
-    fail_count=$((fail_count + 1))
-    echo "not ok - $desc"
-    echo "    expected: $expected"
-    echo "    actual:   $actual"
-  fi
-}
-
-setup() {
-  TEST_TMP="$(mktemp -d)"
-  STUB_DIR="$TEST_TMP/bin"
-  mkdir -p "$STUB_DIR"
-
-  cat > "$STUB_DIR/tmux" <<'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  display-message)
-    fmt="$3"
-    if [ "$fmt" = "#{pane_id}" ]; then
-      echo "${STUB_PANE_ID:-%1}"
-    elif [ "$fmt" = "#{pane_current_command}" ]; then
-      echo "${STUB_PANE_CMD:-claude}"
-    else
-      echo "stub tmux: unknown display-message format: $fmt" >&2
-      exit 1
-    fi
-    ;;
-  send-keys)
-    shift
-    { printf '%s\x1f' "$@"; printf '\n'; } >> "$TMUX_STUB_LOG"
-    ;;
-  *)
-    echo "stub tmux: unhandled tmux command: $*" >&2
-    exit 1
-    ;;
-esac
-EOF
-  chmod +x "$STUB_DIR/tmux"
-
-  cat > "$STUB_DIR/herdr" <<'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  pane)
-    case "$2" in
-      process-info)
-        # args: process-info --pane <id>
-        cat <<JSON
-{"result":{"process_info":{"foreground_processes":[{"argv":["${STUB_PANE_ARGV0:-claude}"],"name":"MainThread"}]}}}
-JSON
-        ;;
-      run)
-        shift 2
-        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
-        ;;
-      *)
-        echo "stub herdr: unhandled pane subcommand: $*" >&2
-        exit 1
-        ;;
-    esac
-    ;;
-  *)
-    echo "stub herdr: unhandled command: $*" >&2
-    exit 1
-    ;;
-esac
-EOF
-  chmod +x "$STUB_DIR/herdr"
-
-  export PATH="$STUB_DIR:$PATH"
-  export TMUX_STUB_LOG="$TEST_TMP/tmux-send-keys.log"
-  export HERDR_STUB_LOG="$TEST_TMP/herdr-pane-run.log"
-  : > "$TMUX_STUB_LOG"
-  : > "$HERDR_STUB_LOG"
-  unset TMUX HERDR_ENV HERDR_PANE_ID
-}
-
-teardown() {
-  rm -rf "$TEST_TMP"
-}
-
-us="$(printf '\x1f')"
 
 # --- pane_io_active ---
 setup
