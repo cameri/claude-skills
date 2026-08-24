@@ -108,6 +108,41 @@ docker logs <container_name> --tail 20
 - Container status is `Up Xs` with no `(unhealthy)` — no healthcheck, check logs manually
 </testing_strategy>
 
+<self_rebuild_gotcha>
+**Running `docker compose ... --build <service>` from inside a container,
+targeting that same container or a sibling on the same Docker host:** the
+compose file's `${HOME}`-style variables resolve against the environment of
+whatever process invokes `docker compose` — not the real host's — even
+though the bind-mount operations themselves happen on the real host via the
+mounted `docker.sock`. If the container's own `$HOME` differs from the real
+host's (e.g. a container running as a different user than whoever owns the
+host paths in `compose.yml`), Docker silently auto-creates the missing
+bind-mount source directories under the *wrong* path instead of erroring —
+producing a container with empty, disconnected mounts instead of its real
+data. This bit twice during the 2026-08 tmux→herdr container migration (see
+`docs/superpowers/plans/2026-08-23-herdr-claude-gina-cutover.md` incident 4
+and `docs/superpowers/plans/2026-08-24-herdr-claude-ricardo-cutover.md`).
+
+Fix: render the compose file with the *correct* `HOME` into a temp file
+first, then apply that rendered file using the *normal* (session's own)
+environment — the `docker`/`buildx` CLI itself also needs its own correct
+`$HOME` to find its local state (e.g. `~/.docker/buildx/...`), so setting
+`HOME` for the whole `--build` invocation breaks that instead:
+
+```bash
+HOME=<correct-host-home> docker compose config > /tmp/resolved.yml
+docker compose -f /tmp/resolved.yml up -d --build <service>
+```
+
+If the target is the very container running the current session, this
+command cannot safely run from inside that session at all — it tears down
+the process running it. Hand the exact command to a human at a real host
+shell instead, and treat any follow-up verification as a fresh
+conversation's job (see the `claude-ricardo` plan above for the pattern of
+splitting "safe prep, run from inside" from "the actual recreate, handed
+off").
+</self_rebuild_gotcha>
+
 <rollback>
 If testing fails:
 
