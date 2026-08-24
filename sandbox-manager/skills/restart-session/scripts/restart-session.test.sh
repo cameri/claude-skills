@@ -37,7 +37,7 @@ assert_eq "(c) sends /clear literally" "-t${us}%3${us}-l${us}--${us}/clear${us}"
 assert_eq "(c) sends Enter" "-t${us}%3${us}Enter${us}" "$(sed -n '2p' "$TMUX_STUB_LOG")"
 teardown
 
-# --- (d) herdr mode: sends /clear via pane run ---
+# --- (d) herdr mode: sends /clear via send-text + send-keys enter ---
 setup
 export HERDR_ENV=1
 export HERDR_PANE_ID="w1:p1"
@@ -45,8 +45,9 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(d) exits zero for a claude pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(d) exactly one pane-run invocation logged" "1" "$line_count"
-assert_eq "(d) pane-run sends pane id and /clear" "w1:p1${us}/clear${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "(d) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(d) send-text sends pane id and /clear" "w1:p1${us}/clear${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "(d) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

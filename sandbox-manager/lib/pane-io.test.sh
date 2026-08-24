@@ -85,9 +85,11 @@ setup
 export HERDR_ENV=1
 bash -c "source '$LIB'; pane_io_send 'w1:p1' '/clear'"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "send: herdr mode makes one pane run call" "1" "$line_count"
-assert_eq "send: herdr call has pane id and text" "w1:p1${us}/clear${us}" \
+assert_eq "send: herdr mode makes two calls (send-text, send-keys)" "2" "$line_count"
+assert_eq "send: herdr first call is send-text with pane id and text" "w1:p1${us}/clear${us}" \
   "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "send: herdr second call is send-keys enter" "w1:p1${us}enter${us}" \
+  "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

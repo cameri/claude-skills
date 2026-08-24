@@ -41,9 +41,10 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" "my-session" 2>&1)"; rc=$?
 assert_eq "(d) exits zero for a claude pane with an arg, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(d) exactly one pane-run invocation logged" "1" "$line_count"
-assert_eq "(d) pane-run sends pane id and /resume with the name" \
+assert_eq "(d) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(d) send-text sends pane id and /resume with the name" \
   "w1:p1${us}/resume my-session${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "(d) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

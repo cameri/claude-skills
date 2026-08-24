@@ -66,7 +66,7 @@ assert_eq "(d) exits non-zero when not in tmux" "1" "$rc"
 assert_eq "(d) no send-keys logged when not in tmux" "" "$(cat "$TMUX_STUB_LOG")"
 teardown
 
-# --- (e) herdr mode: one pane-run call with the composed text ---
+# --- (e) herdr mode: send-text + send-keys with the composed text ---
 setup
 unset TMUX
 export HERDR_ENV=1
@@ -75,9 +75,10 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" "keep the API design decisions" 2>&1)"; rc=$?
 assert_eq "(e) exits zero for a claude pane with an arg, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(e) exactly one pane-run invocation logged" "1" "$line_count"
-assert_eq "(e) pane-run sends pane id and composed text" \
+assert_eq "(e) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(e) send-text sends pane id and composed text" \
   "w1:p1${us}/compact keep the API design decisions${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "(e) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

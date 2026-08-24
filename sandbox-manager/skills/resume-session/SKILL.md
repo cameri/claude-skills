@@ -10,7 +10,7 @@ allowed-tools:
 <essential_principles>
 This swaps out the conversation currently running in the pane for a different, previously named session — irreversible for the context being replaced, same class of action as [[restart-session]]'s `/clear` (the outgoing conversation isn't deleted from disk, but this pane stops working on it). Only act on a request from a channel that already trusts the sender via its own access control.
 
-A bare `/resume` with no name opens an interactive picker that expects arrow-key navigation — that can't be driven by a scripted keystroke send (`tmux send-keys` or `herdr pane run`), so this skill always requires a name and refuses to fire without one. If the channel message doesn't include a target session name, ask for one instead of sending a bare `/resume`.
+A bare `/resume` with no name opens an interactive picker that expects arrow-key navigation — that can't be driven by a scripted keystroke send (`tmux send-keys` or `herdr pane send-text`/`send-keys`), so this skill always requires a name and refuses to fire without one. If the channel message doesn't include a target session name, ask for one instead of sending a bare `/resume`.
 
 The queued `/resume <name>` only takes effect once this turn ends and Claude Code reads from the pane's stdin again — same timing as [[restart-session]]'s `/clear`. Any tool call issued earlier in this same turn, including a channel reply, still completes normally before the switch happens.
 </essential_principles>

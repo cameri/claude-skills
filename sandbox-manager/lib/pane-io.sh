@@ -53,7 +53,15 @@ pane_io_send() {
   local pane_id="$1" text="$2"
   case "$(pane_io_active)" in
     herdr)
-      herdr pane run "$pane_id" "$text"
+      # `herdr pane run` claims to send text + Enter atomically, but doesn't
+      # actually submit reliably against Claude Code's TUI (confirmed live
+      # 2026-08-24: a queued /clear sat unsubmitted in the input box with
+      # its slash-command autocomplete still open) - herdr's own skill guide
+      # notes only `agent prompt`, not `pane run`, accounts for the pane's
+      # bracketed-paste mode when encoding Enter. Send text and Enter as two
+      # separate calls instead, mirroring the tmux branch below.
+      herdr pane send-text "$pane_id" "$text"
+      herdr pane send-keys "$pane_id" enter
       ;;
     tmux)
       # -l sends the text literally so it can't be misread as tmux key names.

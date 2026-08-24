@@ -71,6 +71,14 @@ JSON
         shift 2
         { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
         ;;
+      send-text)
+        shift 2
+        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
+        ;;
+      send-keys)
+        shift 2
+        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
+        ;;
       *) echo "stub herdr: unhandled pane subcommand: $*" >&2; exit 1 ;;
     esac
     ;;
