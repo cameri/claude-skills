@@ -19,6 +19,7 @@ HOOKS=(
   pay-invoice-guard
   plugin-version-check
   claude-subcommand-guard
+  ssh-pubkey-check
 )
 
 pass_count=0

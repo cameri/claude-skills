@@ -97,6 +97,13 @@ HOOK_DEFS = {
         "needs": [],
         "config_keys": [],
     },
+    "ssh-pubkey-check": {
+        "event": "SessionStart",
+        "matcher": None,
+        "timeout": 10,
+        "needs": [],
+        "config_keys": [],
+    },
 }
 
 
