@@ -819,7 +819,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           format: {
             type: 'string',
             enum: ['text', 'markdownv2', 'rich'],
-            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links) — caller must escape special chars per MarkdownV2 rules. 'rich' sends a Bot API 10.1+ rich message (tables, headings, code fences with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed, and the length cap is 32768 chars instead of 4096. Default: 'text' (plain, no escaping needed).",
+            description: "Rendering mode. Default 'rich' sends a Bot API 10.1+ rich message (bold/italic, tables, headings, fenced code blocks with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed, and the length cap is 32768 chars instead of 4096. Note: inline single/double-backtick code spans are NOT rendered by rich's parser (the backticks are silently stripped) — use a fenced ``` code block ``` instead. 'markdownv2' enables classic Telegram formatting (bold, italic, code, links) including inline code spans, but the caller must escape special chars per MarkdownV2 rules. 'text' sends plain text with no formatting applied — use it when the message must not be interpreted as markdown at all (e.g. it contains literal asterisks/underscores/backticks you don't want touched).",
           },
           receiver_user_id: {
             type: 'string',
@@ -865,7 +865,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           format: {
             type: 'string',
             enum: ['text', 'markdownv2', 'rich'],
-            description: "Rendering mode. 'markdownv2' enables Telegram formatting (bold, italic, code, links) — caller must escape special chars per MarkdownV2 rules. 'rich' edits into a Bot API 10.1+ rich message (tables, headings, code fences with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed. Default: 'text' (plain, no escaping needed).",
+            description: "Rendering mode. Default 'rich' edits into a Bot API 10.1+ rich message (bold/italic, tables, headings, fenced code blocks with syntax highlighting, math via $..$, collapsible <details>, footnotes, block quotes) using an extended Markdown syntax — no escaping needed. Note: inline single/double-backtick code spans are NOT rendered by rich's parser (the backticks are silently stripped) — use a fenced ``` code block ``` instead. 'markdownv2' enables classic Telegram formatting (bold, italic, code, links) including inline code spans, but the caller must escape special chars per MarkdownV2 rules. 'text' sends plain text with no formatting applied.",
           },
         },
         required: ['chat_id', 'message_id', 'text'],
@@ -943,7 +943,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const text = args.text as string
         const reply_to = args.reply_to != null ? Number(args.reply_to) : undefined
         const files = (args.files as string[] | undefined) ?? []
-        const format = (args.format as string | undefined) ?? 'text'
+        const format = (args.format as string | undefined) ?? 'rich'
         const parseMode = format === 'markdownv2' ? 'MarkdownV2' as const : undefined
         const isRich = format === 'rich'
         const receiverUserId = args.receiver_user_id != null ? Number(args.receiver_user_id) : undefined
@@ -1042,7 +1042,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
       }
       case 'edit_message': {
         assertAllowedChat(args.chat_id as string)
-        const editFormat = (args.format as string | undefined) ?? 'text'
+        const editFormat = (args.format as string | undefined) ?? 'rich'
         const editParseMode = editFormat === 'markdownv2' ? 'MarkdownV2' as const : undefined
         const content: string | InputRichMessage =
           editFormat === 'rich' ? { markdown: args.text as string } : (args.text as string)
