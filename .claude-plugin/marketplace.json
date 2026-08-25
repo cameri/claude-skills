@@ -303,6 +303,19 @@
       "source": "./executable-skepticism"
     },
     {
+      "name": "doubt-driven-development",
+      "description": "Adversarial fresh-context review of non-trivial in-flight decisions — CLAIM, EXTRACT, DOUBT, RECONCILE, STOP — with optional user-authorized cross-model escalation.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./doubt-driven-development"
+    },
+    {
       "name": "simple-english",
       "description": "Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop.",
       "tools": [

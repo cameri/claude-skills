@@ -13,6 +13,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [consider](./consider/) | Apply a decision-making framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment | Claude + Cursor |
 | [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
 | [container-management](./container-management/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes | Claude + Cursor |
+| [doubt-driven-development](./doubt-driven-development/) | Adversarial fresh-context review of non-trivial in-flight decisions before they stand — CLAIM, EXTRACT, DOUBT, RECONCILE, STOP — with optional user-authorized cross-model escalation | Claude |
 | [elevenlabs](./elevenlabs/) | Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API | Claude + Cursor |
 | [executable-skepticism](./executable-skepticism/) | Verification protocol that turns a theory, paper, model, or confident quantitative claim into a falsifiable, runnable test instead of a debate in prose | Claude |
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs | Claude + Cursor |
@@ -115,6 +116,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | Skill | Description |
 |---|---|
 | `executable-skepticism:executable-skepticism` | Operationalize a claim, register numeric predictions before running any code, execute deterministically, then score every prediction pass/fail — failures first, derived-vs-installed called out |
+
+### doubt-driven-development
+
+| Skill | Description |
+|---|---|
+| `doubt-driven-development:doubt-driven-development` | Adversarial fresh-context review of a non-trivial in-flight decision — CLAIM, EXTRACT, DOUBT, RECONCILE, STOP — with optional user-authorized cross-model escalation |
 
 ### nats
 

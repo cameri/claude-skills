@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `doubt-driven-development` (v0.1.0, new plugin): adversarial fresh-context
+  review of non-trivial in-flight decisions — CLAIM, EXTRACT, DOUBT,
+  RECONCILE, STOP — with optional user-authorized cross-model escalation
+  (Gemini/Codex CLI, read-only sandbox). Ported from the
+  `doubt-driven-development` skill in
+  [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills)
+  (MIT), rewritten to be self-contained: replaced that pack's `agents/`
+  persona-roster and `references/orchestration-patterns.md`
+  cross-references with Claude-Code-native `subagent_type` guidance
+  (fresh vs. `fork`) and pointers to this repo's own skills
+  (`code-review`, `superpowers:test-driven-development`,
+  `superpowers:systematic-debugging`).
 - `cronjobs` (v0.1.0): fired jobs now dispatch to an `Agent` subagent instead
   of executing inline, so a long-running job no longer blocks the
   interactive session/pane it fired in. `cronjob` SKILL.md's supported
