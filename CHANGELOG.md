@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- `nats` (v0.1.2): the `/rename`-fallback session-name lookup used
+  `process.ppid` directly, but Claude Code's channel MCP servers run under
+  an intermediate wrapper (`bun run --cwd <plugin> start`), so the real
+  `claude` process is a grandparent, not the immediate parent — the lookup
+  always missed and silently fell back to the bare agent ID on both
+  claude-ricardo and claude-gina. Fixed by walking up `/proc/<pid>/status`'s
+  `PPid` chain (capped at 8 hops) until a matching
+  `~/.claude/sessions/<pid>.json` is found. Caught live: after wiring both
+  instances together, `discover()`/`ping()` showed `name` equal to the bare
+  agent ID for both sides instead of "claude-ricardo"/"claude-gina".
 - `nats` (v0.1.1): `getAgentId()`'s generate-and-persist path was a
   check-then-write race — caught live wiring two fresh sibling instances
   together for the first time. Claude Code can spawn more than one instance

@@ -74,21 +74,50 @@ function getAgentId(): string {
 const agentId = getAgentId();
 
 /**
+ * Reads the PPid field out of /proc/<pid>/status. Returns undefined at the
+ * top of the tree or if /proc isn't available (non-Linux).
+ */
+function getParentPid(pid: number): number | undefined {
+  try {
+    const status = readFileSync(`/proc/${pid}/status`, "utf-8");
+    const m = status.match(/^PPid:\s*(\d+)/m);
+    return m ? Number(m[1]) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Claude Code's channel MCP servers run under an intermediate wrapper (e.g.
+ * `bun run --cwd <plugin> start`), so the real `claude` process is a
+ * grandparent, not the immediate parent — process.ppid alone doesn't reach
+ * its session file. Walk up the process tree looking for a
+ * ~/.claude/sessions/<pid>.json, capped well above any plausible wrapper
+ * depth.
+ */
+function findAncestorSessionName(): string | undefined {
+  let pid: number | undefined = process.ppid;
+  for (let hops = 0; pid && pid > 1 && hops < 8; hops++) {
+    try {
+      const session = JSON.parse(readFileSync(join(SESSIONS_DIR, `${pid}.json`), "utf-8")) as { name?: string };
+      if (session.name) return session.name;
+    } catch {}
+    pid = getParentPid(pid);
+  }
+  return undefined;
+}
+
+/**
  * Friendly display name, resolved fresh on every use (not cached at startup)
  * so a `/rename` picked up mid-session shows up on the next message without
  * restarting the channel server. Precedence: explicit NATS_AGENT_NAME env
  * override, then this Claude Code session's own display name (set via
- * `/rename`, read from ~/.claude/sessions/<parent-pid>.json), then the bare
- * agent ID.
+ * `/rename`, found by walking up to the ancestor `claude` process's session
+ * file), then the bare agent ID.
  */
 function getAgentName(): string {
   if (process.env.NATS_AGENT_NAME) return process.env.NATS_AGENT_NAME;
-  try {
-    const sessionFile = join(SESSIONS_DIR, `${process.ppid}.json`);
-    const session = JSON.parse(readFileSync(sessionFile, "utf-8")) as { name?: string };
-    if (session.name) return session.name;
-  } catch {}
-  return agentId;
+  return findAncestorSessionName() ?? agentId;
 }
 
 // ── Agent cache ───────────────────────────────────────────────────────────────
