@@ -300,6 +300,27 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 // Connect MCP transport before doing anything that might fire notifications.
 await mcp.connect(new StdioServerTransport());
 
+// ── Graceful shutdown ─────────────────────────────────────────────────────────
+// Registered immediately after the transport connects, before any NATS setup
+// that might take a while — StdioServerTransport only listens for
+// 'data'/'error' on stdin, never 'end'/'close', so if Claude Code
+// disconnects a channel server by closing its stdin pipe rather than
+// sending SIGTERM (observed live: /reload-plugins leaves the old nats
+// process running indefinitely, still connected to NATS and responding to
+// discover/ping under a stale identity), neither the SDK nor a
+// late-registered listener here would notice — Node doesn't replay a
+// missed 'end' event to a listener added after it already fired.
+
+const shutdown = async () => {
+  try { await nc?.drain(); } catch {}
+  process.exit(0);
+};
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+process.stdin.on("end", shutdown);
+process.stdin.on("close", shutdown);
+
 // ── NATS connection ───────────────────────────────────────────────────────────
 
 async function connectNats(): Promise<NatsConnection> {
@@ -411,13 +432,3 @@ if (nc) {
     process.stderr.write("nats: connection closed\n");
   }).catch(() => {});
 }
-
-// ── Graceful shutdown ─────────────────────────────────────────────────────────
-
-const shutdown = async () => {
-  try { await nc?.drain(); } catch {}
-  process.exit(0);
-};
-
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);

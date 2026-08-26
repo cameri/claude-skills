@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- `nats` (v0.1.3): answers Cameri's "how do we make `/reload-plugins` kill
+  the old orphaned process?" — it can't, from the plugin side; the actual
+  bug was that this plugin never noticed it had been disconnected.
+  `@modelcontextprotocol/sdk`'s `StdioServerTransport` only listens for
+  `'data'`/`'error'` on stdin, never `'end'`/`'close'`, so when Claude Code
+  disconnects a channel server by closing its stdin pipe (rather than
+  sending SIGTERM — confirmed live: `/reload-plugins` left the old `nats`
+  process running indefinitely, still connected to NATS and responding to
+  `discover`/`ping` under a stale identity/stale code), neither the SDK nor
+  this server noticed. Added explicit `process.stdin.on('end'/'close',
+  shutdown)` — registered immediately after the transport connects, before
+  any NATS setup, since Node doesn't replay a missed `'end'` event to a
+  listener added after it already fired (an earlier attempt at this same
+  fix registered the listener too late, at the bottom of the file after all
+  NATS setup, and silently didn't work — caught by testing the actual
+  stdin-close behavior before shipping, not just a bundler check).
 - `nats` (v0.1.2): the `/rename`-fallback session-name lookup used
   `process.ppid` directly, but Claude Code's channel MCP servers run under
   an intermediate wrapper (`bun run --cwd <plugin> start`), so the real
