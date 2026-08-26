@@ -121,13 +121,34 @@ bind-mount source directories under the *wrong* path instead of erroring —
 producing a container with empty, disconnected mounts instead of its real
 data. This bit twice during the 2026-08 tmux→herdr container migration (see
 `docs/superpowers/plans/2026-08-23-herdr-claude-gina-cutover.md` incident 4
-and `docs/superpowers/plans/2026-08-24-herdr-claude-ricardo-cutover.md`).
+and `docs/superpowers/plans/2026-08-24-herdr-claude-ricardo-cutover.md`), and
+the manual two-command fix documented below proved insufficient on its
+own — it recurred three more times afterward (2026-08-25 ×2,
+2026-08-26 ×1) because remembering to type it correctly, every time, isn't
+reliable. Use the script instead of the manual steps whenever possible:
 
-Fix: render the compose file with the *correct* `HOME` into a temp file
-first, then apply that rendered file using the *normal* (session's own)
-environment — the `docker`/`buildx` CLI itself also needs its own correct
-`$HOME` to find its local state (e.g. `~/.docker/buildx/...`), so setting
-`HOME` for the whole `--build` invocation breaks that instead:
+```bash
+scripts/safe-rebuild.sh --compose-dir <dir> <service>
+```
+
+It auto-detects the real host `$HOME` by self-inspecting this container's
+own already-correct mounts (override with `--host-home` if that heuristic
+ever picks the wrong one), renders the compose config with it into a temp
+file, applies that file with the session's own environment, and — critically
+— refuses outright (exit 2) if `<service>` resolves to the container
+currently running the script, printing the exact manual command for a human
+to run at a real host shell instead. `--compose-dir` must be the project
+directory whose compose.yml actually resolves the service — for a
+multi-file setup using top-level `include:` and shared networks, that's the
+directory holding the top-level compose.yml, not a per-service subdirectory.
+
+The manual fallback, if the script isn't available or its self-detection
+needs bypassing for some reason: render the compose file with the *correct*
+`HOME` into a temp file first, then apply that rendered file using the
+*normal* (session's own) environment — the `docker`/`buildx` CLI itself also
+needs its own correct `$HOME` to find its local state (e.g.
+`~/.docker/buildx/...`), so setting `HOME` for the whole `--build`
+invocation breaks that instead:
 
 ```bash
 HOME=<correct-host-home> docker compose config > /tmp/resolved.yml

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
+  replacing the prose-only fix for the self-rebuild `$HOME`-resolution
+  gotcha documented in `references/update-strategies.md`. That prose fix
+  (added 2026-08-24) recurred three more times afterward regardless
+  (2026-08-25 ×2, 2026-08-26 ×1) — remembering to type the two-command
+  workaround correctly, every time, wasn't reliable. The script
+  auto-detects the real host `$HOME` by self-inspecting the running
+  container's own already-correct mount sources, renders the target
+  service's compose config with it into a temp file, applies that file
+  with the session's own environment, and refuses outright (exit 2) if
+  the target resolves to the container currently running the script —
+  comparing container IDs via `docker compose ps -q`, not names, since a
+  container's runtime name can carry a prefix that doesn't match its
+  compose-file `container_name` (confirmed live in this workspace).
+  Found by `/replicator:meditate`'s inward review, cycle 2026-08-26.
+
 ### Fixed
 - `nats` (v0.1.3): answers Cameri's "how do we make `/reload-plugins` kill
   the old orphaned process?" — it can't, from the plugin side; the actual
