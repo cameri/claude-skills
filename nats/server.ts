@@ -49,12 +49,26 @@ const FALLBACK_URL = "nats://nats-server:4222";
 
 // ── Agent identity ────────────────────────────────────────────────────────────
 
+/**
+ * Reads the persisted agent ID, or generates and persists a new one. The
+ * generate-and-write path is racy across concurrent first-boot processes
+ * (Claude Code can spawn more than one instance of a channel's MCP server
+ * while it's still starting up, e.g. during a slow first `bun install`) —
+ * an exclusive create makes concurrent racers converge on one winner's ID
+ * instead of each keeping its own, which otherwise leaves the network with
+ * several live identities all claiming to be "this agent".
+ */
 function getAgentId(): string {
   if (existsSync(AGENT_ID_FILE)) return readFileSync(AGENT_ID_FILE, "utf-8").trim();
   mkdirSync(SKILL_DIR, { recursive: true });
   const id = `claude-${randomUUID().slice(0, 8)}`;
-  writeFileSync(AGENT_ID_FILE, id);
-  return id;
+  try {
+    writeFileSync(AGENT_ID_FILE, id, { flag: "wx" });
+    return id;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "EEXIST") return readFileSync(AGENT_ID_FILE, "utf-8").trim();
+    throw e;
+  }
 }
 
 const agentId = getAgentId();

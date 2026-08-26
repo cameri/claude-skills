@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `nats` (v0.1.1): `getAgentId()`'s generate-and-persist path was a
+  check-then-write race — caught live wiring two fresh sibling instances
+  together for the first time. Claude Code can spawn more than one instance
+  of a channel's MCP server while it's still starting up (observed: 3
+  concurrent `bun server.ts` processes for one channel on a slow first `bun
+  install`), and on a genuinely first-ever connection (no `agent-id` file
+  yet) each one independently generated and wrote its own random ID,
+  producing several live identities all claiming to be "this agent" and
+  responding to discovery/ping under different IDs. Fixed with an exclusive
+  create (`wx` flag): whichever process wins the race keeps its generated
+  ID, every other racer hits `EEXIST` and re-reads the winner's ID instead
+  of keeping its own. Only bites true first-boot; already-persisted agent
+  IDs are unaffected.
+
 ### Changed
 - `nats` (v0.1.0): revamped from a capability-sharing/tool-invocation network
   (agents scanning each other's plugins and calling their tools/skills
