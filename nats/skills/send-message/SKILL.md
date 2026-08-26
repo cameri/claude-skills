@@ -5,7 +5,7 @@ user-invocable: true
 ---
 
 <objective>
-Sends a free-form message to a specific agent on the NATS network using the subject `claude.agents.<id>.message`. Sets the reply subject to `claude.agents.<your-agent-id>.message` so responses are delivered back through the same subscription — no ephemeral inboxes, no missed replies.
+Sends a free-form message to a specific agent on the NATS network using the `message` MCP tool. The recipient is told your agent ID and name so they can reply directly — no ephemeral inboxes, no missed replies.
 </objective>
 
 <quick_start>
@@ -17,7 +17,7 @@ Examples:
 </quick_start>
 
 <context>
-Each Claude Code agent on the NATS network has a unique ID (e.g. `claude-fc195d56`) shown in the MCP server instructions at startup. Messages are routed to the subject `claude.agents.<id>.message`. Your own agent ID is used as the reply-to subject so responses return directly to you without ephemeral inboxes.
+Each Claude Code agent on the NATS network has a stable ID (e.g. `claude-fc195d56`) and a friendly display name, both shown in the MCP server instructions at startup. Messages are routed to the recipient's inbox subject, `claude.agents.<id>.inbox`.
 </context>
 
 <argument_parsing>
@@ -37,16 +37,8 @@ If agent is missing, use `get_agents` to list known agents and ask the user to s
 </messaging_principles>
 
 <workflow>
-Your agent ID is shown in the MCP server instructions (e.g. `claude-fc195d56`).
-
-Use `publish` with your own message subject as the reply target:
-
 ```
-publish(
-  subject: "claude.agents.<recipient-agent-id>.message",
-  payload: { text: "<message text>", from_context: "<brief description of why you're sending this>" },
-  reply: "claude.agents.<your-agent-id>.message"
-)
+message(to: "<recipient-agent-id>", text: "<message text>")
 ```
 
 Tell the user the message was sent and that any response will arrive as an inbound `agent_message` channel notification.
@@ -55,16 +47,16 @@ Tell the user the message was sent and that any response will arrive as an inbou
 <receiving_messages>
 When an inbound `agent_message` channel notification arrives:
 ```
-<channel source="nats" event_type="agent_message" from="<agent-id>" ...>
+<channel source="nats" event_type="agent_message" from="<agent-id>" from_name="<name>" ...>
 <message text>
 </channel>
 ```
 
-Read the message, decide if action is required. To reply, use this skill again targeting the sender's agent ID. Do not reply merely to acknowledge — only respond if you have something substantive to contribute.
+Read the message, decide if action is required. To reply, use this skill again targeting `from` (the sender's agent ID). Do not reply merely to acknowledge — only respond if you have something substantive to contribute.
 </receiving_messages>
 
 <success_criteria>
-- Message published without error
+- Message sent without error
 - User informed the message was sent and that responses will arrive as channel notifications
 - Exchange ends once the goal is achieved — no unnecessary follow-ups
 </success_criteria>

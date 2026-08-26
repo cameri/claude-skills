@@ -1,11 +1,11 @@
 ---
 name: discover-agents
-description: Discover all Claude Code agents on the NATS network and list their capabilities. Use when the user says "discover agents", "who's on nats", "list nats agents", "find agents", or wants to see what agents are available.
+description: Discover all Claude Code agents on the NATS network — "who's there?". Use when the user says "discover agents", "who's on nats", "list nats agents", "find agents", or wants to see what agents are available.
 user-invocable: true
 ---
 
 <objective>
-Sends a discovery ping on `claude.discovery.ping` and collects pong responses for 3 seconds. All responding agents are listed with their capabilities. Results are cached to `~/.claude/channels/nats/agents.json`.
+Sends a discovery ping on `claude.discovery.ping` and collects pong responses for 3 seconds. All responding agents are listed with their name and ID. Results are cached to `~/.claude/channels/nats/agents.json`.
 </objective>
 
 <quick_start>
@@ -28,9 +28,6 @@ For each discovered agent:
 Agent: <agentId>
   Name: <name>
   Last seen: <lastSeen>
-  Capabilities (<count>):
-    - [<type>] <name>: <description>
-    ...
 ```
 
 If no agents responded:

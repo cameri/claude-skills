@@ -1,6 +1,6 @@
 ---
 name: access
-description: Configure the NATS server URL for Claude Code agent communication. Use when the user wants to set up NATS, change the NATS server URL, check current connection settings, or says "configure nats".
+description: Configure the NATS server URL and this agent's display name for Claude Code agent communication. Use when the user wants to set up NATS, change the NATS server URL or agent name, check current connection settings, or says "configure nats".
 user-invocable: true
 allowed-tools:
   - Read
@@ -14,11 +14,13 @@ allowed-tools:
 ---
 
 <objective>
-Manages the NATS server URL for the Claude Code agent. The URL is stored in `~/.claude/channels/nats/${ENV}.env` (chmod 600) and used by the NATS MCP server to connect to the agent network.
+Manages the NATS server URL and this agent's display name for the Claude Code agent. Both are stored in `~/.claude/channels/nats/${ENV}.env` (chmod 600) and used by the NATS MCP server to connect to and identify itself on the agent network.
 </objective>
 
 <quick_start>
 Save URL: `/nats:access NATS_URL=nats://nats:4222`
+
+Set display name: `/nats:access NAME=claude-home-server`
 
 Check status: `/nats:access` (no args)
 
@@ -28,7 +30,9 @@ Guided setup: `/nats:access setup`
 <context>
 The `env=<name>` argument selects a named environment (e.g. `env=prod`). Omit for the default environment. When `ENV` is empty, the path resolves to `~/.claude/channels/nats/.env`. Display empty ENV as "(default)" in output; omit `env=` from suggested commands.
 
-Credential key: `NATS_URL` — full NATS server URL (e.g. `nats://nats:4222`)
+Credential keys:
+- `NATS_URL` — full NATS server URL (e.g. `nats://nats:4222`)
+- `NATS_AGENT_NAME` — friendly display name for this agent (accept `NAME=...` as shorthand). If unset, the server falls back to this Claude Code session's own name (set via `/rename`), then to the bare agent ID.
 </context>
 
 <workflow>
@@ -40,7 +44,7 @@ Parse `env=<name>` from `$ARGUMENTS` first. Strip it from remaining arguments be
 2. If not: report no configuration for this environment and suggest:
    - `/nats:access NATS_URL=nats://nats:4222`
    - `/nats:access setup`
-3. If yes: load the file, show `NATS_URL`, then test connectivity:
+3. If yes: load the file, show `NATS_URL` and `NATS_AGENT_NAME` (or "(using session name / agent ID)" if unset), then test connectivity:
    ```bash
    nats --server "$NATS_URL" server ping 2>&1 | head -5
    ```
@@ -61,7 +65,7 @@ Parse `env=<name>` from `$ARGUMENTS` first. Strip it from remaining arguments be
 Parse `NATS_URL` from `$ARGUMENTS`. Accept both `NATS_URL=...` and `url=...` (case-insensitive).
 
 1. `mkdir -p ~/.claude/channels/nats`
-2. Write:
+2. Update (don't clobber an existing `NATS_AGENT_NAME` line — read the current file first if it exists, replace/add just the `NATS_URL` line, rewrite):
    ```bash
    cat > ~/.claude/channels/nats/${ENV}.env <<'EOF'
    NATS_URL=<value>
@@ -71,13 +75,17 @@ Parse `NATS_URL` from `$ARGUMENTS`. Accept both `NATS_URL=...` and `url=...` (ca
 3. Test connectivity with `nats --server "$NATS_URL" server ping 2>&1 | head -5`.
 4. Report result.
 
+**`NAME=<value>` (or `NATS_AGENT_NAME=<value>`) — save the display name:**
+
+Same file, same rewrite-without-clobbering approach as above but for the `NATS_AGENT_NAME` key. `NATS_AGENT_NAME` is only read at server startup, so report that the new name takes effect after Claude Code restarts the channel server (e.g. `/clear`) — unlike the session-name fallback (`/rename`), which the server re-reads live on every message.
+
 **`clear` — remove all credentials for this environment:**
 
 Delete `~/.claude/channels/nats/${ENV}.env` and confirm.
 
-**`clear NATS_URL` — remove the key:**
+**`clear NATS_URL` (or `clear NATS_AGENT_NAME`) — remove one key:**
 
-Remove the `NATS_URL` line from `${ENV}.env`.
+Remove just that line from `${ENV}.env`.
 </workflow>
 
 <notes>

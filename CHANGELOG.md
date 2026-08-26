@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `nats` (v0.1.0): revamped from a capability-sharing/tool-invocation network
+  (agents scanning each other's plugins and calling their tools/skills
+  remotely) to a minimal messaging primitive — `message(to, text)` for
+  free-form point-to-point messages with an explicit reply-to inbox,
+  `ping(to)` for liveness checks, `discover()` for "who's there?", and
+  `get_agents()` for the local cache. Dropped capability
+  scanning/advertising, `broadcast(capability, ...)`, and the raw generic
+  `publish`/`request` tools along with their skills (`invoke-agent`,
+  `broadcast-agents`); added `ping-agent`. Agents now resolve a friendly
+  display name (`NATS_AGENT_NAME` in `.env`, falling back live to the
+  Claude Code session's own `/rename` name, then the bare agent ID) instead
+  of showing only a random ID. Built to bridge a gap found while debugging
+  cross-session messaging between two sibling Claude Code instances on
+  different Anthropic accounts: Claude Code's native cross-session
+  messaging is scoped to one account and can't reach a sibling instance
+  logged into a different one — this plugin's NATS-based messaging isn't
+  account-scoped.
+
 ### Added
 - `doubt-driven-development` (v0.1.0, new plugin): adversarial fresh-context
   review of non-trivial in-flight decisions — CLAIM, EXTRACT, DOUBT,

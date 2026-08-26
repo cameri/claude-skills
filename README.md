@@ -23,7 +23,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory | Claude |
 | [knowledge-wiki](./knowledge-wiki/) | Maintains a self-updating, cross-linked markdown knowledge base — ingests durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks | Claude |
 | [lightning](./lightning/) | Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server over Nostr Wallet Connect | Claude |
-| [nats](./nats/) | Connect Claude Code agents over NATS — discover agents, expose capabilities as services, and invoke them point-to-point or broadcast | Claude + Cursor |
+| [nats](./nats/) | Connect Claude Code agents over NATS — message, ping, and discover other agents point-to-point | Claude + Cursor |
 | [netshoot](./netshoot/) | Network troubleshooting inside Docker container networks using nicolaka/netshoot | Claude |
 | [nostr](./nostr/) | Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs | Claude |
 | [paperless](./paperless/) | Upload documents to and search a Paperless-ngx instance via its REST API | Claude + Cursor |
@@ -127,11 +127,10 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Skill | Description |
 |---|---|
-| `/nats:access` | Configure the NATS server URL for agent communication |
-| `/nats:show-nats-status` | Show connection info and all discovered agents with their capabilities |
-| `/nats:discover-agents` | Discover all agents on the NATS network and list their capabilities |
-| `/nats:invoke-agent` | Invoke a capability on a specific agent by agent ID |
-| `/nats:broadcast-agents` | Broadcast a capability invocation to all agents and collect responses |
+| `/nats:access` | Configure the NATS server URL and this agent's display name |
+| `/nats:show-nats-status` | Show connection info, display name, and all discovered agents |
+| `/nats:discover-agents` | Broadcast "who's there?" and list all discovered agents |
+| `/nats:ping-agent` | Liveness check against one known agent, reports round-trip time |
 | `/nats:send-message` | Send a free-form message directly to another agent |
 
 ### paperless

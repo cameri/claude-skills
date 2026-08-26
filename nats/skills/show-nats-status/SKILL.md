@@ -1,6 +1,6 @@
 ---
 name: show-nats-status
-description: Show the current status of the Claude Code NATS agent — connection info, NATS URL, and all discovered agents with their capabilities. Use when the user says "nats status", "show nats agents", "what agents are connected", or wants to see the agent network state.
+description: Show the current status of the Claude Code NATS agent — connection info, NATS URL, display name, and all discovered agents. Use when the user says "nats status", "show nats agents", "what agents are connected", or wants to see the agent network state.
 user-invocable: true
 allowed-tools:
   - Read
@@ -22,9 +22,11 @@ Shows the connection state of the local NATS agent and all known agents from the
 Read `~/.claude/channels/nats/.env` if it exists. Show:
 - `NATS_URL`: value or "(not configured — using defaults: nats://nats:4222, nats://nats-server:4222)"
 
-**2. This agent's ID:**
+**2. This agent's identity:**
 
 Read `~/.claude/skills/nats/agent-id` if it exists. Show the agent ID, or "(not yet assigned — the channel server assigns one on first run)".
+
+Show the display name too: `NATS_AGENT_NAME` from the env file if set, otherwise the Claude Code session name (shown in the MCP server's startup instructions), otherwise the bare agent ID.
 
 **3. MCP server and connection:**
 
@@ -36,7 +38,6 @@ Display the result of `get_agents`. For each agent:
 - Agent ID
 - Name
 - Last seen (ISO timestamp)
-- Capabilities (type + name + description)
 
 Format as a structured list. If the cache is empty, suggest running `/nats:discover-agents` to scan the network.
 
