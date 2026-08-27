@@ -1,5 +1,5 @@
 import type { Database } from "@hajewski/latticedb";
-import type { SourceAdapter, SourceNode, SourceEdge } from "./sources/types";
+import type { SourceAdapter } from "./sources/types";
 
 export interface SyncResult {
   source: string;
@@ -7,7 +7,7 @@ export interface SyncResult {
   nodesUpdated: number;
   nodesDeleted: number;
   edgesCreated: number;
-  edgesDeleted: number; // edges are never "updated" — see Step 3 note
+  edgesDeleted: number; // edges are never "updated" in place — a property change is a delete+recreate, so both counters increment for that edge
 }
 
 interface ExistingNode {
@@ -19,6 +19,7 @@ interface ExistingEdge {
   sourceGid: string;
   targetGid: string;
   type: string;
+  properties: Record<string, unknown>;
 }
 
 export async function syncSource(db: Database, adapter: SourceAdapter): Promise<SyncResult> {
@@ -42,15 +43,20 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
 
   const existingEdgeRows = (
     await db.query(
-      "MATCH (a)-[e]->(b) WHERE e._brain_source = $source RETURN a.gid AS sourceGid, b.gid AS targetGid, type(e) AS type",
+      "MATCH (a)-[e]->(b) WHERE e._brain_source = $source RETURN a.gid AS sourceGid, b.gid AS targetGid, type(e) AS type, properties(e) AS properties",
       { source: adapter.name }
     )
-  ).rows as unknown as { sourceGid: string; targetGid: string; type: string }[];
-  const existingEdgeKeys = new Set(existingEdgeRows.map((r) => edgeKey(r.sourceGid, r.targetGid, r.type)));
+  ).rows as unknown as { sourceGid: string; targetGid: string; type: string; properties: Record<string, unknown> }[];
+  const existingEdgesByKey = new Map<string, ExistingEdge>(
+    existingEdgeRows.map((r) => [
+      edgeKey(r.sourceGid, r.targetGid, r.type),
+      { sourceGid: r.sourceGid, targetGid: r.targetGid, type: r.type, properties: r.properties },
+    ])
+  );
 
   const incomingNodesByGid = new Map(snapshot.nodes.map((n) => [n.gid, n]));
-  const incomingEdgeKeys = new Set(
-    snapshot.edges.map((e) => edgeKey(e.sourceGid, e.targetGid, e.type))
+  const incomingEdgesByKey = new Map(
+    snapshot.edges.map((e) => [edgeKey(e.sourceGid, e.targetGid, e.type), e])
   );
 
   let nodesCreated = 0, nodesUpdated = 0, nodesDeleted = 0, edgesCreated = 0, edgesDeleted = 0;
@@ -58,13 +64,17 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
   for (const [gid, existing] of existingNodes) latticeIdByGid.set(gid, existing.latticeId);
 
   await db.write(async (txn) => {
-    // Deletes: edges gone from the snapshot
-    for (const e of existingEdgeRows) {
-      if (!incomingEdgeKeys.has(edgeKey(e.sourceGid, e.targetGid, e.type))) {
+    // Deletes: edges gone from the snapshot, OR present in both but with
+    // changed properties — edges are never updated in place (no stable id
+    // of their own to key an update by), so a property change is always a
+    // delete+recreate. See the create loop below for the other half.
+    for (const [key, existing] of existingEdgesByKey) {
+      const incoming = incomingEdgesByKey.get(key);
+      if (!incoming || !propertiesEqual(existing.properties, incoming.properties)) {
         await txn.deleteEdge(
-          latticeIdByGid.get(e.sourceGid)!,
-          latticeIdByGid.get(e.targetGid)!,
-          e.type
+          latticeIdByGid.get(existing.sourceGid)!,
+          latticeIdByGid.get(existing.targetGid)!,
+          existing.type
         );
         edgesDeleted++;
       }
@@ -88,13 +98,36 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
         for (const [key, value] of Object.entries(node.properties)) {
           await txn.setProperty(existing.latticeId, key, value as never);
         }
+        // Keys present on the existing node but absent from the incoming
+        // snapshot (a property was removed at the source, not just changed).
+        // The installed @hajewski/latticedb API (v0.14.0) has no node
+        // property removal primitive — Transaction exposes
+        // removeEdgeProperty() for edges but nothing equivalent for nodes
+        // (confirmed against the FFI surface: lattice_edge_remove_property
+        // exists, lattice_node_remove_property does not), and
+        // setProperty(id, key, null) was verified to set the value to
+        // `null` rather than delete the key — properties(n) still reports
+        // the key afterwards, just with a null value. Nulling it out is the
+        // closest available approximation of "removed": it replaces stale
+        // data with an explicit null instead of leaving the old value
+        // forever, but the key itself is NOT removed from the node — full
+        // removal requires deleting and recreating the node.
+        const incomingKeys = new Set(Object.keys(node.properties));
+        for (const key of Object.keys(existing.properties)) {
+          if (key !== "gid" && !incomingKeys.has(key)) {
+            await txn.setProperty(existing.latticeId, key, null);
+          }
+        }
         if (node.ftsText) await txn.ftsIndex(existing.latticeId, node.ftsText);
         nodesUpdated++;
       }
     }
-    // Creates: edges new in the snapshot (after all nodes above exist)
-    for (const edge of snapshot.edges) {
-      if (!existingEdgeKeys.has(edgeKey(edge.sourceGid, edge.targetGid, edge.type))) {
+    // Creates: edges new in the snapshot, OR present in both but with
+    // changed properties (recreated after being deleted above) — always
+    // after all nodes above exist.
+    for (const [key, edge] of incomingEdgesByKey) {
+      const existing = existingEdgesByKey.get(key);
+      if (!existing || !propertiesEqual(existing.properties, edge.properties)) {
         await txn.createEdge(
           latticeIdByGid.get(edge.sourceGid)!,
           latticeIdByGid.get(edge.targetGid)!,
@@ -117,5 +150,15 @@ function propertiesEqual(a: Record<string, unknown>, b: Record<string, unknown>)
   const aKeys = Object.keys(a).filter((k) => k !== "gid");
   const bKeys = Object.keys(b).filter((k) => k !== "gid");
   if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((k) => JSON.stringify(a[k]) === JSON.stringify(b[k]));
+  return aKeys.every((k) => stableStringify(a[k]) === stableStringify(b[k]));
+}
+
+// LatticeDB round-trips integer property values as JS `bigint` (e.g. an
+// edge's `weight: 1` comes back from `properties(e)` as `1n`), which plain
+// JSON.stringify cannot serialize. Stringify bigints via their decimal text
+// so a source-provided `1` (number) compares equal to a stored `1n`
+// (bigint) — both stringify to "1", matching what JSON.stringify(1) already
+// produces for a plain number.
+function stableStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? v.toString() : v));
 }

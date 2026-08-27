@@ -72,6 +72,37 @@ test("second sync updates changed properties, creates new, deletes gone — neve
   await db.close();
 });
 
+test("edge property change with unchanged identity is not silently dropped — delete+recreate", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  const nodes = [
+    { gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } },
+    { gid: "b", labels: ["Thing"], properties: { name: "B", _brain_source: "fake-source" } },
+  ];
+  const withWeight1: SourceSnapshot = {
+    nodes,
+    edges: [{ sourceGid: "a", targetGid: "b", type: "LINKS_TO", properties: { weight: 1, _brain_source: "fake-source" } }],
+  };
+  const withWeight2: SourceSnapshot = {
+    nodes,
+    edges: [{ sourceGid: "a", targetGid: "b", type: "LINKS_TO", properties: { weight: 2, _brain_source: "fake-source" } }],
+  };
+
+  const adapter = fakeAdapter([withWeight1, withWeight2]);
+  await syncSource(db, adapter); // seeds a, b, edge with weight=1
+  const result = await syncSource(db, adapter); // same (sourceGid, targetGid, type) identity, weight changes to 2
+
+  expect(result).toMatchObject({ nodesCreated: 0, nodesUpdated: 0, nodesDeleted: 0, edgesCreated: 1, edgesDeleted: 1 });
+
+  const edgeRows = (await db.query(
+    "MATCH (a:Thing)-[e:LINKS_TO]->(b:Thing) RETURN a.gid, b.gid, e.weight"
+  )).rows;
+  expect(edgeRows).toEqual([{ "a.gid": "a", "b.gid": "b", "e.weight": 2n }]);
+
+  await db.close();
+});
+
 test("syncing back to V1 after V2 deletes everything V2 added — round trip returns to the original state", async () => {
   const db = new Database(":memory:", { create: true });
   await db.open();
