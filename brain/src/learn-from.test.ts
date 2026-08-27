@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { Database } from "@hajewski/latticedb";
 import { syncSource } from "./learn-from";
 import type { SourceAdapter, SourceSnapshot } from "./sources/types";
@@ -143,6 +143,77 @@ test("edge property change with unchanged identity is not silently dropped — d
     "MATCH (a:Thing)-[e:LINKS_TO]->(b:Thing) RETURN a.gid, b.gid, e.weight"
   )).rows;
   expect(edgeRows).toEqual([{ "a.gid": "a", "b.gid": "b", "e.weight": 2n }]);
+
+  await db.close();
+});
+
+test("an edge referencing a gid with no corresponding node is skipped, not fatal to the whole sync", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  // "b" points at "ghost", which has no node in this snapshot at all — the
+  // SourceAdapter contract allows this (a real graphify extraction can
+  // produce it). Before the fix, the non-null assertion on the missing
+  // lattice id would pass `undefined` into the native FFI layer and blow up
+  // the entire db.write() transaction, rolling back node "a" too.
+  const snapshot: SourceSnapshot = {
+    nodes: [
+      { gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } },
+      { gid: "b", labels: ["Thing"], properties: { name: "B", _brain_source: "fake-source" } },
+    ],
+    edges: [
+      { sourceGid: "a", targetGid: "b", type: "LINKS_TO", properties: { _brain_source: "fake-source" } },
+      { sourceGid: "b", targetGid: "ghost", type: "LINKS_TO", properties: { _brain_source: "fake-source" } },
+    ],
+  };
+
+  const result = await syncSource(db, fakeAdapter([snapshot]));
+
+  // The valid node/edge are still created — one bad edge doesn't abort
+  // everything — and the dangling one is counted, not silently dropped.
+  expect(result).toMatchObject({
+    nodesCreated: 2,
+    nodesUpdated: 0,
+    nodesDeleted: 0,
+    edgesCreated: 1,
+    edgesDeleted: 0,
+    edgesSkipped: 1,
+  });
+
+  const rows = (await db.query("MATCH (n:Thing) RETURN n.gid ORDER BY n.gid")).rows;
+  expect(rows).toEqual([{ "n.gid": "a" }, { "n.gid": "b" }]);
+
+  const edgeRows = (await db.query("MATCH (a:Thing)-[e:LINKS_TO]->(b:Thing) RETURN a.gid, b.gid")).rows;
+  expect(edgeRows).toEqual([{ "a.gid": "a", "b.gid": "b" }]);
+
+  await db.close();
+});
+
+test("removing a property is a true no-op on the sync AFTER the removal sync — no permanent churn", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  const withProp: SourceSnapshot = {
+    nodes: [{ gid: "a", labels: ["Thing"], properties: { name: "A", note: "temp", _brain_source: "fake-source" } }],
+    edges: [],
+  };
+  const withoutProp: SourceSnapshot = {
+    nodes: [{ gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } }],
+    edges: [],
+  };
+
+  const adapter = fakeAdapter([withProp, withoutProp, withoutProp]);
+  await syncSource(db, adapter); // sync 1: creates "a" with note="temp"
+  const removalResult = await syncSource(db, adapter); // sync 2: "note" removed at the source — best-effort nulled out
+  expect(removalResult).toMatchObject({ nodesCreated: 0, nodesUpdated: 1, nodesDeleted: 0 });
+
+  // sync 3: source snapshot is IDENTICAL to sync 2's (property still
+  // absent) — nothing has actually changed since the removal. Before the
+  // fix, propertiesEqual's raw key-count comparison permanently saw the
+  // nulled "note" key (still reported by properties(n)) as one more key
+  // than the incoming snapshot, misdiagnosing this as "changed" forever.
+  const noopResult = await syncSource(db, adapter);
+  expect(noopResult).toMatchObject({ nodesCreated: 0, nodesUpdated: 0, nodesDeleted: 0 });
 
   await db.close();
 });

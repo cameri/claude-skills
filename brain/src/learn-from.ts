@@ -1,5 +1,6 @@
 import type { Database } from "@hajewski/latticedb";
 import type { SourceAdapter } from "./sources/types";
+import { jsonStringify } from "./json";
 
 export interface SyncResult {
   source: string;
@@ -8,6 +9,7 @@ export interface SyncResult {
   nodesDeleted: number;
   edgesCreated: number;
   edgesDeleted: number; // edges are never "updated" in place — a property change is a delete+recreate, so both counters increment for that edge
+  edgesSkipped: number; // edge referenced a sourceGid/targetGid with no corresponding node — not an error, just not actionable
 }
 
 interface ExistingNode {
@@ -59,7 +61,11 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
     snapshot.edges.map((e) => [edgeKey(e.sourceGid, e.targetGid, e.type), e])
   );
 
-  let nodesCreated = 0, nodesUpdated = 0, nodesDeleted = 0, edgesCreated = 0, edgesDeleted = 0;
+  let nodesCreated = 0, nodesUpdated = 0, nodesDeleted = 0, edgesCreated = 0, edgesDeleted = 0, edgesSkipped = 0;
+  // Nodes are keyed by gid alone — a hyperedge hub node (see
+  // sources/graphify-out.ts) and a regular node share the same gid
+  // namespace here. No collision has been observed in real data; if one
+  // ever occurred, the two would silently overwrite each other in this map.
   const latticeIdByGid = new Map<string, bigint>();
   for (const [gid, existing] of existingNodes) latticeIdByGid.set(gid, existing.latticeId);
 
@@ -71,11 +77,21 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
     for (const [key, existing] of existingEdgesByKey) {
       const incoming = incomingEdgesByKey.get(key);
       if (!incoming || !propertiesEqual(existing.properties, incoming.properties)) {
-        await txn.deleteEdge(
-          latticeIdByGid.get(existing.sourceGid)!,
-          latticeIdByGid.get(existing.targetGid)!,
-          existing.type
-        );
+        // Given the create-loop guard below, an edge of this source can
+        // only ever have been created between two nodes of this same
+        // source — so both ids should always be present here. The one way
+        // that invariant can break is out-of-band: `recall`'s Cypher
+        // passthrough is a fully raw escape hatch (by design) and could
+        // delete a node directly without touching its edges, leaving a
+        // stored edge that now dangles. Guard defensively rather than
+        // trust the invariant unconditionally.
+        const sourceId = latticeIdByGid.get(existing.sourceGid);
+        const targetId = latticeIdByGid.get(existing.targetGid);
+        if (sourceId === undefined || targetId === undefined) {
+          edgesSkipped++;
+          continue;
+        }
+        await txn.deleteEdge(sourceId, targetId, existing.type);
         edgesDeleted++;
       }
     }
@@ -128,27 +144,44 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
     for (const [key, edge] of incomingEdgesByKey) {
       const existing = existingEdgesByKey.get(key);
       if (!existing || !propertiesEqual(existing.properties, edge.properties)) {
-        await txn.createEdge(
-          latticeIdByGid.get(edge.sourceGid)!,
-          latticeIdByGid.get(edge.targetGid)!,
-          edge.type,
-          { properties: edge.properties as never }
-        );
+        // graphify-out's adapter (and the SourceAdapter contract generally)
+        // allows an edge whose sourceGid/targetGid has no corresponding
+        // node in the snapshot — a legitimate shape a real extraction can
+        // produce. Passing a missing id straight to the native FFI layer
+        // throws an opaque error inside this single db.write() transaction,
+        // aborting and rolling back the ENTIRE sync over one bad edge. Skip
+        // just that edge instead.
+        const sourceId = latticeIdByGid.get(edge.sourceGid);
+        const targetId = latticeIdByGid.get(edge.targetGid);
+        if (sourceId === undefined || targetId === undefined) {
+          edgesSkipped++;
+          continue;
+        }
+        await txn.createEdge(sourceId, targetId, edge.type, { properties: edge.properties as never });
         edgesCreated++;
       }
     }
   });
 
-  return { source: adapter.name, nodesCreated, nodesUpdated, nodesDeleted, edgesCreated, edgesDeleted };
+  return { source: adapter.name, nodesCreated, nodesUpdated, nodesDeleted, edgesCreated, edgesDeleted, edgesSkipped };
 }
 
 function edgeKey(sourceGid: string, targetGid: string, type: string): string {
   return `${sourceGid} ${targetGid} ${type}`;
 }
 
+// A previously-removed property is approximated by nulling it out (see the
+// setProperty(id, key, null) comment above) rather than truly deleting the
+// key — properties(n) keeps reporting it, just as null, forever. Without
+// this filter, a node with a nulled key would permanently compare
+// "changed" against an incoming snapshot that simply omits the key (one
+// side has N keys, the other N-1), even when nothing has actually changed
+// since the removal. Treat "absent" and "present but null/undefined" as
+// the same non-property on both sides before comparing.
 function propertiesEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
-  const aKeys = Object.keys(a).filter((k) => k !== "gid");
-  const bKeys = Object.keys(b).filter((k) => k !== "gid");
+  const isComparable = (k: string, v: unknown) => k !== "gid" && v !== null && v !== undefined;
+  const aKeys = Object.keys(a).filter((k) => isComparable(k, a[k]));
+  const bKeys = Object.keys(b).filter((k) => isComparable(k, b[k]));
   if (aKeys.length !== bKeys.length) return false;
   return aKeys.every((k) => valueEqual(a[k], b[k]));
 }
@@ -178,6 +211,6 @@ function isNumeric(v: unknown): v is number | bigint {
   return typeof v === "number" || typeof v === "bigint";
 }
 
-function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? v.toString() : v));
-}
+// Same bigint-safe serialization brain/src/json.ts's jsonStringify uses for
+// tool responses — reused here as a stable comparison key.
+const stableStringify = jsonStringify;

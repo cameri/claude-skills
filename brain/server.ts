@@ -3,12 +3,13 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { join } from "node:path";
-import { openBrain, resolveBrainPath } from "./src/db";
+import { openBrain } from "./src/db";
 import { syncSource } from "./src/learn-from";
 import { graphifyOutAdapter } from "./src/sources/graphify-out";
 import { recall } from "./src/recall";
+import { jsonStringify } from "./src/json";
 
-const server = new Server({ name: "brain", version: "0.1.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "brain", version: "0.1.1" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -40,12 +41,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const root = process.env.CLAUDE_PROJECT_DIR!; // resolveBrainPath already validated this is set
       const adapter = graphifyOutAdapter(join(root, "graphify-out", "graph.json"));
       const result = await syncSource(db, adapter);
-      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+      return { content: [{ type: "text", text: jsonStringify(result) }] };
     }
     if (request.params.name === "recall") {
-      const { query, parameters } = request.params.arguments as { query: string; parameters?: Record<string, unknown> };
+      const { query, parameters } = request.params.arguments as { query: unknown; parameters?: Record<string, unknown> };
+      if (typeof query !== "string") {
+        throw new Error("recall requires a 'query' string parameter");
+      }
       const result = await recall(db, query, parameters);
-      return { content: [{ type: "text", text: JSON.stringify(result) }] };
+      return { content: [{ type: "text", text: jsonStringify(result) }] };
     }
     throw new Error(`Unknown tool: ${request.params.name}`);
   } finally {
