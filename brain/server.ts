@@ -8,8 +8,28 @@ import { syncSource } from "./src/learn-from";
 import { graphifyOutAdapter } from "./src/sources/graphify-out";
 import { recall } from "./src/recall";
 import { remember } from "./src/remember";
-import { forget } from "./src/forget";
+import { forget, type ForgetTarget } from "./src/forget";
 import { jsonStringify } from "./src/json";
+
+function assertValidForgetTarget(target: unknown): asserts target is ForgetTarget {
+  if (typeof target !== "object" || target === null) {
+    throw new Error("forget requires a 'target' object");
+  }
+  const t = target as Record<string, unknown>;
+  if (t.type === "node") {
+    if (typeof t.gid !== "string") {
+      throw new Error("forget target of type 'node' requires a string 'gid'");
+    }
+    return;
+  }
+  if (t.type === "edge") {
+    if (typeof t.sourceGid !== "string" || typeof t.targetGid !== "string" || typeof t.edgeType !== "string") {
+      throw new Error("forget target of type 'edge' requires string 'sourceGid', 'targetGid', and 'edgeType'");
+    }
+    return;
+  }
+  throw new Error("forget target's 'type' must be 'node' or 'edge'");
+}
 
 const server = new Server({ name: "brain", version: "0.2.0" }, { capabilities: { tools: {} } });
 
@@ -133,10 +153,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   }
   if (request.params.name === "forget") {
-    const { target, permanent } = request.params.arguments as { target: unknown; permanent?: boolean };
+    const { target, permanent } = request.params.arguments as { target: unknown; permanent?: unknown };
+    if (permanent !== undefined && typeof permanent !== "boolean") {
+      throw new Error("forget's 'permanent' parameter must be a boolean");
+    }
+    assertValidForgetTarget(target);
     const db = await openBrain();
     try {
-      const result = await forget(db, target as never, permanent ?? false);
+      const result = await forget(db, target, permanent ?? false);
       return { content: [{ type: "text", text: jsonStringify(result) }] };
     } finally {
       await db.close();

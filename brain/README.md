@@ -1,6 +1,6 @@
 # brain
 
-Workspace-wide knowledge graph backed by LatticeDB. Exposes `learn_from` and `recall` tools for ingesting structured knowledge (from graphify) and querying it via Cypher. Integrates with the graphify plugin to keep the knowledge graph synchronized with workspace context graphs.
+Workspace-wide knowledge graph backed by LatticeDB. Exposes `learn_from` and `recall` tools for ingesting structured knowledge (from graphify) and querying it via Cypher, `remember` a single fact directly, and `forget` a node or edge (soft or permanent). Integrates with the graphify plugin to keep the knowledge graph synchronized with workspace context graphs.
 
 ## Design
 

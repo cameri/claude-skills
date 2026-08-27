@@ -30,12 +30,16 @@ export async function remember(
         resolvedLinks.push({ input: link, resolvedGid: link });
         continue;
       }
-      const hits = await txn.ftsSearch(link, { limit: 1 });
-      if (hits.length === 0) continue; // best-effort — no match, skip this entry, don't fail the call
-      const hitRows = (
-        await txn.query("MATCH (n) WHERE id(n) = $id RETURN n.gid AS gid", { id: hits[0]!.nodeId })
-      ).rows as { gid: string }[];
-      resolvedLinks.push({ input: link, resolvedGid: hitRows[0]!.gid, score: hits[0]!.score });
+      const hits = await txn.ftsSearch(link, { limit: 5 });
+      for (const hit of hits) {
+        const hitRows = (
+          await txn.query("MATCH (n) WHERE id(n) = $id RETURN n.gid AS gid", { id: hit.nodeId })
+        ).rows as { gid: string }[];
+        const hitGid = hitRows[0]?.gid;
+        if (typeof hitGid !== "string") continue; // stale FTS entry (deleted node) or a node with no gid
+        resolvedLinks.push({ input: link, resolvedGid: hitGid, score: hit.score });
+        break;
+      }
     }
 
     const created = await txn.createNode({
@@ -48,7 +52,9 @@ export async function remember(
       const targetRows = (
         await txn.query("MATCH (n) WHERE n.gid = $gid RETURN id(n) AS id", { gid: resolved.resolvedGid })
       ).rows as { id: bigint }[];
-      await txn.createEdge(created.id, targetRows[0]!.id, "ABOUT", { properties: { _brain_source: "remember" } });
+      const targetId = targetRows[0]?.id;
+      if (typeof targetId !== "bigint") continue; // resolved gid no longer resolves to a node — skip, don't crash
+      await txn.createEdge(created.id, targetId, "ABOUT", { properties: { _brain_source: "remember" } });
     }
 
     return { gid, links: resolvedLinks };
