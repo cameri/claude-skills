@@ -9,7 +9,7 @@ import { graphifyOutAdapter } from "./src/sources/graphify-out";
 import { recall } from "./src/recall";
 import { jsonStringify } from "./src/json";
 
-const server = new Server({ name: "brain", version: "0.1.2" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "brain", version: "0.1.3" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [

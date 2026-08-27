@@ -26,7 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`openBrain(path, { readOnly: true })`), so a mutating Cypher query
   (`CREATE`/`DELETE`/`SET`/`MERGE`/`REMOVE`) is rejected at the database
   layer — real enforcement, not just a documentation caveat — while
-  `learn_from` still opens read-write as before.
+  `learn_from` still opens read-write as before. v0.1.3: added an MCP
+  smoke test (`brain/src/mcp-smoke.test.ts`) that spawns `server.ts` as a
+  real subprocess and drives it over an actual stdio MCP connection via
+  the SDK's `Client`/`StdioClientTransport` — every prior test called
+  `learn_from`/`recall` as plain library functions, so this is the first
+  coverage of the real protocol path (tool listing, request routing, JSON
+  serialization, and that a rejected mutating `recall` surfaces as a
+  JSON-RPC error without killing the connection).
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix
