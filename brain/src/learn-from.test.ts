@@ -1,0 +1,87 @@
+import { describe, expect, test } from "bun:test";
+import { Database } from "@hajewski/latticedb";
+import { syncSource } from "./learn-from";
+import type { SourceAdapter, SourceSnapshot } from "./sources/types";
+
+function fakeAdapter(snapshots: SourceSnapshot[]): SourceAdapter {
+  let i = 0;
+  return {
+    name: "fake-source",
+    read: async () => snapshots[Math.min(i++, snapshots.length - 1)],
+  };
+}
+
+const V1: SourceSnapshot = {
+  nodes: [
+    { gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } },
+    { gid: "b", labels: ["Thing"], properties: { name: "B", _brain_source: "fake-source" } },
+  ],
+  edges: [{ sourceGid: "a", targetGid: "b", type: "LINKS_TO", properties: { _brain_source: "fake-source" } }],
+};
+
+// V2: "a" changed (name updated), "b" gone, "c" new
+const V2: SourceSnapshot = {
+  nodes: [
+    { gid: "a", labels: ["Thing"], properties: { name: "A-changed", _brain_source: "fake-source" } },
+    { gid: "c", labels: ["Thing"], properties: { name: "C", _brain_source: "fake-source" } },
+  ],
+  edges: [{ sourceGid: "a", targetGid: "c", type: "LINKS_TO", properties: { _brain_source: "fake-source" } }],
+};
+
+test("first sync creates everything", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+  const result = await syncSource(db, fakeAdapter([V1]));
+  expect(result).toMatchObject({ nodesCreated: 2, nodesUpdated: 0, nodesDeleted: 0, edgesCreated: 1, edgesDeleted: 0 });
+
+  const rows = (await db.query("MATCH (n:Thing) RETURN n.gid, n.name ORDER BY n.gid")).rows;
+  expect(rows).toEqual([{ "n.gid": "a", "n.name": "A" }, { "n.gid": "b", "n.name": "B" }]);
+  await db.close();
+});
+
+test("second sync updates changed properties, creates new, deletes gone — never touches other sources", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  // Seed a node from a DIFFERENT source that happens to share no gid with V1/V2 —
+  // must survive both syncs untouched, proving mirror-and-delete is scoped by _brain_source.
+  await db.write(async (txn) => {
+    await txn.createNode({ labels: ["Thing"], properties: { gid: "z", name: "Z", _brain_source: "other-source" } });
+  });
+
+  const adapter = fakeAdapter([V1, V2]);
+  await syncSource(db, adapter); // seeds a, b
+  const result = await syncSource(db, adapter); // a updated, b deleted, c created
+
+  expect(result).toMatchObject({ nodesCreated: 1, nodesUpdated: 1, nodesDeleted: 1, edgesCreated: 1, edgesDeleted: 1 });
+
+  const rows = (await db.query(
+    "MATCH (n:Thing) RETURN n.gid, n.name, n._brain_source ORDER BY n.gid"
+  )).rows;
+  expect(rows).toEqual([
+    { "n.gid": "a", "n.name": "A-changed", "n._brain_source": "fake-source" },
+    { "n.gid": "c", "n.name": "C", "n._brain_source": "fake-source" },
+    { "n.gid": "z", "n.name": "Z", "n._brain_source": "other-source" }, // untouched
+  ]);
+
+  const edgeRows = (await db.query(
+    "MATCH (a:Thing)-[e:LINKS_TO]->(b:Thing) RETURN a.gid, b.gid"
+  )).rows;
+  expect(edgeRows).toEqual([{ "a.gid": "a", "b.gid": "c" }]);
+
+  await db.close();
+});
+
+test("syncing back to V1 after V2 deletes everything V2 added — round trip returns to the original state", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+  const adapter = fakeAdapter([V1, V2, V1]);
+  await syncSource(db, adapter);
+  await syncSource(db, adapter);
+  const result = await syncSource(db, adapter); // back to V1: delete c, recreate b, update a back
+
+  expect(result).toMatchObject({ nodesCreated: 1, nodesUpdated: 1, nodesDeleted: 1 });
+  const rows = (await db.query("MATCH (n:Thing) RETURN n.gid, n.name ORDER BY n.gid")).rows;
+  expect(rows).toEqual([{ "n.gid": "a", "n.name": "A" }, { "n.gid": "b", "n.name": "B" }]);
+  await db.close();
+});
