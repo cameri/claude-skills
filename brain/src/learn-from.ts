@@ -150,15 +150,34 @@ function propertiesEqual(a: Record<string, unknown>, b: Record<string, unknown>)
   const aKeys = Object.keys(a).filter((k) => k !== "gid");
   const bKeys = Object.keys(b).filter((k) => k !== "gid");
   if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((k) => stableStringify(a[k]) === stableStringify(b[k]));
+  return aKeys.every((k) => valueEqual(a[k], b[k]));
 }
 
-// LatticeDB round-trips integer property values as JS `bigint` (e.g. an
-// edge's `weight: 1` comes back from `properties(e)` as `1n`), which plain
-// JSON.stringify cannot serialize. Stringify bigints via their decimal text
-// so a source-provided `1` (number) compares equal to a stored `1n`
-// (bigint) — both stringify to "1", matching what JSON.stringify(1) already
-// produces for a plain number.
+// LatticeDB round-trips *integer*-valued properties as JS `bigint` (e.g. an
+// edge's `weight: 1` comes back from `properties(e)` as `1n`) while a
+// source snapshot's properties are always plain JS `number`/`string`/etc —
+// floats round-trip as `number` unchanged (confirmed: `confidence_score:
+// 0.9` comes back as `0.9`, a `number`, not `0.9n`). A naive
+// stableStringify comparison is asymmetric here: JSON.stringify(1) is the
+// unquoted number literal "1", but stringifying "1" (the decimal text a
+// bigint replacer produces) is the quoted string literal "\"1\"" — so an
+// unchanged `weight: 1` vs stored `1n` would always compare "different".
+// Special-case the numeric pairing (either side bigint, other side
+// bigint/number) via a `Number()` cast instead — safe here since these are
+// small graph property values, nowhere near `Number.MAX_SAFE_INTEGER` —
+// and fall back to stableStringify for everything else (strings, booleans,
+// nested arrays/objects).
+function valueEqual(a: unknown, b: unknown): boolean {
+  if (typeof a === "bigint" || typeof b === "bigint") {
+    if (isNumeric(a) && isNumeric(b)) return Number(a) === Number(b);
+  }
+  return stableStringify(a) === stableStringify(b);
+}
+
+function isNumeric(v: unknown): v is number | bigint {
+  return typeof v === "number" || typeof v === "bigint";
+}
+
 function stableStringify(value: unknown): string {
   return JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? v.toString() : v));
 }

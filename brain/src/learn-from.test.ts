@@ -72,6 +72,50 @@ test("second sync updates changed properties, creates new, deletes gone — neve
   await db.close();
 });
 
+test("unchanged numeric properties (integer weight, float confidence) never trigger spurious churn", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  // Integer node/edge properties round-trip through LatticeDB as JS bigint
+  // (e.g. weight: 5 comes back as 5n from properties(n)/properties(e)),
+  // while a source snapshot's properties are always plain JS numbers. A
+  // naive value comparator can misdiagnose an unchanged integer property as
+  // "changed" every sync, forever. This test proves a real no-op sync (same
+  // snapshot, second time) produces zero creates/updates/deletes.
+  const snapshot: SourceSnapshot = {
+    nodes: [
+      {
+        gid: "a",
+        labels: ["Thing"],
+        properties: { name: "A", weight: 5, confidence_score: 0.9, _brain_source: "fake-source" },
+      },
+      { gid: "b", labels: ["Thing"], properties: { name: "B", _brain_source: "fake-source" } },
+    ],
+    edges: [
+      {
+        sourceGid: "a",
+        targetGid: "b",
+        type: "LINKS_TO",
+        properties: { weight: 5, confidence_score: 0.9, _brain_source: "fake-source" },
+      },
+    ],
+  };
+
+  const adapter = fakeAdapter([snapshot, snapshot]);
+  await syncSource(db, adapter); // first sync creates everything
+  const result = await syncSource(db, adapter); // second sync: nothing changed
+
+  expect(result).toMatchObject({
+    nodesCreated: 0,
+    nodesUpdated: 0,
+    nodesDeleted: 0,
+    edgesCreated: 0,
+    edgesDeleted: 0,
+  });
+
+  await db.close();
+});
+
 test("edge property change with unchanged identity is not silently dropped — delete+recreate", async () => {
   const db = new Database(":memory:", { create: true });
   await db.open();
