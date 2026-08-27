@@ -404,6 +404,17 @@
         "email": "cameri@users.noreply.github.com"
       },
       "source": "./research-tools"
+    },
+    {
+      "name": "brain",
+      "description": "Workspace-wide knowledge graph backed by LatticeDB — syncs graphify's output in and answers questions over it via Cypher.",
+      "tools": ["claude", "cursor"],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./brain"
     }
   ]
 }
