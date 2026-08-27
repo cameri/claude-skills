@@ -7,9 +7,11 @@ import { openBrain } from "./src/db";
 import { syncSource } from "./src/learn-from";
 import { graphifyOutAdapter } from "./src/sources/graphify-out";
 import { recall } from "./src/recall";
+import { remember } from "./src/remember";
+import { forget } from "./src/forget";
 import { jsonStringify } from "./src/json";
 
-const server = new Server({ name: "brain", version: "0.1.3" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "brain", version: "0.2.0" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -28,6 +30,57 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           parameters: { type: "object", description: "Optional query parameters." },
         },
         required: ["query"],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "remember",
+      description: "Write a single fact into the brain, optionally linked to existing nodes by gid or search string.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "The fact itself. Always full-text indexed." },
+          properties: { type: "object", description: "Optional structured key/values alongside the text." },
+          links: {
+            type: "array",
+            items: { type: "string" },
+            description: "Each entry is either a known node gid, or a search string resolved via full-text search (top hit, best-effort).",
+          },
+        },
+        required: ["text"],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "forget",
+      description: "Soft (default, recoverable) or permanent delete of a node or edge from the brain.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          target: {
+            oneOf: [
+              {
+                type: "object",
+                properties: { type: { const: "node" }, gid: { type: "string" } },
+                required: ["type", "gid"],
+                additionalProperties: false,
+              },
+              {
+                type: "object",
+                properties: {
+                  type: { const: "edge" },
+                  sourceGid: { type: "string" },
+                  targetGid: { type: "string" },
+                  edgeType: { type: "string" },
+                },
+                required: ["type", "sourceGid", "targetGid", "edgeType"],
+                additionalProperties: false,
+              },
+            ],
+          },
+          permanent: { type: "boolean", description: "Defaults to false (soft, recoverable). true is a real, permanent delete." },
+        },
+        required: ["target"],
         additionalProperties: false,
       },
     },
@@ -57,6 +110,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const db = await openBrain(undefined, { readOnly: true });
     try {
       const result = await recall(db, query, parameters);
+      return { content: [{ type: "text", text: jsonStringify(result) }] };
+    } finally {
+      await db.close();
+    }
+  }
+  if (request.params.name === "remember") {
+    const { text, properties, links } = request.params.arguments as {
+      text: unknown;
+      properties?: Record<string, unknown>;
+      links?: unknown;
+    };
+    if (typeof text !== "string") {
+      throw new Error("remember requires a 'text' string parameter");
+    }
+    const db = await openBrain();
+    try {
+      const result = await remember(db, text, properties ?? {}, (links as string[] | undefined) ?? []);
+      return { content: [{ type: "text", text: jsonStringify(result) }] };
+    } finally {
+      await db.close();
+    }
+  }
+  if (request.params.name === "forget") {
+    const { target, permanent } = request.params.arguments as { target: unknown; permanent?: boolean };
+    const db = await openBrain();
+    try {
+      const result = await forget(db, target as never, permanent ?? false);
       return { content: [{ type: "text", text: jsonStringify(result) }] };
     } finally {
       await db.close();

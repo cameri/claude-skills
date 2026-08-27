@@ -25,6 +25,7 @@ directly with it — that's the escape hatch, not a separate mode.
 convention: it opens the brain with LatticeDB's `readOnly` mode, which
 rejects any `CREATE`/`DELETE`/`SET`/`MERGE`/`REMOVE` — even a raw Cypher
 mutation — with an error, before it can touch the data. There is no way to
-write to the brain through `recall`, by design or by accident. Writing
-happens only through `learn_from` (bulk sync) — there is no dedicated
-`remember`/`forget` skill yet.
+write to the brain through `recall`, by design or by accident.
+Writing happens only through `learn_from` (bulk sync), `remember` (a
+single fact), and `forget` (soft or permanent delete) — never through
+`recall`.

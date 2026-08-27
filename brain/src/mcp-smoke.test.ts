@@ -33,7 +33,7 @@ test("brain MCP server: learn_from then recall over a real stdio connection", as
     await client.connect(transport);
 
     const tools = await client.listTools();
-    expect(tools.tools.map((t) => t.name).sort()).toEqual(["learn_from", "recall"]);
+    expect(tools.tools.map((t) => t.name).sort()).toEqual(["forget", "learn_from", "recall", "remember"]);
 
     const learnResult = await client.callTool({ name: "learn_from", arguments: {} });
     const learnText = (learnResult.content as Array<{ type: string; text: string }>)[0]!.text;
@@ -62,6 +62,28 @@ test("brain MCP server: learn_from then recall over a real stdio connection", as
     });
     const followUpText = (followUp.content as Array<{ type: string; text: string }>)[0]!.text;
     expect(JSON.parse(followUpText)).toEqual({ rows: [{ c: "1" }] });
+
+    const rememberResult = await client.callTool({
+      name: "remember",
+      arguments: { text: "smoke-tested via the real MCP protocol", links: ["n1"] },
+    });
+    const rememberText = (rememberResult.content as Array<{ type: string; text: string }>)[0]!.text;
+    const remembered = JSON.parse(rememberText);
+    expect(remembered.links).toEqual([{ input: "n1", resolvedGid: "n1" }]);
+
+    const forgetResult = await client.callTool({
+      name: "forget",
+      arguments: { target: { type: "node", gid: remembered.gid } },
+    });
+    const forgetText = (forgetResult.content as Array<{ type: string; text: string }>)[0]!.text;
+    expect(JSON.parse(forgetText)).toEqual({ found: true, edgesAffected: 1 });
+
+    const afterForget = await client.callTool({
+      name: "recall",
+      arguments: { query: "MATCH (n:Fact) RETURN n.gid" },
+    });
+    const afterForgetText = (afterForget.content as Array<{ type: string; text: string }>)[0]!.text;
+    expect(JSON.parse(afterForgetText)).toEqual({ rows: [] });
   } finally {
     await client.close();
     rmSync(projectDir, { recursive: true, force: true });
