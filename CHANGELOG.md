@@ -34,6 +34,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   coverage of the real protocol path (tool listing, request routing, JSON
   serialization, and that a rejected mutating `recall` surfaces as a
   JSON-RPC error without killing the connection).
+- `brain` (v0.2.0): two new tools. `remember` writes a single fact
+  directly (text + optional structured properties + optional links to
+  existing nodes by gid or full-text search — top hit, best-effort,
+  reported back with score), tagged `_brain_source: "remember"` and
+  labeled `Fact`. `forget` soft- (default) or permanently deletes any
+  node or edge regardless of source; soft forget relabels a node to
+  `Forgotten` (replacing its prior labels) or retypes an edge to
+  `FORGOTTEN`, recreating a forgotten node's edges too so a traversal
+  dead-ends cleanly instead of losing graph shape. Required a fix to
+  `learn_from`'s existing sync: its diff previously treated a forget
+  tombstone as "removed at the source" and silently erased it on the
+  very next sync — reproduced live during design, fixed by having both
+  diff loops skip anything currently tombstoned entirely, and by
+  tracking a retyped edge's `_original_type` so it's still recognized
+  under its real relation type. Design:
+  `docs/superpowers/specs/2026-08-27-brain-remember-forget-design.md`.
+  Plan: `docs/superpowers/plans/2026-08-27-brain-remember-forget.md`.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix

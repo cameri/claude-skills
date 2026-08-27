@@ -12,3 +12,9 @@ edges to match, scoped by a `_brain_source` tag so different sources never
 clobber each other. `recall` runs a literal Cypher query against the graph
 and returns the matching rows, acting as a raw query/write escape hatch with
 no natural-language layer of its own.
+`remember` writes a single fact directly (not via a bulk source sync),
+optionally linked to existing nodes by gid or full-text search, tagged
+`_brain_source: "remember"`. `forget` soft- (default) or permanently
+deletes any node or edge regardless of source — soft forget relabels/
+retypes rather than truly deleting, so `learn_from`'s next sync never
+resurrects a tombstoned graphify-sourced node or edge.
