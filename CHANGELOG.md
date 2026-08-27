@@ -8,14 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `brain` (new plugin, v0.1.0): workspace-wide knowledge graph backed by
+- `brain` (new plugin, v0.1.1): workspace-wide knowledge graph backed by
   LatticeDB. `learn_from` syncs graphify's `graphify-out/graph.json` output
   into the graph (creates/updates/deletes nodes and edges to match);
   `recall` queries it via Cypher — a raw query, or `@@` full-text search
   when the question doesn't map cleanly to a `MATCH` pattern — to answer
   questions about the workspace's code, docs, and concepts. Two skills:
   `learn-from` and `recall`. Ships an MCP server (`brain/.mcp.json`, bun),
-  the same shape as `nats`/`cronjobs`.
+  the same shape as `nats`/`cronjobs`. v0.1.1 is a final whole-branch
+  review fix wave: bigint-valued query results (integer properties,
+  `count()`) no longer crash `JSON.stringify` in the MCP tool handler; a
+  `learn_from` sync no longer aborts entirely when one edge dangles
+  (references a gid with no node — now skipped and counted in a new
+  `edgesSkipped` field); and a removed node property no longer causes
+  permanent false "changed" churn on every subsequent sync.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix
