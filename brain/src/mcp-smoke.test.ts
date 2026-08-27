@@ -84,6 +84,22 @@ test("brain MCP server: learn_from then recall over a real stdio connection", as
     });
     const afterForgetText = (afterForget.content as Array<{ type: string; text: string }>)[0]!.text;
     expect(JSON.parse(afterForgetText)).toEqual({ rows: [] });
+
+    // learn_from's 'path' override: sync a graph-json snapshot from outside
+    // graphify-out/ entirely, proving the tool isn't hardwired to graphify's
+    // own output directory — any producer of the same schema works.
+    const externalPath = join(projectDir, "other-tool-output.json");
+    writeFileSync(externalPath, JSON.stringify({ nodes: [{ id: "n2", label: "Thing Two", file_type: "doc" }], links: [] }));
+    const externalLearnResult = await client.callTool({ name: "learn_from", arguments: { path: externalPath } });
+    const externalLearnText = (externalLearnResult.content as Array<{ type: string; text: string }>)[0]!.text;
+    expect(JSON.parse(externalLearnText)).toMatchObject({ nodesCreated: 1 });
+
+    const externalRecall = await client.callTool({
+      name: "recall",
+      arguments: { query: "MATCH (n:Doc) RETURN n.label" },
+    });
+    const externalRecallText = (externalRecall.content as Array<{ type: string; text: string }>)[0]!.text;
+    expect(JSON.parse(externalRecallText)).toEqual({ rows: [{ "n.label": "Thing Two" }] });
   } finally {
     await client.close();
     rmSync(projectDir, { recursive: true, force: true });

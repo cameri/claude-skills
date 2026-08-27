@@ -10,7 +10,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [agent-resources](./agent-resources/) | Build and audit Claude Code skills, hooks, MCP servers, and subagents | Claude + Cursor |
 | [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
 | [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
-| [brain](./brain/) | Workspace-wide knowledge graph backed by LatticeDB — syncs graphify's output in (`learn_from`), answers questions over it via Cypher (`recall`), writes/links a single fact directly (`remember`), and soft- or permanently deletes a node/edge (`forget`) | Claude + Cursor |
+| [brain](./brain/) | Workspace-wide knowledge graph backed by LatticeDB — syncs a graph-json snapshot in, defaulting to graphify's output (`learn_from`), answers questions over it via Cypher (`recall`), writes/links a single fact directly (`remember`), and soft- or permanently deletes a node/edge (`forget`) | Claude + Cursor |
 | [consider](./consider/) | Apply a decision-making framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment | Claude + Cursor |
 | [cronjobs](./cronjobs/) | Schedule recurring or one-time jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes' | Claude |
 | [container-management](./container-management/) | Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes | Claude + Cursor |
@@ -70,7 +70,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Skill | Description |
 |---|---|
-| `/brain:learn-from` | Sync graphify's `graph.json` into the brain (the workspace's LatticeDB knowledge graph) — creates new nodes/edges, updates changed ones, deletes ones no longer in graphify-out |
+| `/brain:learn-from` | Sync a graph-json snapshot into the brain (the workspace's LatticeDB knowledge graph) — defaults to graphify's `graphify-out/graph.json`, or pass a `path` to sync any file in the same schema — creates new nodes/edges, updates changed ones, deletes ones no longer present |
 | `/brain:recall` | Query the brain — ask a plain-language question about the workspace's code/docs/concepts, or run a raw Cypher query directly |
 | `/brain:remember` | Write a single fact into the brain, optionally linked to existing nodes by gid or search string |
 | `/brain:forget` | Soft (default, recoverable) or permanent delete of a node or edge from the brain |

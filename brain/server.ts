@@ -31,14 +31,20 @@ function assertValidForgetTarget(target: unknown): asserts target is ForgetTarge
   throw new Error("forget target's 'type' must be 'node' or 'edge'");
 }
 
-const server = new Server({ name: "brain", version: "0.2.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "brain", version: "0.3.0" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "learn_from",
-      description: "Sync graphify-out/graph.json into the brain (create/update/delete, incremental).",
-      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      description: "Sync a graph-json snapshot (nodes/links/hyperedges — the format graphify writes) into the brain (create/update/delete, incremental). Defaults to graphify-out/graph.json under the project root.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Path to the graph-json file to sync. Defaults to graphify-out/graph.json under CLAUDE_PROJECT_DIR." },
+        },
+        additionalProperties: false,
+      },
     },
     {
       name: "recall",
@@ -109,10 +115,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === "learn_from") {
+    const { path } = (request.params.arguments as { path?: unknown } | undefined) ?? {};
+    if (path !== undefined && typeof path !== "string") {
+      throw new Error("learn_from's 'path' parameter must be a string");
+    }
     const db = await openBrain();
     try {
       const root = process.env.CLAUDE_PROJECT_DIR!; // resolveBrainPath already validated this is set
-      const adapter = graphifyOutAdapter(join(root, "graphify-out", "graph.json"));
+      const graphJsonPath = path ?? join(root, "graphify-out", "graph.json");
+      const adapter = graphifyOutAdapter(graphJsonPath);
       const result = await syncSource(db, adapter);
       return { content: [{ type: "text", text: jsonStringify(result) }] };
     } finally {
