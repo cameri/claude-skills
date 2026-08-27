@@ -34,13 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   coverage of the real protocol path (tool listing, request routing, JSON
   serialization, and that a rejected mutating `recall` surfaces as a
   JSON-RPC error without killing the connection). v0.2.0 added `remember`
-  (write a single fact directly, optionally linked to existing nodes by gid
-  or full-text search — top hit, best-effort, reported back with score),
-  tagged `_brain_source: "remember"` and labeled `Fact`, and `forget` (soft
+  (write a single fact directly as text plus optional structured properties,
+  optionally linked to existing nodes by gid or full-text search — top hit,
+  best-effort, reported back with score), tagged `_brain_source: "remember"`
+  and labeled `Fact`, and `forget` (soft
   [default, recoverable] or permanent delete of any node/edge regardless of
-  source; soft forget relabels a node to `Forgotten` or retypes an edge to
-  `FORGOTTEN`, recreating a forgotten node's edges so traversals don't
-  dead-end abruptly). Required a fix to `learn_from`'s sync engine: its
+  source; soft forget relabels a node to `Forgotten` (replacing its prior
+  labels) or retypes an edge to `FORGOTTEN`, recreating a forgotten node's
+  edges too so a traversal dead-ends cleanly instead of losing graph shape).
+  Required a fix to `learn_from`'s sync engine: its
   diff previously treated a forget tombstone as "removed at the source" and
   silently erased it on the very next sync — reproduced live during design,
   fixed by having both diff loops skip anything currently tombstoned
