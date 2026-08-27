@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `brain` (new plugin, v0.1.1): workspace-wide knowledge graph backed by
+- `brain` (new plugin, v0.1.2): workspace-wide knowledge graph backed by
   LatticeDB. `learn_from` syncs graphify's `graphify-out/graph.json` output
   into the graph (creates/updates/deletes nodes and edges to match);
   `recall` queries it via Cypher — a raw query, or `@@` full-text search
@@ -21,7 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `learn_from` sync no longer aborts entirely when one edge dangles
   (references a gid with no node — now skipped and counted in a new
   `edgesSkipped` field); and a removed node property no longer causes
-  permanent false "changed" churn on every subsequent sync.
+  permanent false "changed" churn on every subsequent sync. v0.1.2:
+  `recall` now opens the brain with LatticeDB's `readOnly` mode
+  (`openBrain(path, { readOnly: true })`), so a mutating Cypher query
+  (`CREATE`/`DELETE`/`SET`/`MERGE`/`REMOVE`) is rejected at the database
+  layer — real enforcement, not just a documentation caveat — while
+  `learn_from` still opens read-write as before.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix

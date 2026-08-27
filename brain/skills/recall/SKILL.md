@@ -21,11 +21,10 @@ natural-language parameter. For a plain-language question:
 If the caller already knows the exact Cypher they want, call `recall`
 directly with it — that's the escape hatch, not a separate mode.
 
-**Caution: `recall` is not read-only.** The tool has no query-type
-restriction — a query containing `CREATE`, `DELETE`, `SET`, `MERGE`, or
-`REMOVE` will actually mutate the brain (this is a deliberate v1 design
-choice, so the escape hatch stays fully raw). Be deliberate before running
-anything that writes, and especially wary of anything that looks like
-"forget" or "remove" this or that — there is no dedicated forget/delete
-skill yet, and an ad-hoc `DELETE` query composed from a casual request could
-destroy data with no undo.
+`recall` is genuinely read-only, enforced at the database layer, not just by
+convention: it opens the brain with LatticeDB's `readOnly` mode, which
+rejects any `CREATE`/`DELETE`/`SET`/`MERGE`/`REMOVE` — even a raw Cypher
+mutation — with an error, before it can touch the data. There is no way to
+write to the brain through `recall`, by design or by accident. Writing
+happens only through `learn_from` (bulk sync) — there is no dedicated
+`remember`/`forget` skill yet.

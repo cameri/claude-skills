@@ -12,7 +12,19 @@ export function resolveBrainPath(): string {
   return join(root, "brain", "knowledge.lattice");
 }
 
-export async function openBrain(path: string = resolveBrainPath()): Promise<Database> {
+export interface OpenBrainOptions {
+  readOnly?: boolean;
+}
+
+export async function openBrain(
+  path: string = resolveBrainPath(),
+  options: OpenBrainOptions = {}
+): Promise<Database> {
+  if (options.readOnly) {
+    const db = new Database(path, { readOnly: true });
+    await db.open();
+    return db;
+  }
   await mkdir(dirname(path), { recursive: true });
   const db = new Database(path, { create: true });
   await db.open();
