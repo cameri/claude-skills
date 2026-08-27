@@ -43,6 +43,11 @@ export async function readGraphifyOut(graphJsonPath: string): Promise<SourceSnap
   const edges: SourceEdge[] = [];
 
   for (const n of data.nodes) {
+    // file_type only becomes a label here, at node-creation time — it is
+    // never carried as a property, so syncSource's diff (which only
+    // compares properties, not labels) won't catch or update the label if
+    // a node's file_type changes in a later graphify-out run. Known,
+    // accepted v1 limitation.
     const { id, file_type, ...rest } = n;
     const labels = [file_type ? capitalize(file_type) : undefined, "GraphifyNode"].filter(
       Boolean

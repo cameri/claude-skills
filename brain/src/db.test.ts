@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { resolveBrainPath, openBrain } from "./db";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";

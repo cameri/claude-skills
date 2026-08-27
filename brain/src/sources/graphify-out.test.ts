@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { readGraphifyOut } from "./graphify-out";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
