@@ -231,3 +231,70 @@ test("syncing back to V1 after V2 deletes everything V2 added — round trip ret
   expect(rows).toEqual([{ "n.gid": "a", "n.name": "A" }, { "n.gid": "b", "n.name": "B" }]);
   await db.close();
 });
+
+test("a soft-forgotten node (tombstone property set) is never touched by a resync, even though its properties differ from the source", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  const snapshot: SourceSnapshot = {
+    nodes: [{ gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } }],
+    edges: [],
+  };
+  await syncSource(db, fakeAdapter([snapshot])); // creates "a"
+
+  // Simulate what forget's soft-delete does: relabel + stamp _forgotten,
+  // by hand — this test must not depend on forget.ts existing yet.
+  await db.write(async (txn) => {
+    const rows = (await db.query("MATCH (n) WHERE n.gid = 'a' RETURN id(n) AS id")).rows;
+    const id = (rows[0] as { id: bigint }).id;
+    await txn.deleteNode(id);
+    await txn.createNode({
+      labels: ["Forgotten"],
+      properties: { gid: "a", name: "A", _brain_source: "fake-source", _forgotten: true, _forgotten_at: "2026-08-27T00:00:00.000Z" },
+    });
+  });
+
+  // Resync against the UNCHANGED source snapshot — before the fix, the
+  // property diff sees `_forgotten`/`_forgotten_at` present on the existing
+  // node but absent from the source, treats them as "removed", and nulls
+  // them out, silently erasing the tombstone.
+  const result = await syncSource(db, fakeAdapter([snapshot]));
+  expect(result).toMatchObject({ nodesCreated: 0, nodesUpdated: 0, nodesDeleted: 0 });
+
+  const rows = (await db.query("MATCH (n) WHERE n.gid = 'a' RETURN labels(n) AS labels, n._forgotten")).rows;
+  expect(rows).toEqual([{ labels: ["Forgotten"], "n._forgotten": true }]);
+
+  await db.close();
+});
+
+test("a soft-forgotten edge (retyped to FORGOTTEN with _original_type) is never touched by a resync — not deleted, not duplicated under its original type", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  const snapshot: SourceSnapshot = {
+    nodes: [
+      { gid: "a", labels: ["Thing"], properties: { name: "A", _brain_source: "fake-source" } },
+      { gid: "b", labels: ["Thing"], properties: { name: "B", _brain_source: "fake-source" } },
+    ],
+    edges: [{ sourceGid: "a", targetGid: "b", type: "CALLS", properties: { _brain_source: "fake-source" } }],
+  };
+  await syncSource(db, fakeAdapter([snapshot])); // creates a, b, a-CALLS->b
+
+  // Simulate what forget's soft-delete does to an edge directly, by hand.
+  await db.write(async (txn) => {
+    const rows = (await db.query(
+      "MATCH (a:Thing)-[e:CALLS]->(b:Thing) WHERE a.gid='a' AND b.gid='b' RETURN id(a) AS aid, id(b) AS bid, properties(e) AS props"
+    )).rows as { aid: bigint; bid: bigint; props: Record<string, unknown> }[];
+    const { aid, bid, props } = rows[0]!;
+    await txn.deleteEdge(aid, bid, "CALLS");
+    await txn.createEdge(aid, bid, "FORGOTTEN", { properties: { ...props, _forgotten: true, _original_type: "CALLS" } as never });
+  });
+
+  const result = await syncSource(db, fakeAdapter([snapshot]));
+  expect(result).toMatchObject({ nodesCreated: 0, nodesUpdated: 0, nodesDeleted: 0, edgesCreated: 0, edgesDeleted: 0 });
+
+  const edgeRows = (await db.query("MATCH (a:Thing)-[e]->(b:Thing) RETURN a.gid, type(e) AS type, b.gid")).rows;
+  expect(edgeRows).toEqual([{ "a.gid": "a", type: "FORGOTTEN", "b.gid": "b" }]);
+
+  await db.close();
+});

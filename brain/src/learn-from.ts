@@ -45,15 +45,18 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
 
   const existingEdgeRows = (
     await db.query(
-      "MATCH (a)-[e]->(b) WHERE e._brain_source = $source RETURN a.gid AS sourceGid, b.gid AS targetGid, type(e) AS type, properties(e) AS properties",
+      "MATCH (a)-[e]->(b) WHERE e._brain_source = $source RETURN a.gid AS sourceGid, b.gid AS targetGid, type(e) AS rawType, e._original_type AS originalType, properties(e) AS properties",
       { source: adapter.name }
     )
-  ).rows as unknown as { sourceGid: string; targetGid: string; type: string; properties: Record<string, unknown> }[];
+  ).rows as unknown as { sourceGid: string; targetGid: string; rawType: string; originalType: string | null; properties: Record<string, unknown> }[];
   const existingEdgesByKey = new Map<string, ExistingEdge>(
-    existingEdgeRows.map((r) => [
-      edgeKey(r.sourceGid, r.targetGid, r.type),
-      { sourceGid: r.sourceGid, targetGid: r.targetGid, type: r.type, properties: r.properties },
-    ])
+    existingEdgeRows.map((r) => {
+      const effectiveType = r.originalType ?? r.rawType;
+      return [
+        edgeKey(r.sourceGid, r.targetGid, effectiveType),
+        { sourceGid: r.sourceGid, targetGid: r.targetGid, type: effectiveType, properties: r.properties },
+      ];
+    })
   );
 
   const incomingNodesByGid = new Map(snapshot.nodes.map((n) => [n.gid, n]));
@@ -75,6 +78,7 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
     // of their own to key an update by), so a property change is always a
     // delete+recreate. See the create loop below for the other half.
     for (const [key, existing] of existingEdgesByKey) {
+      if (existing.properties._forgotten) continue; // soft-forgotten — never diffed or touched
       const incoming = incomingEdgesByKey.get(key);
       if (!incoming || !propertiesEqual(existing.properties, incoming.properties)) {
         // Given the create-loop guard below, an edge of this source can
@@ -110,6 +114,8 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
         latticeIdByGid.set(node.gid, created.id);
         if (node.ftsText) await txn.ftsIndex(created.id, node.ftsText);
         nodesCreated++;
+      } else if (existing.properties._forgotten) {
+        continue; // soft-forgotten — never diffed or touched
       } else if (!propertiesEqual(existing.properties, node.properties)) {
         for (const [key, value] of Object.entries(node.properties)) {
           await txn.setProperty(existing.latticeId, key, value as never);
@@ -143,6 +149,7 @@ export async function syncSource(db: Database, adapter: SourceAdapter): Promise<
     // after all nodes above exist.
     for (const [key, edge] of incomingEdgesByKey) {
       const existing = existingEdgesByKey.get(key);
+      if (existing?.properties._forgotten) continue; // soft-forgotten — don't recreate under the real type
       if (!existing || !propertiesEqual(existing.properties, edge.properties)) {
         // graphify-out's adapter (and the SourceAdapter contract generally)
         // allows an edge whose sourceGid/targetGid has no corresponding
