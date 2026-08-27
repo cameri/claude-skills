@@ -1,0 +1,6 @@
+{
+  "name": "brain",
+  "description": "Workspace-wide knowledge + agent-workflow graph, backed by LatticeDB. learn_from syncs graphify's graph.json in; recall queries it via Cypher.",
+  "version": "0.1.0",
+  "keywords": ["knowledge-graph", "latticedb", "graphify", "cypher"]
+}
