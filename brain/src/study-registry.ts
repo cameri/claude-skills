@@ -58,11 +58,12 @@ export async function upsertStudiedPath(db: Database, params: UpsertStudiedPathP
     last_studied_at: new Date().toISOString(),
     last_input_tokens: params.inputTokens,
     last_output_tokens: params.outputTokens,
+    // Always written, null included: leaving it unset on a sync without a
+    // duration would carry the PREVIOUS run's duration forward next to a fresh
+    // last_studied_at, reading as though it described the latest run.
+    last_duration_seconds: params.durationSeconds ?? null,
     _brain_source: "study-registry",
   };
-  if (params.durationSeconds !== undefined) {
-    properties.last_duration_seconds = params.durationSeconds;
-  }
 
   await db.write(async (txn) => {
     const rows = (

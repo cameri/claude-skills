@@ -76,6 +76,33 @@ test("upsertStudiedPath creates then updates a StudiedPath node, listStudiedPath
   await db.close();
 });
 
+test("a later upsert without a duration clears it rather than carrying the old one forward", async () => {
+  const db = new Database(":memory:", { create: true });
+  await db.open();
+
+  await upsertStudiedPath(db, {
+    corpusRoot: "/some/corpus",
+    graphifyOutPath: "/some/corpus/graphify-out",
+    inputTokens: 500,
+    outputTokens: 100,
+    durationSeconds: 42,
+  });
+  expect((await getStudiedPath(db, "/some/corpus"))?.lastDurationSeconds).toBe(42);
+
+  await upsertStudiedPath(db, {
+    corpusRoot: "/some/corpus",
+    graphifyOutPath: "/some/corpus/graphify-out",
+    inputTokens: 700,
+    outputTokens: 150,
+  });
+
+  const record = await getStudiedPath(db, "/some/corpus");
+  expect(record?.lastInputTokens).toBe(700);
+  expect(record?.lastDurationSeconds).toBeNull();
+
+  await db.close();
+});
+
 test("getStudiedPath returns null for an unregistered path", async () => {
   const db = new Database(":memory:", { create: true });
   await db.open();

@@ -149,12 +149,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const result = await syncSource(db, adapter);
 
       const metadata = await resolveGraphifyMetadata(graphJsonPath);
-      if (metadata?.lastRun) {
+      // Registered whenever graphify's sidecars are present — a path with no
+      // cost.json yet (first study, or an --update-only run) is still a
+      // studied path, and study_status reports a null cost estimate for it.
+      if (metadata) {
         await upsertStudiedPath(db, {
           corpusRoot: metadata.corpusRoot,
           graphifyOutPath: dirname(graphJsonPath),
-          inputTokens: metadata.lastRun.inputTokens,
-          outputTokens: metadata.lastRun.outputTokens,
+          inputTokens: metadata.lastRun?.inputTokens ?? 0,
+          outputTokens: metadata.lastRun?.outputTokens ?? 0,
           durationSeconds: duration_seconds,
         });
       }
