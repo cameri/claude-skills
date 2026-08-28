@@ -25,12 +25,6 @@ export interface StudyStatusDeps {
 
 const defaultDeps: StudyStatusDeps = { runDetectIncremental: defaultRunDetectIncremental };
 
-// The file-type categories detect() itself buckets files into that require
-// LLM-backed semantic extraction (vs. code's free AST pass) — reusing
-// graphify's own category names rather than re-deriving "needs an LLM" from
-// file extensions ourselves.
-const SEMANTIC_TYPES = ["document", "paper", "image", "video"];
-
 function baseResult(record: StudiedPathRecord): Omit<StudyStatusResult, "isStale" | "changedFiles" | "deletedFiles" | "needsLlm" | "estimatedInputTokens" | "estimatedOutputTokens"> {
   return {
     path: record.corpusRoot,
@@ -63,13 +57,22 @@ async function statusForOne(record: StudiedPathRecord, deps: StudyStatusDeps): P
 
   let detected;
   try {
-    detected = await deps.runDetectIncremental(pythonPath, record.corpusRoot);
+    detected = await deps.runDetectIncremental(
+      pythonPath,
+      record.corpusRoot,
+      join(record.graphifyOutPath, "manifest.json")
+    );
   } catch (err) {
     return errored((err as Error).message);
   }
 
   const isStale = detected.newTotal > 0 || detected.deletedFiles.length > 0;
-  const needsLlm = SEMANTIC_TYPES.some((t) => (detected.newFilesByType[t]?.length ?? 0) > 0);
+  // Anything graphify does NOT categorise as "code" needs LLM-backed semantic
+  // extraction. Inverted rather than listed, so a category graphify adds later
+  // is handled without brain having to track graphify's own taxonomy.
+  const needsLlm = Object.entries(detected.newFilesByType).some(
+    ([type, files]) => type !== "code" && files.length > 0
+  );
 
   let estimatedInputTokens: number | null = null;
   let estimatedOutputTokens: number | null = null;
