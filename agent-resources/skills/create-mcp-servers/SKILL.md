@@ -108,6 +108,8 @@ Route directly to workflows/create-new-server.md
 - validation-checkpoints.md - All validation checks
 - adaptive-questioning-guide.md - Question templates for intake
 - api-research-template.md - API research document format
+- best-practices.md - Security, reliability, performance, and maintainability practices for production-ready servers
+- auto-installation.md - Scripts and patterns for installing a server into both Claude Code and Claude Desktop with safe credential management
 </references_index>
 
 <quick_reference>

@@ -19,6 +19,14 @@ This skill only ever *adds* hook registrations — it never removes or rewrites 
 Installing `usage-alert`, `session-start-notify`, or `telegram-reply-check` requires a working Telegram bot already configured for some channel plugin on this box (these hooks call the Telegram Bot API directly, or check for a specific channel plugin's reply-tool usage — they do not set up Telegram from scratch). If none exists, tell the user those three need a Telegram channel plugin installed and paired first, and offer to install just the Telegram-independent hooks (`destructive-var-guard`, `idle-state-tracker`, `whats-next-check`, `statusline-wrapper`, `ssh-pubkey-check`).
 </essential_principles>
 
+<objective>
+Installs a curated, opt-out set of Claude Code hooks into this sandbox's own `~/.claude/settings.json` via `scripts/install-hooks.py`, and can toggle any one of them off or back on via a `--disable`/`--enable` sentinel without touching `settings.json` itself. Use for first-time hook setup, replicating this session's hook configuration elsewhere, or disabling/re-enabling a specific hook.
+</objective>
+
+<quick_start>
+Ask which hooks to install (default: `destructive-var-guard`, `telegram-reply-check`, `usage-alert`, `idle-state-tracker`, `whats-next-check`, `session-start-notify`, `statusline-wrapper`, `claude-subcommand-guard`, `ssh-pubkey-check`), gather any needed Telegram config, then run `python3 scripts/install-hooks.py --hook <name> ... [--telegram-chat-id ... --telegram-env-path ... --telegram-channel-plugin ... --timezone ...]` once with every selected hook — see `<workflow>` step 6 for the full command.
+</quick_start>
+
 <hook_catalog>
 | Hook | Event | Needs Telegram config? | What it does |
 |---|---|---|---|

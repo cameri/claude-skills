@@ -6,8 +6,7 @@ allowed-tools:
   - Read
 ---
 
-# /telegram-ng:bot-api-reference — Telegram Bot API Reference
-
+<objective>
 A curated, offline reference to the Telegram Bot API surface `telegram-ng`'s
 `server.ts` builds on (grammy/Bot API). Built so extending `server.ts` doesn't
 require re-fetching and re-reading the full upstream spec
@@ -18,14 +17,26 @@ back to the exact upstream anchor for anything not covered here — the upstream
 docs are the source of truth if these files and a future API version disagree.
 
 Arguments passed: `$ARGUMENTS`
+</objective>
 
----
-
-## Reference files
-
-Read the one(s) relevant to the task — don't read all five unless the task
+<quick_start>
+Read the one file relevant to the task — don't read all five unless the task
 genuinely spans them.
 
+- Adding/changing what updates the bot receives, polling vs. webhook setup →
+  `references/updates-and-polling.md`.
+- Formatting outgoing text, parsing `@mentions`/links/commands out of incoming
+  text, editing or deleting a sent message → `references/messages-and-entities.md`.
+- Anything about group behavior: what the bot can see by default, moderation
+  actions, admin rights, invite links, join requests →
+  `references/groups-and-privacy.md`.
+- Sending or receiving photos/audio/video/documents/voice notes, or hitting a
+  file size limit → `references/files-and-media.md`.
+- Building a button UI, handling taps, or debugging a stuck "loading"
+  spinner on a button → `references/inline-keyboards-and-callbacks.md`.
+</quick_start>
+
+<reference_guides>
 | File | Covers |
 | --- | --- |
 | `references/updates-and-polling.md` | `Update` object, `getUpdates`, `setWebhook`/`deleteWebhook`/`getWebhookInfo`, `allowed_updates`, long polling vs webhooks, local Bot API server |
@@ -33,23 +44,9 @@ genuinely spans them.
 | `references/groups-and-privacy.md` | Privacy mode behavior, chat types, `ChatMember` status model, `ChatPermissions`/`ChatAdministratorRights`, ban/restrict/promote/invite-link/join-request methods |
 | `references/files-and-media.md` | `file_id`/`file_unique_id`/`file_path`, the three ways to send a file, per-method size limits, media type objects (`Photo`/`Video`/`Audio`/`Document`/`Voice`/etc.), `getFile` |
 | `references/inline-keyboards-and-callbacks.md` | `InlineKeyboardMarkup`/`InlineKeyboardButton`, `callback_data` (1-64 bytes), `CallbackQuery`, `answerCallbackQuery`, `editMessageReplyMarkup` |
+</reference_guides>
 
-## When to use which file
-
-- Adding/changing what updates the bot receives, polling vs. webhook setup →
-  `updates-and-polling.md`.
-- Formatting outgoing text, parsing `@mentions`/links/commands out of incoming
-  text, editing or deleting a sent message → `messages-and-entities.md`.
-- Anything about group behavior: what the bot can see by default, moderation
-  actions, admin rights, invite links, join requests →
-  `groups-and-privacy.md`.
-- Sending or receiving photos/audio/video/documents/voice notes, or hitting a
-  file size limit → `files-and-media.md`.
-- Building a button UI, handling taps, or debugging a stuck "loading"
-  spinner on a button → `inline-keyboards-and-callbacks.md`.
-
-## Notes
-
+<context>
 - These are reference files, not runnable code — there's nothing to execute
   here, just facts to look up before writing or reviewing a change to
   `server.ts`.
@@ -63,3 +60,14 @@ genuinely spans them.
   **not** covered here — `telegram-ng` doesn't use them. If a future task
   needs one of those, fetch the upstream doc directly rather than expecting
   it in these files.
+</context>
+
+<success_criteria>
+- The correct reference file(s) were read for the task at hand, without
+  reading all five unnecessarily
+- Any fact used that looks newer than the 10.2/2026-08-18 snapshot, or that
+  looks stale, was verified against the live upstream doc rather than
+  guessed from training-data recall
+- Out-of-scope 10.x features are not answered from these files — they're
+  redirected to a live upstream fetch
+</success_criteria>

@@ -16,7 +16,7 @@ Analyze the conversation to detect which skill is running, reflect on what went 
 </objective>
 
 <context>
-Skill detection: !`ls -1 ./skills/*/SKILL.md | head -5`
+Skill detection (searches known skill locations, most-local first): !`ls -1 ./skills/*/SKILL.md .claude/skills/*/SKILL.md ~/.claude/skills/*/SKILL.md ~/.claude/plugins/cache/*/*/skills/*/SKILL.md 2>/dev/null | head -5`
 </context>
 
 <quick_start>
@@ -37,9 +37,22 @@ Identify the skill from conversation context:
 - Check which SKILL.md was recently referenced
 - Examine current task context
 
-Set: `SKILL_NAME=[skill-name]` and `SKILL_DIR=./skills/$SKILL_NAME`
+Set `SKILL_NAME=[skill-name]`, then locate `SKILL_DIR` by searching known skill locations in order until `$SKILL_DIR/SKILL.md` exists — do not assume a fixed layout, since this skill may be invoked from a bare repo checkout, an installed plugin, or the plugin cache:
 
-If unclear, ask the user.
+```bash
+for candidate in \
+  "./skills/$SKILL_NAME" \
+  ".claude/skills/$SKILL_NAME" \
+  "$HOME/.claude/skills/$SKILL_NAME" \
+  $HOME/.claude/plugins/cache/*/*/skills/"$SKILL_NAME"; do
+  if [ -f "$candidate/SKILL.md" ]; then
+    echo "$candidate"
+    break
+  fi
+done
+```
+
+Set `SKILL_DIR` to whichever candidate matched. If none match (or `SKILL_NAME` is unclear), ask the user directly for the skill's name and/or path rather than operating against a directory that doesn't exist.
 </step_1>
 
 <step_2 name="reflection_and_analysis">

@@ -1,26 +1,26 @@
 ---
 name: capture
-description: Queue a candidate skill the moment you notice something reusable was just learned. Use mid-session when a procedure, workaround, or check would clearly help a future session — not for one-off facts (those go to memory instead).
+description: Queues a candidate skill the moment something reusable was just learned. Use mid-session when a procedure, workaround, or check would clearly help a future session — not for one-off facts (those go to memory instead).
 user-invocable: true
 allowed-tools:
   - Read
   - Write
   - Bash(mkdir *)
-  - Bash(jj *)
+  - Bash(git *)
   - mcp__plugin_cronjobs_cronjobs__list-jobs
   - mcp__plugin_cronjobs_cronjobs__add-job
 ---
 
-# /replicator:capture — Queue a Skill Candidate
+<objective>
+Queue a candidate skill the moment something reusable was just learned —
+"this took real work to figure out, and it will come up again." Not for
+facts (save those to memory instead, per the auto-memory system) — only
+for procedures, checks, or workflows a future session could run instead of
+re-deriving.
+</objective>
 
+<workflow>
 Arguments passed: `$ARGUMENTS`
-
-Use this the moment you notice: "this took real work to figure out, and it
-will come up again." Not for facts (save those to memory instead, per the
-auto-memory system) — only for **procedures, checks, or workflows** a
-future session could run instead of re-deriving.
-
-## Steps
 
 1. If `$ARGUMENTS` says to build it now (e.g. "now", "build it"), skip
    queueing — invoke the normal skill-authoring flow directly
@@ -44,11 +44,12 @@ future session could run instead of re-deriving.
    lost uncommitted work to container restarts three separate times (see
    `docs/replicator/queue.md`'s own seeded history), and a captured
    candidate sitting uncommitted between now and the next `meditate` cycle
-   is exposed to exactly that failure mode. `cd /workspace && jj describe
-   -m "replicator: capture <slug>"`, then `jj bookmark move main --to @`
-   and `jj git push --bookmark main` — in this workspace `jj git push`
-   alone does not move `main`, so skipping the bookmark move silently
-   pushes nothing. No need for the full cron-job-check step to move for
+   is exposed to exactly that failure mode. **`docs/` is its own standalone
+   git repo, gitignored from the workspace's `jj` repo** — `jj` run from
+   `/workspace` cannot see or commit anything under `docs/replicator/`.
+   Use `git -C /workspace/docs add -A && git -C /workspace/docs commit -m
+   "replicator: capture <slug>" && git -C /workspace/docs push origin
+   main` instead. No need for the full cron-job-check step to move for
    this — just the commit.
 5. Check the nightly cycle is scheduled: call `list-jobs` and look for a
    task whose text mentions "replicator" and "meditate". If none exists,
@@ -56,3 +57,11 @@ future session could run instead of re-deriving.
    `expression: "every day at 3am"`.
 6. Confirm briefly what was queued. No need to build anything now — that
    happens tonight, with scrutiny.
+</workflow>
+
+<success_criteria>
+The queue entry (all four fields) is written to `docs/replicator/queue.md`
+and committed+pushed via `git -C /workspace/docs` before this turn ends —
+an uncommitted capture is exactly the failure mode this skill exists to
+prevent. The nightly `meditate` cron job is confirmed scheduled.
+</success_criteria>

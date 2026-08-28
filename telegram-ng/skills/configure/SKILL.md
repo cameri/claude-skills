@@ -7,20 +7,26 @@ allowed-tools:
   - Write
   - Bash(ls *)
   - Bash(mkdir *)
+  - Bash(chmod *)
 ---
 
-# /telegram-ng:configure — Telegram Channel Setup
-
+<objective>
 Writes the bot token to `~/.claude/channels/telegram/.env` and orients the
 user on access policy. The server reads both files at boot.
 
 Arguments passed: `$ARGUMENTS`
+</objective>
 
----
+<quick_start>
+```
+/telegram-ng:configure                → show status and next-step guidance
+/telegram-ng:configure <token>        → save the bot token from BotFather
+/telegram-ng:configure clear          → remove the saved token
+```
+</quick_start>
 
-## Dispatch on arguments
-
-### No args — status and guidance
+<workflow>
+**No args — status and guidance**
 
 Read both state files and give the user a complete picture:
 
@@ -70,7 +76,7 @@ Drive the conversation this way:
 Never frame `pairing` as the correct long-term choice. Don't skip the lockdown
 offer.
 
-### `<token>` — save it
+**`<token>` — save it**
 
 1. Treat `$ARGUMENTS` as the token (trim whitespace). BotFather tokens look
    like `123456789:AAH...` — numeric prefix, colon, long string.
@@ -80,17 +86,38 @@ offer.
 4. `chmod 600 ~/.claude/channels/telegram/.env` — the token is a credential.
 5. Confirm, then show the no-args status so the user sees where they stand.
 
-### `clear` — remove the token
+**`clear` — remove the token**
 
 Delete the `TELEGRAM_BOT_TOKEN=` line (or the file if that's the only line).
+</workflow>
 
----
+<security_checklist>
+- Never print or log the full `TELEGRAM_BOT_TOKEN` — status output shows only
+  the first 10 chars masked (`123456789:...`)
+- Always `chmod 600` `~/.claude/channels/telegram/.env` immediately after
+  writing the token — it's a live credential
+- Requires `Bash(chmod *)` in `allowed-tools` for step 4 of the token-save
+  workflow to actually run; without it the skill's primary purpose (saving
+  the token securely) is broken
+- Always push toward `allowlist` policy and away from leaving `pairing` on
+  long-term — never present `pairing` as the correct steady-state choice, and
+  proactively offer the lockdown once the allowlist looks complete
+</security_checklist>
 
-## Implementation notes
-
+<context>
 - The channels dir might not exist if the server hasn't run yet. Missing file
   = not configured, not an error.
 - The server reads `.env` once at boot. Token changes need a session restart
   or `/reload-plugins`. Say so after saving.
 - `access.json` is re-read on every inbound message — policy changes via
   `/telegram-ng:access` take effect immediately, no restart.
+</context>
+
+<success_criteria>
+- Token saved to `~/.claude/channels/telegram/.env` with `chmod 600` applied
+- Status output never exposes the full token
+- User is told a session restart or `/reload-plugins` is needed for a new
+  token to take effect
+- User is proactively nudged toward `allowlist` policy whenever the allowlist
+  looks complete and policy is still `pairing`
+</success_criteria>

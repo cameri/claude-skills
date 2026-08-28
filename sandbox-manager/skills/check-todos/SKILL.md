@@ -1,6 +1,6 @@
 ---
 name: check-todos
-description: List outstanding items from TO-DOS.md and help pick one to work on next. Use when the user asks what's outstanding, what's on the todo list, or wants to pick up parked work.
+description: Lists outstanding items from TO-DOS.md and helps pick one to work on next. Use when the user asks what's outstanding, what's on the todo list, or wants to pick up parked work.
 user-invocable: true
 allowed-tools:
   - Read
@@ -15,6 +15,10 @@ Once the user chooses to start work on a todo (or invoke a matching skill for it
 <objective>
 Read `TO-DOS.md`, present outstanding items as a numbered list, let the user pick one, load its full context, check whether an existing skill or workflow already fits it, and then either hand off to that skill, start the work directly, or brainstorm — removing the entry from the file once work actually begins.
 </objective>
+
+<quick_start>
+Read `TO-DOS.md`, list the outstanding items as a numbered list, and wait for the user to reply with a number before loading that item's full context.
+</quick_start>
 
 <workflow>
 1. Read `TO-DOS.md` in the project root. If it doesn't exist, say "No outstanding todos" and stop.

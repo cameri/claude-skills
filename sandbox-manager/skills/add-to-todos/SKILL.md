@@ -1,6 +1,6 @@
 ---
 name: add-to-todos
-description: Add an item to TO-DOS.md with full context from the conversation, checking for near-duplicates first. Use when the user asks to park something, defer it, add it to the todo list, or come back to it later, rather than doing it now.
+description: Adds an item to TO-DOS.md with full context from the conversation, and checks for near-duplicates first. Use when the user asks to park something, defer it, add it to the todo list, or come back to it later, rather than doing it now.
 user-invocable: true
 allowed-tools:
   - Read
@@ -19,6 +19,10 @@ Todos are plain list items, not checkboxes — an item is deleted outright from 
 <objective>
 Append a new, well-structured entry to `TO-DOS.md`, after checking whether a near-duplicate already exists, then confirm and offer to resume whatever the user was doing before this skill was invoked.
 </objective>
+
+<quick_start>
+Read `TO-DOS.md`, check for a near-duplicate of the new item, then append a `## Brief Context Title - YYYY-MM-DD HH:MM` section with a `- **[Action verb] [Component]** - ...` entry carrying the required Problem and Files fields (Solution optional).
+</quick_start>
 
 <workflow>
 1. Read `TO-DOS.md` in the project root (create it with the Write tool if it doesn't exist yet).

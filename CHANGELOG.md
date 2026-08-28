@@ -74,6 +74,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `permanent: true` delete. `study-status`'s description was corrected to
   third person. `marketplace.json`'s brain description was stale (predated
   `study_status`/`forget`) — synced with `plugin.json`'s.
+- `telegram-ng` (v0.12.2): all three skills (`access`, `bot-api-reference`,
+  `configure`) were plain legacy markdown with zero XML structure —
+  restructured to the marketplace's `<objective>`/`<quick_start>`/
+  `<success_criteria>` convention, content unchanged, with security-relevant
+  behavior (token masking, `chmod 600`, injection defenses, lockdown-policy
+  guidance) pulled into an explicit `<security_checklist>` per skill. Fixed
+  a real bug in `configure`: its `allowed-tools` frontmatter never granted
+  `Bash(chmod *)`, but its token-save workflow calls `chmod 600` on the
+  saved credential file — added.
+- `sandbox-manager` (v0.17.1): audit fix wave on 5 skills. `add-to-todos`
+  and `check-todos` were missing the required `<quick_start>` tag and had
+  wrong-POV (imperative, not third-person) descriptions — fixed both.
+  `manage-plugins` was missing `<objective>`; `setup-hooks` was missing both
+  `<objective>` and `<quick_start>` — added. `whats-next`'s `<workflow>` and
+  `<output_format>` substantially duplicated each other — collapsed
+  `<workflow>` to a short pointer into `<output_format>`, folding any
+  workflow-only detail into the corresponding output-format bullets, plus
+  the same quick_start/POV fixes as its siblings.
+- `replicator` (v0.8.1): audit fix wave. `capture`'s commit step ran `jj`
+  from `/workspace` to commit `docs/replicator/queue.md`, but `docs/` is a
+  separate, gitignored git repo `jj` can't see — the commit/push was a
+  silent no-op, defeating the skill's stated purpose (avoiding lost
+  captures across container restarts). Fixed to use
+  `git -C /workspace/docs` instead, matching how `meditate` already
+  handles the same repo boundary; `allowed-tools` updated from
+  `Bash(jj *)` to `Bash(git *)` to match. The `quarantine` subagent's
+  `success_criteria` claimed "six hard-flag categories" against an
+  enumerated list of five — corrected to five. `meditate`'s SKILL.md
+  (348 lines, pure markdown) restructured to XML, including a new
+  `<security_checklist>` consolidating its prompt-injection defenses; its
+  onboarding line pointed new installs at vocabulary definitions living
+  only in this workspace's private `docs/` repo — added a local
+  `skills/meditate/references/vocabulary.md` glossary (gene, mute, cycle,
+  watchlist, speculative build) so the skill doesn't depend on a file only
+  this operator has; the private design doc is now an optional deep-dive
+  link, not a required first-run read.
+- `agent-resources` (v0.2.1): audit fix wave (self-audit, since this is the
+  plugin that defines the marketplace's skill/subagent standard).
+  `create-mcp-servers/references/creation-workflow.md` hardcoded a real
+  person's name ("Lex") as the assumed user throughout, leftover from an
+  un-genericized upstream adaptation — replaced with "the user" per this
+  repo's own portability rule. `create-agent-skills/SKILL.md` — the skill
+  that teaches "every skill needs `<objective>`/`<quick_start>`" — didn't
+  have real top-level versions of either itself; added. `subagent-auditor`
+  (the subagent that audits other subagents) had no check for the single
+  most-emphasized anti-pattern in its own required reading: a subagent
+  requiring user interaction (e.g. listing `AskUserQuestion`), which
+  structurally cannot work in an isolated subagent context — added.
+  `heal-skill` hardcoded a `./skills/*` relative-path assumption that only
+  resolves when invoked from this exact repo's root — replaced with
+  multi-location discovery (or asking the user) so it works from any
+  install location. `create-hooks`'s flagship quick_start example had a
+  broken, triple-escaped `jq` command that would fail to parse — fixed and
+  actually tested against real input. `create-mcp-servers` had two
+  reference files on disk never linked from its references index
+  (`best-practices.md`, `auto-installation.md`) — linked. Note: an earlier
+  pass of this same audit flagged an "orphan `</output>` closing tag" in
+  many of these files; that finding was verified false (an artifact of how
+  a file-reading tool renders content, not real file content) and nothing
+  was changed for it.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix

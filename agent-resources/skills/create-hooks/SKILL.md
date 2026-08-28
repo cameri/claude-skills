@@ -37,7 +37,7 @@ Hooks are shell commands or LLM-evaluated prompts that execute in response to Cl
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \\\"No description\\\")\"' >> ~/.claude/bash-log.txt"
+            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \"no description\")\"' >> ~/.claude/bash-log.txt"
           }
         ]
       }

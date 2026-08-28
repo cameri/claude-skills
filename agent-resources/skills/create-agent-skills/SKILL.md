@@ -8,6 +8,14 @@ metadata:
   version: "1.1"
 ---
 
+<objective>
+This skill provides expert guidance for creating, writing, auditing, and refining Claude Code Skills. It teaches the Agent Skills specification — SKILL.md structure, XML conventions, progressive disclosure via workflows/references/templates/scripts, and portability requirements — so that skills you author or modify follow the same best practices this skill itself demonstrates.
+</objective>
+
+<quick_start>
+See `<intake>` below to route to the right workflow: creating a new skill, auditing/modifying an existing one, adding a component, testing/iterating, optimizing a description, or getting general guidance.
+</quick_start>
+
 <essential_principles>
 
 <how_skills_work>

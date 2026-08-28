@@ -63,6 +63,12 @@ These issues significantly hurt effectiveness - flag as critical:
 - Anti-pattern: All tools inherited without justification or over-permissioned access
 - Pass: Either justified "all tools" inheritance or explicit minimal list
 
+**requires_user_interaction**:
+- Does the subagent's tool list include `AskUserQuestion` (or an equivalent interactive-prompt tool), or does its role/workflow/constraints text instruct it to "ask the user," "present options to the user," "wait for confirmation," or otherwise pause for a human response?
+- Anti-pattern: A subagent that depends on live user interaction to proceed
+- Pass: No interactive tools listed and no instructions to solicit input from a human mid-task
+- Why it matters: A dispatched subagent runs in an isolated context with no channel back to the user — it cannot receive a response, so any such instruction is a structural dead end, not just a style issue. Flag this as critical regardless of subagent complexity.
+
 **xml_structure**:
 - No markdown headings in body (##, ###) - use pure XML tags
 - All XML tags properly opened and closed
@@ -180,6 +186,16 @@ Generic tag names like `<section1>`, `<part2>`, `<content>`.
 **How to detect**: Tags with generic names instead of purpose-based names.
 
 **Fix**: Use semantic tags (`<workflow>`, `<constraints>`, `<validation>`).
+</pattern>
+
+<pattern name="requires_user_interaction" severity="critical">
+Subagent tool list includes `AskUserQuestion` (or a similar interactive tool), or its role/workflow/constraints text tells it to ask the user something, present options to the user, wait for confirmation, or otherwise pause for a human reply mid-task.
+
+**Why this matters**: A subagent is a black box — it runs in an isolated context dispatched by the orchestrating agent and has no channel to receive a response from the user. Any instruction to interact with the user is a structural dead end: the subagent will hang or silently proceed on a guess, not actually get an answer.
+
+**How to detect**: Check the `tools:` frontmatter for `AskUserQuestion` or equivalent; search role/workflow/constraints body text for phrases like "ask the user," "confirm with the user," "present options," "wait for approval/response."
+
+**Fix**: Remove the interactive tool from the tool list. Rewrite any "ask the user" step so the subagent either makes a reasonable default decision, reports the ambiguity back to the orchestrating agent in its final output for a human to resolve there, or fails explicitly with a clear message instead of blocking.
 </pattern>
 </anti_patterns>
 

@@ -1,7 +1,7 @@
 # Automated MCP Server Creation Workflow
 
 <overview>
-This workflow creates a complete, working MCP server from scratch with zero manual configuration. Use this when Lex wants to build a new MCP server - it handles everything automatically.
+This workflow creates a complete, working MCP server from scratch with zero manual configuration. Use this when the user wants to build a new MCP server - it handles everything automatically.
 
 **End state**: Server running in both Claude Code and Claude Desktop with all credentials configured.
 </overview>
@@ -480,15 +480,15 @@ npm run build
 
 ## Step 4: Configure Environment Variables
 
-**SECURITY CRITICAL:** NEVER ask Lex to paste secrets into chat. Secrets must never go through Anthropic's servers or appear in conversation history.
+**SECURITY CRITICAL:** NEVER ask the user to paste secrets into chat. Secrets must never go through Anthropic's servers or appear in conversation history.
 
 ### Provide Exact Commands
 
-For each required environment variable, give Lex the exact commands to run in his terminal.
+For each required environment variable, give the user the exact commands to run in their terminal.
 
 **Step 4.1: Show required variables and where to get them**
 
-Present to Lex:
+Present to the user:
 ```
 📋 Required Environment Variables:
 
@@ -553,7 +553,7 @@ done
 **Important notes:**
 - Variables are checked for existence only (not values)
 - Values never appear in conversation or output
-- If variables aren't set, stop and wait for Lex to add them
+- If variables aren't set, stop and wait for the user to add them
 
 ---
 
