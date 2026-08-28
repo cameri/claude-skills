@@ -69,7 +69,7 @@ export async function upsertStudiedPath(db: Database, params: UpsertStudiedPathP
       await txn.query("MATCH (n:StudiedPath) WHERE n.gid = $gid RETURN id(n) AS id", { gid: params.corpusRoot })
     ).rows as { id: bigint }[];
     if (rows.length === 0) {
-      await txn.createNode({ labels: ["StudiedPath"], properties });
+      await txn.createNode({ labels: ["StudiedPath"], properties: properties as never });
       return;
     }
     for (const [key, value] of Object.entries(properties)) {
