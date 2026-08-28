@@ -1,6 +1,6 @@
 # brain
 
-Workspace-wide knowledge graph backed by LatticeDB. Exposes `learn_from` and `recall` tools for ingesting structured knowledge and querying it via Cypher, `remember` a single fact directly, and `forget` a node or edge (soft or permanent). `learn_from` defaults to reading graphify's `graphify-out/graph.json`, but takes any graph-json snapshot in the same `{nodes, links, hyperedges?}` shape via an optional `path` argument — graphify is the default producer, not a hard dependency.
+Workspace-wide knowledge graph backed by LatticeDB. Exposes `learn_from` and `recall` tools for ingesting structured knowledge and querying it via Cypher, `remember` a single fact directly, `forget` a node or edge (soft or permanent), and `study_status` reporting staleness and re-study cost for any learned path. `learn_from` defaults to reading graphify's `graphify-out/graph.json`, but takes any graph-json snapshot in the same `{nodes, links, hyperedges?}` shape via an optional `path` argument — graphify is the default producer, not a hard dependency.
 
 ## Design
 
