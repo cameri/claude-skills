@@ -2,7 +2,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { openBrain } from "./src/db";
 import { syncSource } from "./src/learn-from";
 import { graphifyOutAdapter } from "./src/sources/graphify-out";
@@ -10,6 +10,8 @@ import { recall } from "./src/recall";
 import { remember } from "./src/remember";
 import { forget, type ForgetTarget } from "./src/forget";
 import { jsonStringify } from "./src/json";
+import { resolveGraphifyMetadata, upsertStudiedPath } from "./src/study-registry";
+import { studyStatus } from "./src/study-status";
 
 function assertValidForgetTarget(target: unknown): asserts target is ForgetTarget {
   if (typeof target !== "object" || target === null) {
@@ -37,11 +39,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "learn_from",
-      description: "Sync a graph-json snapshot (nodes/links/hyperedges — the format graphify writes) into the brain (create/update/delete, incremental). Defaults to graphify-out/graph.json under the project root.",
+      description:
+        "Sync a graph-json snapshot (nodes/links/hyperedges — the format graphify writes) into the brain (create/update/delete, incremental). Defaults to graphify-out/graph.json under the project root. Also records the path in brain's own study registry for study_status.",
       inputSchema: {
         type: "object",
         properties: {
           path: { type: "string", description: "Path to the graph-json file to sync. Defaults to graphify-out/graph.json under CLAUDE_PROJECT_DIR." },
+          duration_seconds: {
+            type: "number",
+            description: "Wall-clock seconds the calling agent's graphify run took, if known/timed. Recorded on the path's study registry entry; omit if not timed — no estimate is invented in its place.",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "study_status",
+      description:
+        "Report staleness and an estimated re-study cost for one or every path previously synced via learn_from, without triggering a re-study. Shells out to graphify's own detect_incremental().",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "A specific corpus root (as previously synced via learn_from's path argument's directory). Omit to report on every registered path." },
         },
         additionalProperties: false,
       },
@@ -115,9 +134,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === "learn_from") {
-    const { path } = (request.params.arguments as { path?: unknown } | undefined) ?? {};
+    const { path, duration_seconds } = (request.params.arguments as { path?: unknown; duration_seconds?: unknown } | undefined) ?? {};
     if (path !== undefined && typeof path !== "string") {
       throw new Error("learn_from's 'path' parameter must be a string");
+    }
+    if (duration_seconds !== undefined && typeof duration_seconds !== "number") {
+      throw new Error("learn_from's 'duration_seconds' parameter must be a number");
     }
     const db = await openBrain();
     try {
@@ -125,6 +147,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const graphJsonPath = path ?? join(root, "graphify-out", "graph.json");
       const adapter = graphifyOutAdapter(graphJsonPath);
       const result = await syncSource(db, adapter);
+
+      const metadata = await resolveGraphifyMetadata(graphJsonPath);
+      if (metadata?.lastRun) {
+        await upsertStudiedPath(db, {
+          corpusRoot: metadata.corpusRoot,
+          graphifyOutPath: dirname(graphJsonPath),
+          inputTokens: metadata.lastRun.inputTokens,
+          outputTokens: metadata.lastRun.outputTokens,
+          durationSeconds: duration_seconds,
+        });
+      }
+
+      return { content: [{ type: "text", text: jsonStringify(result) }] };
+    } finally {
+      await db.close();
+    }
+  }
+  if (request.params.name === "study_status") {
+    const { path } = (request.params.arguments as { path?: unknown } | undefined) ?? {};
+    if (path !== undefined && typeof path !== "string") {
+      throw new Error("study_status's 'path' parameter must be a string");
+    }
+    const db = await openBrain(undefined, { readOnly: true });
+    try {
+      const result = await studyStatus(db, path);
       return { content: [{ type: "text", text: jsonStringify(result) }] };
     } finally {
       await db.close();

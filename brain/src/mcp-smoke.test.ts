@@ -33,7 +33,7 @@ test("brain MCP server: learn_from then recall over a real stdio connection", as
     await client.connect(transport);
 
     const tools = await client.listTools();
-    expect(tools.tools.map((t) => t.name).sort()).toEqual(["forget", "learn_from", "recall", "remember"]);
+    expect(tools.tools.map((t) => t.name).sort()).toEqual(["forget", "learn_from", "recall", "remember", "study_status"]);
 
     const learnResult = await client.callTool({ name: "learn_from", arguments: {} });
     const learnText = (learnResult.content as Array<{ type: string; text: string }>)[0]!.text;
@@ -100,6 +100,26 @@ test("brain MCP server: learn_from then recall over a real stdio connection", as
     });
     const externalRecallText = (externalRecall.content as Array<{ type: string; text: string }>)[0]!.text;
     expect(JSON.parse(externalRecallText)).toEqual({ rows: [{ "n.label": "Thing Two" }] });
+
+    // study_status: seed a minimal real graphify-out/ (graph.json + the three
+    // sidecars learn_from's registry upsert reads), sync it, then confirm
+    // study_status reports it — proving the full server.ts wiring, not just
+    // the unit-tested pieces in isolation.
+    const studiedDir = join(projectDir, "graphify-out");
+    writeFileSync(join(studiedDir, ".graphify_root"), projectDir);
+    writeFileSync(join(studiedDir, ".graphify_python"), process.execPath); // any real executable; study_status here only reaches learn_from's bookkeeping, not detect_incremental
+    writeFileSync(
+      join(studiedDir, "cost.json"),
+      JSON.stringify({ runs: [{ date: "2026-08-27T00:00:00Z", input_tokens: 100, output_tokens: 20, files: 2 }] })
+    );
+    await client.callTool({ name: "learn_from", arguments: { path: join(studiedDir, "graph.json"), duration_seconds: 12 } });
+
+    const registryRecall = await client.callTool({
+      name: "recall",
+      arguments: { query: "MATCH (n:StudiedPath) RETURN n.gid AS path, n.last_duration_seconds AS duration" },
+    });
+    const registryText = (registryRecall.content as Array<{ type: string; text: string }>)[0]!.text;
+    expect(JSON.parse(registryText)).toEqual({ rows: [{ path: projectDir, duration: "12" }] });
   } finally {
     await client.close();
     rmSync(projectDir, { recursive: true, force: true });
