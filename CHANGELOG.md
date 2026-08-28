@@ -49,7 +49,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entirely, and by tracking a retyped edge's `_original_type` so it's still
   recognized under its real relation type. Design:
   `docs/superpowers/specs/2026-08-27-brain-remember-forget-design.md`.
-  Plan: `docs/superpowers/plans/2026-08-27-brain-remember-forget.md`.
+  Plan: `docs/superpowers/plans/2026-08-27-brain-remember-forget.md`. v0.3.0
+  added `study_status` (read-only tool reporting staleness and estimated
+  re-study cost for any previously-learned path, without triggering a
+  re-study itself, by shelling out to graphify's own `detect_incremental()`)
+  and a `StudiedPath` registry (nodes in brain's own graph, auto-upserted
+  whenever `learn_from` runs), plus an optional `duration_seconds` argument
+  on `learn_from` so the calling agent can record how long a `/graphify` run
+  took. v0.4.0 is a documentation/version-sync bump after feature completion.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix

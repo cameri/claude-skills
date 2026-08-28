@@ -25,3 +25,12 @@ optionally linked to existing nodes by gid or full-text search, tagged
 deletes any node or edge regardless of source — soft forget relabels/
 retypes rather than truly deleting, so `learn_from`'s next sync never
 resurrects a tombstoned graphify-sourced node or edge.
+
+`study_status` reports, for one path or every path ever synced via
+`learn_from`, whether it's stale and roughly what re-studying would cost —
+without ever triggering a re-study itself. It shells out to graphify's own
+`detect_incremental()` (the same function `/graphify --update` uses) rather
+than reimplementing staleness detection, and estimates token cost by
+extrapolating from that path's `graphify-out/cost.json` history. A re-study
+still goes through `/graphify --update` (or a fresh `/graphify` run) followed
+by `learn_from` — brain never dispatches extraction itself.

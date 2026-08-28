@@ -33,7 +33,7 @@ function assertValidForgetTarget(target: unknown): asserts target is ForgetTarge
   throw new Error("forget target's 'type' must be 'node' or 'edge'");
 }
 
-const server = new Server({ name: "brain", version: "0.3.0" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "brain", version: "0.4.0" }, { capabilities: { tools: {} } });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
