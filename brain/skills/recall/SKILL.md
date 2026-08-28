@@ -4,6 +4,12 @@ description: Query the brain (the workspace's LatticeDB knowledge graph) — ask
 user-invocable: true
 ---
 
+<objective>
+Query the brain via a literal Cypher string, composing one yourself from a
+plain-language question when the caller doesn't already have exact Cypher.
+</objective>
+
+<quick_start>
 The `recall` MCP tool takes one literal Cypher query string — there is no
 natural-language parameter. For a plain-language question:
 
@@ -34,7 +40,9 @@ natural-language parameter. For a plain-language question:
 
 If the caller already knows the exact Cypher they want, call `recall`
 directly with it — that's the escape hatch, not a separate mode.
+</quick_start>
 
+<success_criteria>
 `recall` is genuinely read-only, enforced at the database layer, not just by
 convention: it opens the brain with LatticeDB's `readOnly` mode, which
 rejects any `CREATE`/`DELETE`/`SET`/`MERGE`/`REMOVE` — even a raw Cypher
@@ -43,3 +51,8 @@ write to the brain through `recall`, by design or by accident.
 Writing happens only through `learn_from` (bulk sync), `remember` (a
 single fact), and `forget` (soft or permanent delete) — never through
 `recall`.
+
+An empty result doesn't necessarily mean the fact/node doesn't exist — check
+whether it was soft-forgotten (see the `Forgotten`/`FORGOTTEN` note above)
+before concluding it's missing.
+</success_criteria>

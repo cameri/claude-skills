@@ -4,13 +4,23 @@ description: Sync graphify's graph.json into the brain (the workspace's LatticeD
 user-invocable: true
 ---
 
+<objective>
+Sync graphify's graph.json into the brain (the workspace's LatticeDB
+knowledge graph) — creates new nodes/edges, updates changed ones, deletes
+ones no longer in graphify-out.
+</objective>
+
+<quick_start>
 Call the `learn_from` MCP tool (no parameters — v1 has exactly one source,
 `graphify-out`, read from `graphify-out/graph.json` at the workspace root).
-
-Report the returned counts (`nodesCreated`, `nodesUpdated`, `nodesDeleted`,
-`edgesCreated`, `edgesDeleted`) to the user plainly — these are the real
-sync delta, not a guess.
 
 If the tool call fails because `graphify-out/graph.json` doesn't exist yet,
 tell the user to run `/graphify` first — `learn_from` has nothing to read
 otherwise.
+</quick_start>
+
+<success_criteria>
+Report the returned counts (`nodesCreated`, `nodesUpdated`, `nodesDeleted`,
+`edgesCreated`, `edgesDeleted`) to the user plainly — these are the real
+sync delta, not a guess.
+</success_criteria>

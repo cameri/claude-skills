@@ -407,7 +407,7 @@
     },
     {
       "name": "brain",
-      "description": "Workspace-wide knowledge graph backed by LatticeDB — syncs graphify's output in, answers questions via Cypher, writes/links individual facts, and soft- or permanently forgets a node/edge.",
+      "description": "Workspace-wide knowledge graph backed by LatticeDB — syncs a graph-json snapshot in (defaulting to graphify's output), answers questions via Cypher, writes/links individual facts, soft- or permanently forgets a node/edge, and reports staleness/cost-to-re-study for any previously-learned path.",
       "tools": ["claude", "cursor"],
       "category": "productivity",
       "author": {

@@ -1,15 +1,23 @@
 ---
 name: study-status
-description: Report whether a previously-learned path (synced via learn_from) is stale and roughly what re-studying it would cost, without triggering a re-study. Explicit-invocation only.
+description: Reports whether a previously-learned path (synced via learn_from) is stale and roughly what re-studying it would cost, without triggering a re-study. Use when the user asks whether a studied path needs re-syncing, or wants a cost estimate before running /graphify --update. Explicit-invocation only.
 user-invocable: true
 ---
 
+<objective>
+Report whether a previously-learned path (synced via learn_from) is stale
+and roughly what re-studying it would cost, without triggering a re-study.
+</objective>
+
+<quick_start>
 Call the `study_status` tool with an optional `path` — a corpus root
 previously synced via `learn_from`. That's the value graphify itself
 recorded in `graphify-out/.graphify_root` for the run `learn_from` read,
 normally the directory `graphify-out/` sits in. Omit `path` to report on
 every path brain has ever studied.
+</quick_start>
 
+<output_fields>
 Each result reports:
 
 - `isStale` — true when graphify's own `detect_incremental()` finds any
@@ -33,7 +41,10 @@ A path that has moved, or lost its graphify sidecar files, reports an
 `error` field instead of throwing — one unreachable path never aborts a
 report covering the whole registry. Check `error` before trusting
 `isStale`, since an errored path reports `isStale: false`.
+</output_fields>
 
+<success_criteria>
 `study_status` never triggers a re-study itself — it only reports. To
 actually re-study a stale path, run `/graphify <path> --update` (or a fresh
 `/graphify` run), then sync the result in with `learn_from`.
+</success_criteria>

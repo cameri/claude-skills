@@ -60,7 +60,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   graph, auto-upserted whenever `learn_from` runs), and an optional
   `duration_seconds` argument on `learn_from` so the calling agent can record
   how long a `/graphify` run took. Design:
-  `docs/superpowers/specs/2026-08-28-brain-study-status-design.md`.
+  `docs/superpowers/specs/2026-08-28-brain-study-status-design.md`. v0.4.1
+  is an audit fix wave: `learn_from`'s `_brain_source` tag was keyed only by
+  adapter name ("graphify-out"), not by corpus — syncing a second corpus via
+  the `path` override would delete or overwrite the first corpus's nodes on
+  its next sync (the workspace's default corpus is unaffected and keeps the
+  legacy plain tag; a new corpus now gets `graphify-out:<resolved dir>`),
+  regression-tested in `sources/graphify-out.test.ts`. All five skills
+  (`learn-from`, `recall`, `remember`, `forget`, `study-status`) were
+  missing the marketplace's usual `<objective>`/`<quick_start>`/
+  `<success_criteria>` XML structure — restructured, content unchanged.
+  `forget`'s skill now explicitly requires user confirmation before a
+  `permanent: true` delete. `study-status`'s description was corrected to
+  third person. `marketplace.json`'s brain description was stale (predated
+  `study_status`/`forget`) — synced with `plugin.json`'s.
 - `container-management` (v0.3.0): new `scripts/safe-rebuild.sh`,
   replacing the prose-only fix for the self-rebuild `$HOME`-resolution
   gotcha documented in `references/update-strategies.md`. That prose fix
