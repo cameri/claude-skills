@@ -4,6 +4,7 @@
 Before starting, ensure you understand:
 - [references/creation-workflow.md](../references/creation-workflow.md) - Complete step-by-step commands
 - Architecture pattern based on operation count (determined in Step 0)
+- Channel servers (push events back to the session): [references/omp-channel-notifications.md](../references/omp-channel-notifications.md)
 </required_reading>
 
 <process>
@@ -51,6 +52,7 @@ Analyze the user's description to extract and infer:
 - Service name mentioned = API Integration purpose
 - "Node.js", "npm", "TypeScript" mentioned = TypeScript language
 - No language mentioned = Python (default)
+- "push events", "notify me", "wake the session", "channel", "OMP", "Pi" mentioned = channel server → inbound notifications + wake bridge
 </adaptive_analysis>
 
 <contextual_questioning>
@@ -204,6 +206,16 @@ Use templates as starting point:
 Write to: `src/server.py` or `src/index.ts`
 
 Validation: [references/validation-checkpoints.md#code-syntax](../references/validation-checkpoints.md#code-syntax)
+</substep>
+<substep name="4e">
+<title>Channel Server: Add Wake Bridge</title>
+
+IF the server pushes events back to the session (channel server):
+1. Read [references/omp-channel-notifications.md](../references/omp-channel-notifications.md)
+2. Copy [templates/omp-channel.ts](../templates/omp-channel.ts) → `extensions/omp-channel.ts`, set `SERVER_NAME`/`SOURCE_NAME` to the channel name
+3. Declare the extension in package.json: `"pi": { "extensions": ["./extensions/omp-channel.ts"] }`
+4. Every `notifications/claude/channel` emission MUST set `meta.source`
+5. Note: the extension loads at session start — restart the session after installing
 </substep>
 
 </step>

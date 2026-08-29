@@ -48,6 +48,7 @@ Based on user's request, determine:
 - Adding new operations? May require architecture change if crossing 2→3 threshold
 - Changing auth? May need OAuth pattern from [references/oauth-implementation.md](../references/oauth-implementation.md)
 - Adding list/search? May need response optimization from [references/response-optimization.md](../references/response-optimization.md)
+- Adding inbound events (channel notifications)? Read [references/omp-channel-notifications.md](../references/omp-channel-notifications.md) — add `meta.source` to emissions, add the wake-bridge extension, restart the session
 
 Present plan to user for confirmation.
 </step>

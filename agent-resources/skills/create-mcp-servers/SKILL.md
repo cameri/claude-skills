@@ -1,6 +1,6 @@
 ---
 name: create-mcp-servers
-description: Create MCP servers (TypeScript or Python) exposing tools, resources, and prompts. Use when building custom Claude integrations or API servers.
+description: Create MCP servers (TypeScript or Python) exposing tools, resources, prompts, and bidirectional channel communication with Claude Code and Oh My Pi (OMP/Pi) sessions. Use when building custom Claude/Pi integrations, API servers, or channel servers that push events back to the agent.
 ---
 
 <objective>
@@ -46,6 +46,9 @@ MCP servers expose:
 
 Standard location: `~/Developer/mcp/{server-name}/`
 </context>
+<channel_servers>
+Servers that push events back to the session (messages, webhooks, scheduled jobs) are **channel servers**: they emit `notifications/claude/channel` with a mandatory `meta.source`, and under OMP they also need a wake-bridge extension declared via `pi.extensions`. Full pattern: references/omp-channel-notifications.md
+</channel_servers>
 
 </essential_principles>
 
@@ -60,6 +63,9 @@ Use AskUserQuestion:
   - "Create a new MCP server" → workflows/create-new-server.md
   - "Update an existing MCP server" → workflows/update-existing-server.md
   - "Troubleshoot a server" → workflows/troubleshoot-server.md
+
+**Channel server requested** (push events / notify / wake / "OMP" / "Pi" / "channel" mentioned):
+Route directly to workflows/create-new-server.md — the intake detects channel servers and loads references/omp-channel-notifications.md
 
 **Context provided** (user described what they want):
 Route directly to workflows/create-new-server.md
@@ -79,6 +85,7 @@ Route directly to workflows/create-new-server.md
 | python-server.py | Traditional pattern starter for Python |
 | typescript-server.ts | Traditional pattern starter for TypeScript |
 | operations.json | On-demand discovery operations definition |
+| omp-channel.ts | OMP wake-bridge extension for channel servers |
 </templates_index>
 
 <scripts_index>
@@ -110,6 +117,7 @@ Route directly to workflows/create-new-server.md
 - api-research-template.md - API research document format
 - best-practices.md - Security, reliability, performance, and maintainability practices for production-ready servers
 - auto-installation.md - Scripts and patterns for installing a server into both Claude Code and Claude Desktop with safe credential management
+- omp-channel-notifications.md - Bi-directional channel communication with OMP/Pi: meta.source convention, wake-bridge extension, sync sendUserMessage pitfall, restart lifecycle, testing
 </references_index>
 
 <quick_reference>

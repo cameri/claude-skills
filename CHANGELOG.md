@@ -91,6 +91,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `permanent: true` delete. `study-status`'s description was corrected to
   third person. `marketplace.json`'s brain description was stale (predated
   `study_status`/`forget`) — synced with `plugin.json`'s.
+- `agent-resources` (v0.2.2): `create-mcp-servers` now covers bidirectional
+  channel communication with omp — new
+  `references/omp-channel-notifications.md` (mandatory `meta.source`,
+  wake-bridge extension, synchronous `sendUserMessage` pitfall, restart
+  lifecycle, testing) and `templates/omp-channel.ts` (canonical bridge),
+  wired into the create-new-server and update-existing-server workflows.
 - `telegram-ng` (v0.12.2): all three skills (`access`, `bot-api-reference`,
   `configure`) were plain legacy markdown with zero XML structure —
   restructured to the marketplace's `<objective>`/`<quick_start>`/
