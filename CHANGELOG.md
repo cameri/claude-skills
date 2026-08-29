@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` (v0.18.3): new OMP extension
+  `extensions/session-start-notify.ts`, declared via a new `package.json`
+  `pi` manifest (`extensions: ["extensions/"]`). OMP never runs Claude Code
+  `SessionStart` hooks (sessions live in one long-lived process; `/new` is an
+  in-process switch), so the `setup-hooks` `session-start-notify.py` hook
+  silently stopped notifying once sessions moved from Claude Code to omp.
+  The extension restores the Telegram session-start notification on OMP's own
+  lifecycle events: `session_start` (process start) and `session_switch`
+  (reasons `new`/`resume`/`fork` → `/new`, `/resume`, `/fork`; resume names
+  the session from its file's title slot). Gated on `ctx.hasUI` so task
+  subagents and headless runs don't spam. Telegram config comes from the same
+  `~/.claude/channels/sandbox-manager/hooks-config.json`
+  (`telegram_chat_id`/`telegram_env_path`) the `setup-hooks` installer writes,
+  with `TELEGRAM_CHAT_ID`/`TELEGRAM_BOT_TOKEN` env and workspace-default
+  fallbacks; no secrets in the plugin.
 - `sandbox-manager` (v0.18.1): `restart-session` now sends `/reset` (not
   `/clear`) to omp panes. omp's TUI has no `/clear` command and swallows
   unknown `/`-commands without forwarding them to the embedded Claude
