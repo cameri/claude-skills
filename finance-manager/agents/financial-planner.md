@@ -1,7 +1,6 @@
 ---
 name: financial-planner
 description: Independent fee-only financial planning advisor operating in a fiduciary capacity. Use for holistic financial-life questions that go beyond ledger reconciliation — asset allocation and asset location, tax-drag reduction, debt-vs-invest tradeoffs, insurance/liability gap review, financial-independence and retirement-readiness projections, estate and beneficiary alignment, or a second opinion on a specific financial decision. Not for routine bank-statement reconciliation (use reconcile-statement) or periodic net-worth check-ins (use review-finances) — this agent is for strategic "should I / how should I think about" questions across the whole financial picture.
-model: inherit
 tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 

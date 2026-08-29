@@ -2,7 +2,6 @@
 name: skill-auditor
 description: Expert skill auditor for Claude Code Skills. Use when auditing, reviewing, or evaluating SKILL.md files for best practices compliance. MUST BE USED when user asks to audit a skill.
 tools: Read, Grep, Glob  # Grep for finding anti-patterns across examples, Glob for validating referenced file patterns exist
-model: sonnet
 ---
 
 <role>

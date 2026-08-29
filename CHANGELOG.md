@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `replicator`, `finance-manager`, `agent-resources`: removed the
+  `model:` frontmatter line from the `quarantine`, `financial-planner`,
+  `skill-auditor`, and `subagent-auditor` agent definitions. Under Claude
+  Code an absent model line means `inherit` (behavior unchanged — the
+  parent is sonnet-class); under the omp harness the explicit
+  `inherit`/`sonnet` values made omp's subagent runtime fail every spawn
+  with "No model selected" (omp has no model of its own to inherit from —
+  it is a supervisor for Claude Code, and its fresh `agent.db` after the
+  2026-08-29 boot carried no selection). Quarantine spawns verified
+  working after the change.
+- omp-harness caveat from the same cycle: omp subagent sessions do not
+  expose `WebSearch`/`WebFetch` and do not honor agent-def `tools:`
+  restrictions — the `quarantine` agent runs but cannot fetch, so the
+  replicator's outward scan is blocked under omp until a fetch-capable
+  tool is mounted for that session.
 - `cronjobs` (v0.1.4): `list-jobs` reported a stale `nextRun` frozen at
   add-time — croner computes the actual schedule internally and the
   persisted value was never refreshed, so every job showed its original
