@@ -30,7 +30,7 @@ bash scripts/export-session.sh "<path/to/file>"
 2. Resolve the path:
    - If the message included a path, use it as-is.
    - If no path was given, generate a short (3–6 word) kebab-case slug summarizing this conversation so far, and use `docs/<slug>` (no extension needed — `/export` appends `.txt`).
-3. Run `scripts/export-session.sh "<resolved-path>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then types `/export <resolved-path>` and sends Enter.
+3. Run `scripts/export-session.sh "<resolved-path>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then types `/export <resolved-path>` and sends Enter.
 4. Acknowledge on the originating channel once sent (e.g. "Exporting to docs/<slug>.txt.") — the actual "Conversation exported to: ..." confirmation appears in the pane's own transcript, not the channel, since `/export` only exists inside the interactive REPL.
 </workflow>
 

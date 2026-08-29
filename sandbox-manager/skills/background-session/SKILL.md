@@ -28,7 +28,7 @@ bash scripts/background-session.sh
 <workflow>
 1. Confirm the inbound channel message is `/background` (case-sensitive, no extra text), or another clear, explicit request to free up the terminal while current work continues — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. "Backgrounding this now.") — this still reaches the user, since the switch only fires after this turn ends.
-3. Run `scripts/background-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/background` + Enter.
+3. Run `scripts/background-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then sends `/background` + Enter.
 4. End the turn without further tool calls — anything queued after this point is discarded once the switch happens anyway.
 </workflow>
 

@@ -28,7 +28,7 @@ bash scripts/branch-session.sh
 <workflow>
 1. Confirm the inbound channel message is `/branch` (case-sensitive, no extra text), or another clear, explicit request to branch/fork the current conversation — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. "Branching this conversation now.") — this still reaches the user, since the branch only fires after this turn ends.
-3. Run `scripts/branch-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/branch` + Enter.
+3. Run `scripts/branch-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then sends `/branch` + Enter.
 4. End the turn without further tool calls — anything queued after this point is discarded once the branch happens anyway.
 </workflow>
 

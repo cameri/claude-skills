@@ -14,10 +14,10 @@ pane_id=$(pane_io_current_id)
 pane_cmd=$(pane_io_current_cmd "$pane_id")
 
 case "$pane_cmd" in
-  claude|node|bun)
+  claude|node|bun|omp)
     ;;
   *)
-    echo "Refusing to send keys: pane $pane_id is running '$pane_cmd', not Claude Code." >&2
+    echo "Refusing to send keys: pane $pane_id is running '$pane_cmd', not Claude Code or the omp harness." >&2
     exit 1
     ;;
 esac

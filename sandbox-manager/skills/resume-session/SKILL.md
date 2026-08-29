@@ -30,7 +30,7 @@ bash scripts/resume-session.sh "<session-name>"
 <workflow>
 1. Confirm the inbound channel message is `/resume <name>` and extract `<name>` — if no name is present, do not fire this skill; ask the channel which session to resume instead.
 2. Acknowledge on the originating channel (e.g. "Resuming '<name>' now.") — this still reaches the user, since the switch only fires after this turn ends.
-3. Run `scripts/resume-session.sh "<name>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then types `/resume <name>` and sends Enter.
+3. Run `scripts/resume-session.sh "<name>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then types `/resume <name>` and sends Enter.
 4. End the turn without further tool calls — anything queued after this point is discarded once the switch happens anyway.
 </workflow>
 

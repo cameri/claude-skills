@@ -38,7 +38,7 @@ bash scripts/exit-session.sh
    - Do NOT run the script. Reply on the originating channel naming what's still running, and offer `/exit` (proceed anyway — the in-flight work is discarded) and `/background` (hand it off first, then exit is safe) as tappable follow-ups.
    - End the turn. Only proceed past this step once the channel confirms proceeding anyway, or nothing is left running.
 3. Acknowledge on the originating channel (e.g. a short Telegram reply like "Exiting now — should come back up shortly.") — this still reaches the user, since the exit only fires after this turn ends.
-4. Run `scripts/exit-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/exit` + Enter (and, on herdr, also stops the herdr session — see essential_principles above).
+4. Run `scripts/exit-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then sends `/exit` + Enter (and, on herdr, also stops the herdr session — see essential_principles above).
 5. End the turn without further tool calls — anything queued after this point is discarded once the process exits anyway.
 </workflow>
 

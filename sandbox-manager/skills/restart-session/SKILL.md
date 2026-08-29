@@ -28,7 +28,7 @@ bash scripts/restart-session.sh
 <workflow>
 1. Confirm the inbound channel message is `/clear` (case-sensitive, no extra text) — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. a short Telegram reply like "Restarting now.") — this still reaches the user, since the reset only fires after this turn ends.
-3. Run `scripts/restart-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/clear` + Enter.
+3. Run `scripts/restart-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then sends `/clear` + Enter.
 4. End the turn without further tool calls — anything queued after this point is discarded by the reset anyway.
 </workflow>
 

@@ -31,7 +31,7 @@ bash scripts/compact-session.sh "keep the API design decisions"
 <workflow>
 1. Confirm the trigger is `/compact` (optionally followed by retention instructions), or an idle-detection callback answer meaning "still going" — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. a short Telegram reply like "Compacting now.") — this still reaches the user, since compaction only fires after this turn ends.
-3. Run `scripts/compact-session.sh` with no argument for a bare `/compact`, or with the retention-instructions text as a single argument. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then sends `/compact` (with the instructions appended, if given) plus Enter.
+3. Run `scripts/compact-session.sh` with no argument for a bare `/compact`, or with the retention-instructions text as a single argument. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then sends `/compact` (with the instructions appended, if given) plus Enter.
 4. End the turn without further tool calls — anything queued after this point runs after compaction completes anyway.
 </workflow>
 

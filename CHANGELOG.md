@@ -174,6 +174,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Found by `/replicator:meditate`'s inward review, cycle 2026-08-26.
 
 ### Fixed
+- `sandbox-manager` (v0.18.0): session-control scripts (restart, exit,
+  background, branch, compact, rename, resume, export, reload-plugins)
+  refused to fire on panes running the `omp` harness instead of `claude`
+  — the pane-command guard accepted only `claude|node|bun`. `omp` now
+  allowed, since it hosts the Claude Code session; refusal message
+  updated. All 9 scripts share the guard; each herdr-mode test suite now
+  also covers an `omp` pane.
 - `nats` (v0.1.3): answers Cameri's "how do we make `/reload-plugins` kill
   the old orphaned process?" — it can't, from the plugin side; the actual
   bug was that this plugin never noticed it had been disconnected.

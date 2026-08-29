@@ -27,7 +27,7 @@ bash scripts/rename-session.sh "<session-name>"
 
 <workflow>
 1. Confirm the inbound channel message is `/rename <name>` (or a clear, explicit request to name/rename this session) and extract `<name>` — the exact text after the command, trimmed.
-2. Run `scripts/rename-session.sh "<name>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code, then types `/rename <name>` and sends Enter.
+2. Run `scripts/rename-session.sh "<name>"`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or the omp harness hosting it, then types `/rename <name>` and sends Enter.
 3. Acknowledge on the originating channel (e.g. "Renamed this session to <name>.").
 </workflow>
 

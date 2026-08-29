@@ -81,6 +81,17 @@ assert_eq "(e) send-text sends pane id and composed text" \
 assert_eq "(e) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
+# --- (f) herdr mode: accepts an omp pane (the harness hosting Claude Code) ---
+setup
+export HERDR_ENV=1
+export HERDR_PANE_ID="w1:p1"
+export STUB_PANE_ARGV0="omp"
+out="$("$TARGET" "keep the API design decisions" 2>&1)"; rc=$?
+assert_eq "(f) exits zero for an omp pane, herdr mode" "0" "$rc"
+line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
+assert_eq "(f) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+teardown
+
 echo
 echo "$pass_count passed, $fail_count failed"
 [ "$fail_count" -eq 0 ]
