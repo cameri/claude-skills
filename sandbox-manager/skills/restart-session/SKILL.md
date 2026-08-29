@@ -1,6 +1,6 @@
 ---
 name: restart-session
-description: Restarts the current Claude Code session by sending /clear followed by Enter to the pane it runs in (tmux or herdr). Fires when a connected channel (e.g. Telegram) sends a message that is exactly /clear, asking to restart, reset, or clear the current session.
+description: Restarts the current Claude Code session by sending /clear (Claude Code) or /new (omp) followed by Enter to the pane it runs in (tmux or herdr). Fires when a connected channel (e.g. Telegram) sends a message that is exactly /clear, asking to restart, reset, or clear the current session.
 user-invocable: false
 allowed-tools:
   - Bash
@@ -28,10 +28,10 @@ bash scripts/restart-session.sh
 <workflow>
 1. Confirm the inbound channel message is `/clear` (case-sensitive, no extra text) — anything else is not this skill's trigger.
 2. Acknowledge on the originating channel (e.g. a short Telegram reply like "Restarting now.") — this still reaches the user, since the reset only fires after this turn ends.
-3. Run `scripts/restart-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or omp, then sends `/clear` + Enter for Claude Code panes, or `/reset` + Enter for omp panes — omp's TUI has no `/clear` command and swallows unknown `/`-commands without forwarding them to the embedded Claude Code; `/reset` is omp's in-place conversation reset (drops live messages/queued turns/pending tool calls, keeps session id, cwd, model, and on-disk transcript).
+3. Run `scripts/restart-session.sh`. It auto-discovers the current pane (tmux or herdr), refuses to fire if the pane isn't running Claude Code or omp, then sends `/clear` + Enter for Claude Code panes, or `/new` + Enter for omp panes — omp's TUI has no `/clear` or `/reset` (its slash-command set is /compact, /continue, /exit, /new, /resume, verified against the omp 18.x binary) and swallows unknown `/`-commands without error; `/new` is omp's in-place fresh-session (drops live messages/queued turns/pending tool calls, keeps session id, cwd, model, and on-disk transcript). herdr panes deliver via `herdr agent prompt` (bracketed-paste aware); tmux via `send-keys`.
 4. End the turn without further tool calls — anything queued after this point is discarded by the reset anyway.
 </workflow>
 
 <success_criteria>
-Script exits 0 and prints `Sent /clear to pane <id>` (or `Sent /reset to pane <id>` for omp panes). If it exits non-zero (not in tmux or herdr, or pane running something unexpected), report the error on the channel instead of retrying with a modified command.
+Script exits 0 and prints `Sent /clear to pane <id>` (or `Sent /new to pane <id>` for omp panes). If it exits non-zero (not in tmux or herdr, or pane running something unexpected), report the error on the channel instead of retrying with a modified command.
 </success_criteria>

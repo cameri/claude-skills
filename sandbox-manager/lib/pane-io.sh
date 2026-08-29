@@ -48,20 +48,18 @@ pane_io_current_cmd() {
       ;;
   esac
 }
-
 pane_io_send() {
   local pane_id="$1" text="$2"
   case "$(pane_io_active)" in
     herdr)
-      # `herdr pane run` claims to send text + Enter atomically, but doesn't
-      # actually submit reliably against Claude Code's TUI (confirmed live
-      # 2026-08-24: a queued /clear sat unsubmitted in the input box with
-      # its slash-command autocomplete still open) - herdr's own skill guide
-      # notes only `agent prompt`, not `pane run`, accounts for the pane's
-      # bracketed-paste mode when encoding Enter. Send text and Enter as two
-      # separate calls instead, mirroring the tmux branch below.
-      herdr pane send-text "$pane_id" "$text"
-      herdr pane send-keys "$pane_id" enter
+      # `herdr agent prompt` is the only submission path herdr documents as
+      # honoring the pane's live bracketed-paste mode: it sends the text
+      # followed by an encoded Enter after a short delay. Raw
+      # send-text/send-keys can leave a slash command sitting unsubmitted in
+      # the TUI's input box with autocomplete still open (observed live with
+      # omp 18.x: a /reset never fired and produced no error), so route
+      # agent-pane input through agent prompt.
+      herdr agent prompt "$pane_id" "$text"
       ;;
     tmux)
       # -l sends the text literally so it can't be misread as tmux key names.

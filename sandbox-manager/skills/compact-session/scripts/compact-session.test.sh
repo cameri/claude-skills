@@ -75,10 +75,9 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" "keep the API design decisions" 2>&1)"; rc=$?
 assert_eq "(e) exits zero for a claude pane with an arg, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(e) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
-assert_eq "(e) send-text sends pane id and composed text" \
+assert_eq "(e) exactly one herdr call logged (agent prompt)" "1" "$line_count"
+assert_eq "(e) agent prompt sends pane id and composed text" \
   "w1:p1${us}/compact keep the API design decisions${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
-assert_eq "(e) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 # --- (f) herdr mode: accepts an omp pane (the harness hosting Claude Code) ---
@@ -89,7 +88,7 @@ export STUB_PANE_ARGV0="omp"
 out="$("$TARGET" "keep the API design decisions" 2>&1)"; rc=$?
 assert_eq "(f) exits zero for an omp pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(f) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(f) exactly one herdr call logged (agent prompt)" "1" "$line_count"
 teardown
 
 echo

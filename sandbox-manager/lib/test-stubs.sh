@@ -82,6 +82,15 @@ JSON
       *) echo "stub herdr: unhandled pane subcommand: $*" >&2; exit 1 ;;
     esac
     ;;
+  agent)
+    case "$2" in
+      prompt)
+        shift 2
+        { printf '%s\x1f' "$@"; printf '\n'; } >> "$HERDR_STUB_LOG"
+        ;;
+      *) echo "stub herdr: unhandled agent subcommand: $*" >&2; exit 1 ;;
+    esac
+    ;;
   session)
     case "$2" in
       stop)

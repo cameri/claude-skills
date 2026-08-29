@@ -54,9 +54,8 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(d) exits zero for a claude pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(d) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
-assert_eq "(d) send-text sends pane id and /exit" "w1:p1${us}/exit${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
-assert_eq "(d) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
+assert_eq "(d) exactly one herdr call logged (agent prompt)" "1" "$line_count"
+assert_eq "(d) agent prompt sends pane id and /exit" "w1:p1${us}/exit${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
 teardown
 
 # --- (e) herdr mode: also calls session stop after sending /exit ---
@@ -67,8 +66,7 @@ export HERDR_SESSION="probe"
 export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(e) exits zero for a claude pane, herdr mode" "0" "$rc"
-assert_eq "(e) sent /exit via send-text" "w1:p1${us}/exit${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
-assert_eq "(e) sent enter via send-keys" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
+assert_eq "(e) sent /exit via agent prompt" "w1:p1${us}/exit${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
 assert_eq "(e) called session stop with the session name" "probe" "$(cat "$HERDR_SESSION_STOP_LOG")"
 teardown
 
@@ -81,7 +79,7 @@ export STUB_PANE_ARGV0="omp"
 out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(f) exits zero for an omp pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(f) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(f) exactly one herdr call logged (agent prompt)" "1" "$line_count"
 teardown
 
 echo

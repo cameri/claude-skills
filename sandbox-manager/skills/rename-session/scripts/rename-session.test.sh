@@ -41,10 +41,9 @@ export STUB_PANE_ARGV0="claude"
 out="$("$TARGET" "my-session" 2>&1)"; rc=$?
 assert_eq "(d) exits zero for a claude pane with an arg, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(d) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
-assert_eq "(d) send-text sends pane id and /rename with the name" \
+assert_eq "(d) exactly one herdr call logged (agent prompt)" "1" "$line_count"
+assert_eq "(d) agent prompt sends pane id and /rename with the name" \
   "w1:p1${us}/rename my-session${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
-assert_eq "(d) send-keys sends pane id and enter" "w1:p1${us}enter${us}" "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 # --- (e) herdr mode: accepts an omp pane (the harness hosting Claude Code) ---
@@ -55,7 +54,7 @@ export STUB_PANE_ARGV0="omp"
 out="$("$TARGET" "my-session" 2>&1)"; rc=$?
 assert_eq "(e) exits zero for an omp pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "(e) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(e) exactly one herdr call logged (agent prompt)" "1" "$line_count"
 teardown
 
 echo
