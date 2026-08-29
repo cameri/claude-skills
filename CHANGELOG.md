@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `container-management` (v0.4.0): new reference `references/ipv6-networking.md` — IPv6
+  networking for containers on Linux: host uplink prerequisites (global address, default
+  route, RA/SLAAC and the `accept_ra=0` route-expiry flap), Docker `enable_ipv6`
+  user-defined networks with ULA allocation and NAT66 (Engine v27+), live attach vs
+  compose persistence, verification from inside the container, and gotchas (proxied DNS
+  breaking non-HTTP ports, read-only `known_hosts` mounts, ephemeral writable-layer
+  state, `iputils-ping` + `CAP_NET_RAW`). Wired into `add-service.md` and
+  `check-health.md` required reading.
 - `sandbox-manager` (v0.18.3): new OMP extension
   `extensions/session-start-notify.ts`, declared via a new `package.json`
   `pi` manifest (`extensions: ["extensions/"]`). OMP never runs Claude Code

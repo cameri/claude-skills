@@ -4,6 +4,7 @@
 **Read these reference files NOW before proceeding:**
 1. references/environment.md
 2. references/container-types.md
+3. references/ipv6-networking.md — if the service needs IPv6 connectivity
 </required_reading>
 
 <process>

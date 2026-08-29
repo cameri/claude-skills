@@ -3,6 +3,7 @@
 <required_reading>
 **Read these reference files NOW before proceeding:**
 1. references/environment.md
+2. references/ipv6-networking.md — when diagnosing IPv6 connectivity or timeouts
 </required_reading>
 
 <process>

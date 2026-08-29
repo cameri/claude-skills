@@ -63,6 +63,7 @@ What would you like to do?
 **Container types and how to handle them:** references/container-types.md
 **Update strategies and sha256 pinning:** references/update-strategies.md
 **Log format and entry structure:** references/log-format.md
+**IPv6 networking for containers (host uplink, docker networks, NAT66, gotchas):** references/ipv6-networking.md
 **Infrastructure specifics (networks, deps, Watchtower, Gatus):** references/environment.md
 </reference_index>
 
