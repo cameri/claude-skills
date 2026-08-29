@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `telegram-ng` (v0.12.3), `cronjobs` (v0.1.3), `webhooks` (v0.2.1): new
+  `extensions/omp-channel.ts` wake bridge, declared via `pi.extensions`.
+  Claude Code natively turns `notifications/claude/channel` into
+  `<channel>` user turns; omp (Oh My Pi) does not — its MCP manager only
+  fans server notifications out to `mcp_notification` extension events.
+  The bridge re-wraps each plugin's channel notifications in the same
+  `<channel source="...">` marker shape, then wakes the session with a bare
+  `pi.sendUserMessage(wrapped)` — omp only starts a turn for the no-options
+  form (prompt when idle, steer while streaming); an explicit
+  `deliverAs: "followUp"` merely queues and never wakes an idle session.
+  Each bridge accepts its own MCP server name or `meta.source`, escapes
+  attribute values, and breaks forged `</channel>` close tags in
+  sender-controlled content. Claude Code behavior is unchanged.
+- `cronjobs` (v0.1.3): `isSameServerAlive` now treats a zombie (state `Z`)
+  as not alive — `process.kill(pid, 0)` still succeeds for an unreaped
+  zombie, so a stale pid file could otherwise block the server forever in a
+  container whose init never reaps.
 - `brain` (new plugin, v0.1.2): workspace-wide knowledge graph backed by
   LatticeDB. `learn_from` syncs graphify's `graphify-out/graph.json` output
   into the graph (creates/updates/deletes nodes and edges to match);

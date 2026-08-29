@@ -1,0 +1,440 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cameri-skills",
+  "description": "Monorepo of Claude Code plugins by Ricardo Arturo Cabral Mejía.",
+  "owner": {
+    "name": "Ricardo Arturo Cabral Mejía",
+    "email": "cameri@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "wallabag",
+      "description": "Save, search, and manage read-it-later articles via your Wallabag instance.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./wallabag"
+    },
+    {
+      "name": "actual-budget",
+      "description": "Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./actual-budget"
+    },
+    {
+      "name": "technitium-dns",
+      "description": "Manage Technitium DNS Server instances — configure, query stats, manage zones and records, and control DNS blocking with per-domain allow/block overrides and block list URLs.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./technitium-dns"
+    },
+    {
+      "name": "nats",
+      "description": "Connect Claude Code agents over NATS — message, ping, and discover other agents point-to-point.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./nats"
+    },
+    {
+      "name": "paperless",
+      "description": "Upload documents to and search a Paperless-ngx instance via its REST API.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./paperless"
+    },
+    {
+      "name": "cronjobs",
+      "description": "Schedule jobs using natural language — 'every 3 minutes', 'every weekday at 9am', 'once in 5 minutes'. Fires channel notifications when jobs are due.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./cronjobs"
+    },
+    {
+      "name": "elevenlabs",
+      "description": "Generate speech, transcribe audio, create music and sound effects, and build voice agents using the ElevenLabs API.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./elevenlabs"
+    },
+    {
+      "name": "telegram",
+      "description": "Telegram channel for Claude Code — messaging bridge with built-in access control, pairing, and full Bot API coverage including voice note transcription.",
+      "tools": [
+        "claude"
+      ],
+      "category": "communication",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./telegram"
+    },
+    {
+      "name": "telegram-ng",
+      "description": "Telegram channel for Claude Code — messaging bridge with built-in access control. Fork of Anthropic's official telegram plugin for local development.",
+      "tools": [
+        "claude"
+      ],
+      "category": "communication",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./telegram-ng"
+    },
+    {
+      "name": "nostr",
+      "description": "Nostr channel for Claude Code — decentralized messaging over Nostr relays with DM pairing, allowlists, relay pool management, and NIP-04 encrypted DMs.",
+      "tools": [
+        "claude"
+      ],
+      "category": "communication",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./nostr"
+    },
+    {
+      "name": "jj",
+      "description": "Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for the everyday operations git users reach for out of habit (commit, split, squash, cleanup, checkout, rebase).",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./jj"
+    },
+    {
+      "name": "webhooks",
+      "description": "Receive webhook events from external systems (GitHub, Stripe, CI/CD, etc.) as channel notifications. Express listener with BullMQ processing, HMAC-SHA256 verification, IP allowlisting, and endpoint management.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./webhooks"
+    },
+    {
+      "name": "autoresearch",
+      "description": "Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./autoresearch"
+    },
+    {
+      "name": "container-management",
+      "description": "Maintain Docker Compose services and custom images — update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./container-management"
+    },
+    {
+      "name": "netshoot",
+      "description": "Network troubleshooting inside Docker container networks using nicolaka/netshoot.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./netshoot"
+    },
+    {
+      "name": "home-assistant",
+      "description": "Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./home-assistant"
+    },
+    {
+      "name": "github-manager",
+      "description": "Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts across managed repos.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./github-manager"
+    },
+    {
+      "name": "finance-manager",
+      "description": "Reconcile bank statements from paperless-ngx against ActualBudget — syncs accounts, matches transactions, and self-improves reconciliation rules.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./finance-manager"
+    },
+    {
+      "name": "sandbox-manager",
+      "description": "Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./sandbox-manager"
+    },
+    {
+      "name": "journal",
+      "description": "Keeps a series of narrative journals about what the user has been doing, written from Claude's own perspective by reading session history across every project on this machine plus the memory system.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./journal"
+    },
+    {
+      "name": "knowledge-wiki",
+      "description": "Maintains a self-updating, cross-linked markdown knowledge base — ingests durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./knowledge-wiki"
+    },
+    {
+      "name": "executable-skepticism",
+      "description": "A verification protocol for evaluating theories, papers, models, or any confident quantitative claim by routing the verdict through executable, falsifiable tests instead of prose.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./executable-skepticism"
+    },
+    {
+      "name": "doubt-driven-development",
+      "description": "Adversarial fresh-context review of non-trivial in-flight decisions — CLAIM, EXTRACT, DOUBT, RECONCILE, STOP — with optional user-authorized cross-model escalation.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./doubt-driven-development"
+    },
+    {
+      "name": "simple-english",
+      "description": "Write or rewrite technical text with the rules of ASD-STE100 Simplified Technical English so it is clear, unambiguous, and free of AI slop.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./simple-english"
+    },
+    {
+      "name": "replicator",
+      "description": "Grows and prunes this instance's own skill set via a nightly capture→meditate cycle with strict scrutiny and injection defense.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./replicator"
+    },
+    {
+      "name": "lightning",
+      "description": "Bitcoin Lightning payment tools (parse/pay invoices, balances, transactions) via the official Alby MCP server over Nostr Wallet Connect.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./lightning"
+    },
+    {
+      "name": "repo-hygiene-sweep",
+      "description": "Sweep every standalone repo in a multi-repo workspace for uncommitted or unpushed work, without missing the ones a plain `git status`/`jj status` from the workspace root can't see.",
+      "tools": [
+        "claude"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./repo-hygiene-sweep"
+    },
+    {
+      "name": "audiobookshelf",
+      "description": "Interact with a self-hosted Audiobookshelf instance via its REST API — list libraries, browse and search library items, and check listening progress.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./audiobookshelf"
+    },
+    {
+      "name": "agent-resources",
+      "description": "Build and audit Claude Code skills, hooks, MCP servers, and subagents — the toolkit for extending Claude Code itself.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./agent-resources"
+    },
+    {
+      "name": "consider",
+      "description": "Apply a proven decision-making or thinking-model framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./consider"
+    },
+    {
+      "name": "research-tools",
+      "description": "Deliberately-invoked research skills — competitive analysis, deep-dive investigation, feasibility checks, landscape mapping, options comparison, and technical implementation research.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./research-tools"
+    },
+    {
+      "name": "brain",
+      "description": "Workspace-wide knowledge graph backed by LatticeDB — syncs a graph-json snapshot in (defaulting to graphify's output), answers questions via Cypher, writes/links individual facts, soft- or permanently forgets a node/edge, and reports staleness/cost-to-re-study for any previously-learned path.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./brain"
+    }
+  ]
+}

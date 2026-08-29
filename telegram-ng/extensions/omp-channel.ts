@@ -1,0 +1,71 @@
+/**
+ * omp (Oh My Pi) wake bridge for the telegram channel.
+ *
+ * Claude Code natively converts `notifications/claude/channel` MCP
+ * notifications into `<channel source="...">` user turns. omp does not: its
+ * MCP manager fans server notifications out to extensions via the
+ * `mcp_notification` event and never synthesizes a wake. This extension
+ * closes that gap — it re-wraps this plugin's channel notifications in the
+ * same marker shape Claude Code uses, so the session's channel rules and
+ * prompt-injection guard apply identically in both hosts.
+ *
+ * Wakes are content-bearing (the message text is the prompt), matching the
+ * Claude path and @agent-ops/pi-nats-channel. The wake uses a bare
+ * `pi.sendUserMessage(wrapped)` call: omp only starts a turn for the
+ * no-options form (prompt() when idle, steer while streaming) — an explicit
+ * `deliverAs: "followUp"` merely queues the message and never wakes an idle
+ * session.
+ *
+ */
+
+import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
+
+/** MCP server name as declared in this plugin's .mcp.json. */
+const SERVER_NAME = "telegram";
+/** Channel source value when the plugin does not declare one in meta. */
+const SOURCE_NAME = "telegram";
+
+interface ChannelParams {
+  content?: unknown;
+  meta?: Record<string, unknown>;
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+export default function ompChannelBridge(pi: ExtensionAPI): void {
+  pi.on("mcp_notification", (event) => {
+    if (event.method !== "notifications/claude/channel") return;
+    const params = event.params as ChannelParams | undefined;
+    if (typeof params?.content !== "string") return;
+
+    const meta = params.meta ?? {};
+    const metaSource = typeof meta.source === "string" ? meta.source : undefined;
+    // The MCP server can be renamed in a custom .mcp.json; accept the server
+    // name or the source this plugin declares in its own meta.
+    if (event.server !== SERVER_NAME && metaSource !== SOURCE_NAME) return;
+
+    const attrs = [`source="${escapeAttribute(metaSource ?? SOURCE_NAME)}"`];
+    for (const [key, value] of Object.entries(meta)) {
+      if (key === "source" || typeof value !== "string") continue;
+      attrs.push(`${escapeAttribute(key)}="${escapeAttribute(value)}"`);
+    }
+
+    // Break any forged close tag in sender-controlled text so a channel
+    // message cannot inject synthetic attributes on the wake.
+    const safeContent = params.content.replaceAll("</channel", "<\\/channel");
+    const wrapped = `<channel ${attrs.join(" ")}>\n${safeContent}\n</channel>`;
+    pi
+      .sendUserMessage(wrapped)
+      .catch((error: unknown) => {
+        process.stderr.write(
+          `omp channel bridge: wake failed: ${error instanceof Error ? error.message : String(error)}\n`,
+        );
+      });
+  });
+}

@@ -40,12 +40,28 @@ function processStartTime(pid: number): string | null {
   }
 }
 
+function processState(pid: number): string | null {
+  try {
+    const stat = readFileSync(`/proc/${pid}/stat`, "utf-8");
+    // State is the third field, after comm — comm can contain spaces/parens,
+    // so locate it after the final ")" like processStartTime does.
+    return stat.slice(stat.lastIndexOf(")") + 2).split(" ")[0] ?? null;
+  } catch {
+    return null; // /proc unavailable (non-Linux)
+  }
+}
+
 function isSameServerAlive(pid: number, recordedStartTime: string): boolean {
   try {
     process.kill(pid, 0);
   } catch {
     return false;
   }
+  // A zombie (state Z) is dead — kill(pid, 0) still succeeds for it because
+  // the entry lingers until the parent reaps it. Treat it as not alive so a
+  // stale pid file can't block the server in a container whose init never
+  // reaps (the pid's starttime would otherwise match forever).
+  if (processState(pid) === "Z") return false;
   const currentStartTime = processStartTime(pid);
   return currentStartTime === null ? true : currentStartTime === recordedStartTime;
 }
