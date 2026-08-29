@@ -1310,6 +1310,7 @@ bot.on('poll_answer', async ctx => {
     params: {
       content,
       meta: {
+        source: 'telegram',
         chat_id: poll.chatId,
         user: answer.user.username ?? String(answer.user.id),
         user_id: String(answer.user.id),
@@ -1335,6 +1336,7 @@ bot.on('message_reaction', async ctx => {
     params: {
       content,
       meta: {
+        source: 'telegram',
         chat_id: String(reaction.chat.id),
         message_id: String(reaction.message_id),
         user: from.username ?? String(from.id),
@@ -1576,6 +1578,7 @@ async function handleInbound(
     params: {
       content: text,
       meta: {
+        source: 'telegram',
         chat_id,
         ...(msgId != null ? { message_id: String(msgId) } : {}),
         user: from.username ?? String(from.id),
