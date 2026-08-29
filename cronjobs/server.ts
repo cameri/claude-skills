@@ -270,6 +270,21 @@ function fireNotification(job: Job): void {
   });
 }
 
+// nextRun is display-only metadata — croner computes the actual schedule
+// internally and never updates the persisted value, so a nextRun written at
+// add-time goes stale after the first fire. Compute it fresh on demand.
+function computeNextRun(job: Job): string | null {
+  if (job.type === "once") return job.expression;
+  try {
+    const probe = new Cron(job.expression, { paused: true, timezone: TIMEZONE });
+    const next = probe.nextRun();
+    probe.stop();
+    return next ? next.toISOString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function startJob(job: Job): void {
   stopJob(job.id);
 
@@ -407,7 +422,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     }
 
     case "list-jobs": {
-      const jobs = loadJobs();
+      const jobs = loadJobs().map(j => ({ ...j, nextRun: computeNextRun(j) ?? undefined }));
       if (jobs.length === 0) {
         return { content: [{ type: "text", text: "No active jobs." }] };
       }

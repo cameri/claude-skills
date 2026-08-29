@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `cronjobs` (v0.1.4): `list-jobs` reported a stale `nextRun` frozen at
+  add-time — croner computes the actual schedule internally and the
+  persisted value was never refreshed, so every job showed its original
+  creation-time next run (e.g. jobs created in July showed July dates).
+  `list-jobs` now computes `nextRun` fresh on demand from each job's
+  expression (same croner probe `add-job` uses); the persisted field is
+  display-only metadata and scheduling was never affected.
 - `telegram-ng` (v0.12.3), `cronjobs` (v0.1.3), `webhooks` (v0.2.1): new
   `extensions/omp-channel.ts` wake bridge, declared via `pi.extensions`.
   Claude Code natively turns `notifications/claude/channel` into
