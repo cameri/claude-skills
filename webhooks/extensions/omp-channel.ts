@@ -60,12 +60,12 @@ export default function ompChannelBridge(pi: ExtensionAPI): void {
     // message cannot inject synthetic attributes on the wake.
     const safeContent = params.content.replaceAll("</channel", "<\\/channel");
     const wrapped = `<channel ${attrs.join(" ")}>\n${safeContent}\n</channel>`;
-    pi
-      .sendUserMessage(wrapped)
-      .catch((error: unknown) => {
-        process.stderr.write(
-          `omp channel bridge: wake failed: ${error instanceof Error ? error.message : String(error)}\n`,
-        );
-      });
+    try {
+      pi.sendUserMessage(wrapped);
+    } catch (error: unknown) {
+      process.stderr.write(
+        `omp channel bridge: wake failed: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
+    }
   });
 }
