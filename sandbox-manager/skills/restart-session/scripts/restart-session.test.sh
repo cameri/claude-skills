@@ -59,6 +59,8 @@ out="$("$TARGET" 2>&1)"; rc=$?
 assert_eq "(e) exits zero for an omp pane, herdr mode" "0" "$rc"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
 assert_eq "(e) exactly two herdr calls logged (send-text, send-keys)" "2" "$line_count"
+assert_eq "(e) omp pane gets /reset, not /clear" "w1:p1${us}/reset${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
+assert_eq "(e) reports the sent command" "Sent /reset to pane w1:p1" "$out"
 teardown
 
 echo

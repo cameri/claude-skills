@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` (v0.18.1): `restart-session` now sends `/reset` (not
+  `/clear`) to omp panes. omp's TUI has no `/clear` command and swallows
+  unknown `/`-commands without forwarding them to the embedded Claude
+  Code, so the v0.18.0 omp-pane acceptance sent a `/clear` that omp
+  ignored — the session never restarted. `/reset` is omp's in-place
+  conversation reset (drops live messages/queued turns/pending tool
+  calls, keeps session id, cwd, model, and on-disk transcript); Claude
+  Code panes still get `/clear`.
 - `replicator`, `finance-manager`, `agent-resources`: removed the
   `model:` frontmatter line from the `quarantine`, `financial-planner`,
   `skill-auditor`, and `subagent-auditor` agent definitions. Under Claude
