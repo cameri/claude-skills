@@ -585,16 +585,16 @@ async function checkIdle(): Promise<void> {
   const access = loadAccess()
   if (access.allowFrom.length === 0) return
 
-  // Target only the chat_id that sent the most recent inbound message —
-  // not every allowlisted contact. Falls back to broadcasting to the full
-  // allowlist only if the hook couldn't determine who was actually talking
-  // (e.g. the last activity wasn't Telegram-sourced at all), so a genuinely
-  // ambiguous case still gets a prompt somewhere rather than silently
-  // dropping it.
+  // Target only the chat_id that sent the most recent inbound message. When
+  // there is no record of who was actually talking (or the recorded chat is
+  // no longer allowlisted), send to NOBODY — never broadcast to the whole
+  // allowlist (Cameri, 2026-08-30: an ambiguous case must not ping
+  // everyone).
   const targets =
     state.last_chat_id && access.allowFrom.includes(state.last_chat_id)
       ? [state.last_chat_id]
-      : access.allowFrom
+      : []
+  if (targets.length === 0) return
 
   idlePromptPending = true
   idleAlreadyPromptedAtMs = nowMs

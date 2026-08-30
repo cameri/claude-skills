@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `telegram-ng` (v0.12.7): idle sentinel targeting — when the idle state
+  has no record of who sent the last message (or the recorded chat is no
+  longer allowlisted), the "Still going, or done for now?" prompt is sent
+  to NOBODY instead of broadcasting to the full allowlist.
 - `telegram-ng` (v0.12.6): idle sentinel opt-out — setting
   TELEGRAM_NG_IDLE_SENTINEL_DISABLED=true in the channel .env never starts
   the "Still going, or done for now?" timer, for deployments that should
