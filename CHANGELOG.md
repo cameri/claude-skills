@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` (v0.18.6): new `usage-state-writer` extension — keeps
+  ~/.claude/session-status-cache.json fresh under omp for the telegram-ng
+  /usage bot command (Claude Code's statusline hook never runs under omp,
+  so /usage saw a stale or missing file). Writes context_window from
+  ctx.getContextUsage() and rate_limits mapped from the active provider's
+  usage report ("5h" → five_hour, "7d" → seven_day, same bucket shape as
+  the claude statusline) at session_start and after every turn; rate-limit
+  refreshes are gated to once per 5 minutes and failures keep the previous
+  buckets.
+- `telegram-ng` (v0.12.8): /usage "no data cached" fallback message now
+  names both cache writers (statusline hook on Claude Code, sandbox-manager
+  usage-state extension on omp) instead of only the statusline hook.
 - `telegram-ng` (v0.12.7): idle sentinel targeting — when the idle state
   has no record of who sent the last message (or the recorded chat is no
   longer allowlisted), the "Still going, or done for now?" prompt is sent

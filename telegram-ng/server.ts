@@ -36,9 +36,10 @@ const execFileAsync = promisify(execFile)
 
 const STATE_DIR = process.env.TELEGRAM_STATE_DIR ?? join(homedir(), '.claude', 'channels', 'telegram')
 const ACCESS_FILE = join(STATE_DIR, 'access.json')
-// Same file statusline-wrapper.py writes on every statusline render and
-// usage-alert.py's Stop hook polls for threshold pushes — /usage just reads
-// it on demand instead of waiting for a band crossing.
+// Same file statusline-wrapper.py writes on every statusline render,
+// usage-alert.py's Stop hook polls for threshold pushes, and omp's
+// sandbox-manager usage-state extension writes after every turn — /usage
+// just reads it on demand instead of waiting for a band crossing.
 const USAGE_CACHE_FILE = join(homedir(), '.claude', 'session-status-cache.json')
 const APPROVED_DIR = join(STATE_DIR, 'approved')
 const ENV_FILE = join(STATE_DIR, '.env')

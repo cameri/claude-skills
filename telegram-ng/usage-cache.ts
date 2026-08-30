@@ -2,10 +2,11 @@
  * /usage command support — pure formatting, no side effects.
  *
  * Reads the same cache file statusline-wrapper.py writes on every statusline
- * render (~/.claude/session-status-cache.json) and usage-alert.py's Stop
- * hook polls for threshold-crossing pushes. This is the on-demand pull
- * counterpart: no band/threshold state, just "what does the cache say right
- * now" — server.ts wires this to the /usage bot command.
+ * render and usage-alert.py's Stop hook polls for threshold-crossing pushes
+ * (~/.claude/session-status-cache.json; under omp, sandbox-manager's
+ * usage-state extension writes it after every turn). This is the on-demand
+ * pull counterpart: no band/threshold state, just "what does the cache say
+ * right now" — server.ts wires this to the /usage bot command.
  */
 
 export type UsageCache = {
@@ -57,7 +58,7 @@ export function formatUsageMessage(
   maxCacheAgeSeconds: number = DEFAULT_MAX_CACHE_AGE_SECONDS,
 ): string {
   if (!cache) {
-    return "No usage data cached yet — the statusline hook needs to render at least once this session."
+    return "No usage data cached yet — run a turn first so the cache writer fills it in (statusline hook on Claude Code, usage-state extension on omp)."
   }
 
   const lines: string[] = ['\u{1F4CA} Usage']
