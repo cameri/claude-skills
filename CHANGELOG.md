@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `telegram-ng` (v0.12.4): new direct-bot-api skill — raw Bot API fallback (sendMessage/editMessageText/sendDocument via curl) for when the telegram-ng MCP server is disconnected mid-turn; confirmed-gone gate before fallback, token never logged, degraded-mode caveats documented.
 - `container-management` (v0.4.1): portability pass — new plugin CLAUDE.md is the
   single home for environment-specific values (containers root, Docker networks,
   Dozzle group membership, Watchtower-excluded and custom-image services); SKILL.md
