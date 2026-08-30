@@ -6,14 +6,13 @@ user-invocable: true
 
 <objective>
 Applies one of seven proven thinking-model frameworks to a real decision, tradeoff, or plan, chosen by fit rather than by the user having to name one.
-</objective>
+<quick_start>
+Pick a framework by fit: risky/irreversible plan → inversion; approach inherited from precedent → first-principles; wide blast radius → second-order effects; large/ambiguous scope → Pareto; growing complexity → via negativa; mutually exclusive options → opportunity cost; backlog → Eisenhower matrix. Apply it directly and end with a recommendation.
+</quick_start>
 
 <when_to_use>
-Reach for this when a choice has genuine stakes: a plan that's hard to reverse,
-a task that's ambiguously scoped, a backlog that needs real prioritization, or
-a change whose downstream effects aren't obvious yet. Do not reach for this on
-routine, low-stakes, or already-decided matters — applying a framework to a
-trivial choice is noise, not rigor.
+Do not reach for this on routine, low-stakes, or already-decided matters —
+applying a framework to a trivial choice is noise, not rigor.
 </when_to_use>
 
 <framework_selection>

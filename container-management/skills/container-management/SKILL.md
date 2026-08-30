@@ -9,11 +9,11 @@ Always update ONE container per invocation. If no target is specified, pick the 
 </one_at_a_time>
 
 <containers_root>
-All services live under `/workspace/containers/`. Each service has its own directory with a `compose.yml`. Some also have a `Containerfile` or `Dockerfile` for custom images.
+All services live under `$CONTAINERS_ROOT` — resolve it from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) at invocation; never hardcode the path. Each service has its own directory with a `compose.yml`. Some also have a `Containerfile` or `Dockerfile` for custom images.
 </containers_root>
 
 <update_log>
-The update log lives at `/workspace/containers/UPDATE-LOG.md`. Every update attempt — successful or reverted — gets a log entry. This is the source of truth for "oldest updated."
+The update log lives at `$CONTAINERS_ROOT/UPDATE-LOG.md`. Every update attempt — successful or reverted — gets a log entry. This is the source of truth for "oldest updated."
 </update_log>
 
 <safety_first>
@@ -27,7 +27,7 @@ This ensures reproducibility even if the tag is moved.
 </sha256_pinning>
 
 <version_control>
-Use `jj` (not git) for all version control operations. See `/workspace/CLAUDE.md` for jj commands.
+Use `jj` (not git) for all version control operations. See the workspace's `CLAUDE.md` for jj commands.
 </version_control>
 </essential_principles>
 

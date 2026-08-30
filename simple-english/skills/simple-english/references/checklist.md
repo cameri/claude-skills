@@ -1,9 +1,8 @@
-# Verification checklist
-
+<objective>
 Run this pass on every draft before you deliver it. The checks are ordered from mechanical to judgment.
+</objective>
 
-## Mechanical checks (searchable)
-
+<mechanical_checks>
 Search the draft for each pattern. Every hit outside code blocks and quoted text is a violation.
 
 | Search for | Violation | Fix |
@@ -18,17 +17,17 @@ Search the draft for each pattern. Every hit outside code blocks and quoted text
 | `e.g.`, `i.e.`, `etc.` | Latin abbreviation (GR-6) | "for example", "that is", name the items. |
 | `simply`, `easily`, `seamlessly`, `robust` | Filler (no fact) | Delete. |
 | ` if `, ` when ` (mid-sentence) | Trailing condition (Rule 5.4) | Move the condition to the start of the sentence, add a comma. |
+</mechanical_checks>
 
-## Countable checks
-
+<countable_checks>
 1. **Sentence length.** Count words in each sentence. Procedural limit: 20. Descriptive limit: 25. Notes: 25.
    Backticked commands, numbers with units, and identifiers count as one word each (Rule 8.6).
 2. **Paragraph size.** Maximum six sentences per paragraph (Rule 6.6).
 3. **Multi-word nouns.** Any noun chain over three words → break it with prepositions (Rule 2.1).
 4. **Instructions per sentence.** One, unless the actions are simultaneous (Rule 5.2).
+</countable_checks>
 
-## Judgment checks
-
+<judgment_checks>
 5. **Classification.** Is each passage cleanly procedural or descriptive? Procedures in imperative, descriptions never in imperative.
 6. **Voice.** Any passive sentence: is the agent truly unknown, and is the passage descriptive? Otherwise make it active (Rule 3.6).
 7. **Condition placement.** Every "if/when" stands before its command, with a comma (Rule 5.4).
@@ -36,8 +35,9 @@ Search the draft for each pattern. Every hit outside code blocks and quoted text
 9. **Warnings.** Command or condition first, risk second (Rules 7.2, 7.3).
 10. **Completeness.** Articles present, "that" present after "make sure", no telegraph style (Rule 4.2).
 11. **Untouchables intact.** Code, identifiers, quoted errors, and proper nouns are unchanged.
+</judgment_checks>
 
-## When reporting violations (check mode)
-
-For each violation give: the rule number, the offending text, and a compliant rewrite. Cite only rule numbers that appear in rules.md.
+<check_mode_reporting>
+For each violation give: the rule number, the offending text, and a compliant rewrite. Cite only rule numbers that appear in SKILL.md.
 End the report with this statement when the user asked for STE compliance: "No tool can guarantee ASD-STE100 compliance. Final approval rests with the writer. The official standard is a free download at asd-ste100.org."
+</check_mode_reporting>

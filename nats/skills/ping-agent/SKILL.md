@@ -9,7 +9,7 @@ Sends a direct liveness check to one known agent using the `ping` MCP tool and r
 </objective>
 
 <quick_start>
-Arguments format: `<agent-id> [timeout_ms]`
+Arguments format: `<agent-id> [timeout=<ms>]`
 
 Examples:
 - `claude-abc12345`

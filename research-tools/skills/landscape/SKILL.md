@@ -1,6 +1,6 @@
 ---
 name: landscape
-description: Map the full space around a domain — categories, established and emerging players, tools, trends, and gaps. Use only when the user explicitly asks to map a landscape or space — do not initiate this on your own, it is a deliberate, potentially token-heavy investigation.
+description: Map the full space around a domain — categories, established and emerging players, tools, trends, and gaps. Use only when the user explicitly asks to map a landscape or space — the agent must not initiate this unprompted, it is a deliberate, potentially token-heavy investigation.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -14,6 +14,8 @@ Maps the landscape of $ARGUMENTS (or the current topic if none given) — who
 the players are, what tools exist, where things are heading, and where the
 white space is.
 </objective>
+
+<quick_start>Confirm the domain and scope breadth from $ARGUMENTS (ask if unclear), then seed research with WebSearch queries per category before mapping players, tools, and trends.</quick_start>
 
 <workflow>
 1. If no clear domain/space is given in $ARGUMENTS or recent context, ask
@@ -29,6 +31,8 @@ white space is.
 6. Identify genuine gaps/white space — underserved segments, not just
    missing features — and size the opportunity where possible.
 7. Close with what this map implies for the reader's own strategy or project.
+8. If authoritative sources are unavailable or disagree, state it plainly
+   and mark confidence instead of padding with weak sources.
 </workflow>
 
 <success_criteria>

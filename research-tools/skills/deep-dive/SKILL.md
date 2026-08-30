@@ -1,6 +1,6 @@
 ---
 name: deep-dive
-description: Conduct a comprehensive, multi-source investigation of a topic — how it works, why it exists, best practices, limitations, and current trends. Use only when the user explicitly asks for a deep dive or thorough investigation into a topic — do not initiate this on your own, it is a deliberate, potentially token-heavy investigation.
+description: Conduct a comprehensive, multi-source investigation of a topic — how it works, why it exists, best practices, limitations, and current trends. Use only when the user explicitly asks for a deep dive or thorough investigation into a topic — the agent must not initiate this unprompted, it is a deliberate, potentially token-heavy investigation.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -15,6 +15,8 @@ none given) — going beyond surface-level understanding by synthesizing
 multiple sources into comprehensive, sourced knowledge.
 </objective>
 
+<quick_start>Confirm the topic and the questions it must answer from $ARGUMENTS (ask if unclear), then gather 3+ independent sources across the mechanics/history/usage/limitations angles before synthesizing.</quick_start>
+
 <workflow>
 1. If no clear topic is given in $ARGUMENTS or recent context, ask what to
    investigate and what questions it needs to answer, rather than guessing.
@@ -27,6 +29,8 @@ multiple sources into comprehensive, sourced knowledge.
    reporting them as disconnected facts.
 5. Call out what's still unknown or unresolved after the research, rather
    than papering over gaps.
+6. If authoritative sources are unavailable or disagree, state it plainly
+   and mark confidence instead of padding with weak sources.
 </workflow>
 
 <success_criteria>

@@ -7,11 +7,11 @@
 # to the Docker networks for network troubleshooting and testing.
 #
 # Examples:
-#   ./scripts/netshoot curl http://forgejo:3000
-#   ./scripts/netshoot ping gatus
+#   ./scripts/netshoot curl http://<service>:<port>
+#   ./scripts/netshoot ping <service>
 # Run this script with no arguments to see a list of available commands.
 
-# Default to gatus network if no network specified
+# Default to host network if no network specified
 NETWORK="${NETSHOOT_NETWORK:-host}"
 
 # Check if any arguments provided
@@ -34,13 +34,13 @@ if [ $# -eq 0 ]; then
     echo "  Utilities: jq, whois, dhcping, file, vim, git"
     echo ""
     echo "Examples:"
-    echo "  $0 curl http://forgejo:3000"
-    echo "  $0 ping gatus"
-    echo "  $0 dig forgejo"
-    echo "  $0 nslookup immich-server"
+    echo "  $0 curl http://<service>:<port>"
+    echo "  $0 ping <service>"
+    echo "  $0 dig <service>"
+    echo "  $0 nslookup <service>"
     echo "  $0 nc -zv 192.0.2.1 5432"
     echo "  $0 ss -tuln"
-    echo "  $0 nmap -p 3000 forgejo"
+    echo "  $0 nmap -p 3000 <service>"
     echo "  $0 ctop"
     echo "  $0 termshark -i any"
     echo "  $0 nsenter -t 1 -n -p ps aux"
@@ -49,8 +49,8 @@ if [ $# -eq 0 ]; then
     echo "  $0 websocat ws://echo.websocket.org"
     echo ""
     echo "Network Examples:"
-    echo "  NETSHOOT_NETWORK=containers_gatus $0 ping gatus"
-    echo "  NETSHOOT_NETWORK=container:gatus $0 ss -tuln"
+    echo "  NETSHOOT_NETWORK=<network-name> $0 ping <service>"
+    echo "  NETSHOOT_NETWORK=container:<container> $0 ss -tuln"
     echo "  NETSHOOT_NETWORK=host $0 ip route show"
     echo ""
     echo "Set NETSHOOT_NETWORK environment variable to use a different network:"
@@ -61,5 +61,10 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# Run the command in netshoot container
-exec docker run --rm --privileged --network "$NETWORK" -v /var/run/docker.sock:/var/run/docker.sock --cap-add=NET_ADMIN --cap-add=NET_RAW --env-file .env nicolaka/netshoot "$@"
+# Run the command in netshoot container (skip --env-file when .env is absent)
+ENV_FILE_ARGS=()
+if [ -f .env ]; then
+    ENV_FILE_ARGS=(--env-file .env)
+fi
+
+exec docker run --rm --privileged --network "$NETWORK" -v /var/run/docker.sock:/var/run/docker.sock --cap-add=NET_ADMIN --cap-add=NET_RAW "${ENV_FILE_ARGS[@]}" nicolaka/netshoot "$@"

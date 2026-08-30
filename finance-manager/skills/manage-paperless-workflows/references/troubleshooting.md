@@ -1,10 +1,10 @@
-# Troubleshooting: document reprocessing & workflow behavior
-
 Use this when a Paperless workflow appears to have not fired, a document seems mis-tagged/untriaged for no obvious reason, or text-extraction quality looks wrong and you need to know whether reprocessing would help before recommending it to the user.
 
-## Reading the paperless-ngx container logs
+**Reading the paperless-ngx container logs**
 
-Paperless runs as a Docker container (see the workspace's `containers/paperless-ngx/compose.yml` for the exact container name — do not hardcode it here). Tail recent logs:
+Paperless runs as a Docker container — discover its name at runtime (e.g. `docker ps`
+filtered for paperless, or this workspace's own compose file for the instance in
+question; do not hardcode a container name here). Tail recent logs:
 
 ```bash
 docker logs <paperless-container-name> --since 30m 2>&1
@@ -47,7 +47,7 @@ http --ignore-stdin -b PATCH "${PAPERLESS_URL%/}/api/documents/<id>/" \
 
 This fires the "Document Updated" (`type: 3`) workflow trigger asynchronously — verify via a follow-up `GET` a few seconds later, not immediately. Test on one document before batch-applying to the rest.
 
-## Reading a document's history
+**Reading a document's history**
 
 Every Paperless document has a full audit log, independent of the container logs:
 
@@ -64,7 +64,7 @@ This answers questions the container logs can't, because it's keyed to the docum
 - **Was this document actually reprocessed, and did the content change?** Look for `update` entries with a `content` change — the `changes.content` array is `[old_text, new_text]`; if they're identical strings, the reprocess ran but produced no difference. A preceding `checksum` update with identical before/after values confirms the same original file was used (not a re-upload).
 - **Who or what changed a field, and was it supposed to?** Any `actor` with a `username` was a human action — useful for distinguishing "the workflow did this automatically" from "someone corrected it by hand," which matters before assuming a workflow's matching logic needs fixing.
 
-## When to escalate vs. when the answer is "this is expected"
+**When to escalate vs. when the answer is "this is expected"**
 
 - Reprocessing produces identical output (confirmed via a `paperless.parsing.<processor>` log line showing the same char count, or a `content` history entry with matching before/after) → the extraction issue is inherent to the current processor's handling of that document's layout. Don't keep reprocessing other documents expecting a different result — this is a processor capability question, not a per-document fluke. Check `docs/finance/` in this workspace for any institution-specific backfill notes (worked examples of a processor/institution combination that needed this diagnosis) and consider filing/checking a TO-DOS.md entry about evaluating alternative processors rather than reprocessing document-by-document.
 - A workflow's tag/correspondent/document_type changes show up in the document's history with `actor: null` at a sensible time after creation → the workflow did fire; if the document still looks wrong, the workflow's match conditions need adjusting (see `workflows/create-or-update-workflow.md`), not a reprocessing/timing issue.

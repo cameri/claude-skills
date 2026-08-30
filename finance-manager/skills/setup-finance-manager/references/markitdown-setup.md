@@ -40,11 +40,10 @@ package, and add `PAPERLESS_APPS: <package's_django_app_name>` to its environmen
 </pattern>
 
 <worked_example>
-This exact pattern is already implemented for this workspace's own paperless-ngx instance —
-see `containers/paperless-ngx/paperless-markitdown/` (package source) and
-`docs/superpowers/specs/2026-07-19-markitdown-paperless-design.md` (full design writeup,
+This exact pattern is already implemented for this workspace's own paperless-ngx instance
+(the package source and full design writeup live in this workspace's container/spec docs —
 including the exact `pyproject.toml`/`apps.py`/`signals.py`/`parser.py` contents and the
-init script). Adapt paths to wherever the target paperless-ngx compose file and
-custom-init-scripts directory actually live for a new instance — don't assume this
-workspace's specific directory layout.
+init script). For a new instance, adapt: locate the target paperless-ngx compose file and
+its custom-init-scripts directory, then apply the package requirements above — don't
+assume any specific directory layout.
 </worked_example>

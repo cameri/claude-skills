@@ -1,8 +1,13 @@
-# Workflow: View Update Log
+<required_reading>
+**Read these reference files NOW before proceeding:**
+1. references/log-format.md
+
+**Environment values:** resolve `$CONTAINERS_ROOT` from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) — never hardcode paths or service lists.
+</required_reading>
 
 <process>
 <view>
-Read and display `/workspace/containers/UPDATE-LOG.md`.
+Read and display `$CONTAINERS_ROOT/UPDATE-LOG.md`.
 
 Summarize:
 - Total updates attempted
@@ -23,12 +28,12 @@ Summarize:
 ---
 ```
 
-Then list all service directories found under `/workspace/containers/` so the user knows what's available to update.
+Then list all service directories found under `$CONTAINERS_ROOT` so the user knows what's available to update.
 </init>
 </process>
 
 <success_criteria>
-- [ ] Log displayed (or created if missing)
-- [ ] Summary of update history shown
-- [ ] Containers not yet in the log are identified
+- Log displayed (or created if missing)
+- Summary of update history shown
+- Containers not yet in the log are identified
 </success_criteria>

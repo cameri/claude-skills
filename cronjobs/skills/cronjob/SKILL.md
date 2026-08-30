@@ -1,6 +1,6 @@
 ---
 name: cronjob
-description: Schedule recurring or one-time jobs. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/cronjob". When a job fires as a channel notification, execute it.
+description: Schedule recurring or one-time jobs. TRIGGER when user says "schedule X", "remind me every Y", "run X once in Y", or "/cronjobs:cronjob". When a job fires as a channel notification, execute it.
 user-invocable: true
 allowed-tools:
   - Agent
@@ -50,7 +50,10 @@ If empty, say "No active jobs."
 
 Call `remove-job` with the ID. Confirm removal.
 
-If `$ARGUMENTS` is "clear all": call `clear-jobs`.
+**Error handling:**
+
+If `add-job` returns an error (e.g. unsupported expression), report the error and offer the supported forms in `<supported_expressions>`.
+If `remove-job` reports an unknown ID, say so and show `list-jobs` output.
 
 **When a channel notification fires:**
 

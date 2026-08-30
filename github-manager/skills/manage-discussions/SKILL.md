@@ -4,7 +4,16 @@ description: Handles GitHub discussion webhook events; silently monitors trusted
 user-invocable: false
 allowed-tools:
   - mcp__plugin_telegram_telegram__reply
+
 ---
+
+<objective>
+Monitors GitHub discussion events: silently watches trusted actors and escalates external discussions via Telegram.
+</objective>
+
+<quick_start>
+On `payload.discussion` with `action: created`: check the sender against the plugin `CLAUDE.md` trusted principals — trusted: no action (see `<trusted_actor>`); external: send the `<external_actor>` escalation template.
+</quick_start>
 
 <essential_principles>
 **Managed repos and trusted principals**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others. Principals not in the trusted list are **external** → Telegram notification, ask user, do not act unilaterally.
@@ -30,3 +39,8 @@ Title: {title}
 Reply, close, or ignore?
 ```
 </external_actor>
+
+<success_criteria>
+- External discussion escalated via Telegram with a reply/close/ignore question
+- Trusted-actor discussions produced no notification
+</success_criteria>

@@ -1,5 +1,3 @@
-# Net Worth Categorization
-
 How to bucket every tracked account/wallet in
 `~/.claude/channels/finance-manager/config.json` into the five categories the report
 needs. This is heuristic, not a fixed mapping — no specific account ID or name is

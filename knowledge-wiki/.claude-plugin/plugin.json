@@ -1,6 +1,12 @@
 {
   "name": "knowledge-wiki",
-  "description": "Maintains a self-updating, cross-linked markdown knowledge base under docs/wiki/ — ingesting durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks.",
-  "version": "0.1.0",
-  "keywords": ["wiki", "knowledge-base", "notes", "reference", "memory"]
+  "description": "Maintains a self-updating, cross-linked markdown knowledge base under docs/wiki/ \u2014 ingesting durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks.",
+  "version": "0.1.1",
+  "keywords": [
+    "wiki",
+    "knowledge-base",
+    "notes",
+    "reference",
+    "memory"
+  ]
 }

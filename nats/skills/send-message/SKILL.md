@@ -12,12 +12,12 @@ Sends a free-form message to a specific agent on the NATS network using the `mes
 Arguments format: `<agent-id> <message text>`
 
 Examples:
-- `claude-abc12345 The Paperless-ngx API uses token auth on POST /api/documents/post_document/`
-- `claude-abc12345 Can you check the gatus status page and report back?`
+- `claude-abc12345 Can you check the deployment status and report back?`
+- `claude-abc12345 Here is the summary of today's sync — let me know if anything needs attention.`
 </quick_start>
 
 <context>
-Each Claude Code agent on the NATS network has a stable ID (e.g. `claude-fc195d56`) and a friendly display name, both shown in the MCP server instructions at startup. Messages are routed to the recipient's inbox subject, `claude.agents.<id>.inbox`.
+Each Claude Code agent on the NATS network has a stable ID (e.g. `claude-abc12345`) and a friendly display name, both shown in the MCP server instructions at startup. Messages are routed to the recipient's inbox subject, `claude.agents.<id>.inbox`.
 </context>
 
 <argument_parsing>

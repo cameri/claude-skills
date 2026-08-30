@@ -1,5 +1,3 @@
-# Workflow: run-review
-
 <required_reading>
 1. `../references/net-worth-categorization.md`
 2. `../references/rich-life-allocation.md`
@@ -9,7 +7,7 @@
 </required_reading>
 
 <process>
-## Step 1 — Lookback & Execution Audit
+**Step 1 — Lookback & Execution Audit**
 
 - Read the "Action Items" section of `docs/finance/rich-life-goals.md`. For each item,
   check whether it happened: query Actual Budget (`actual-budget:query-budget`) for the
@@ -23,7 +21,7 @@
 - If this is the first-ever run (Session History is empty), skip comparison — just note
   starting balances as the baseline.
 
-## Step 2 — Net Worth & Liquidity Health Check
+**Step 2 — Net Worth & Liquidity Health Check**
 
 - Follow `../references/net-worth-categorization.md` to bucket every tracked
   account/wallet and compute the five bucket totals plus Net Worth.
@@ -45,7 +43,7 @@
 - **If the user asked for "quick net worth check" (SKILL.md routing option 3), stop
   here** — produce just this section as the reply, skip Steps 3-4.
 
-## Step 3 — Optimization & Efficiency Scan
+**Step 3 — Optimization & Efficiency Scan**
 
 - Tax efficiency: check `docs/finance/financial-profile.md` for the household's current
   marginal tax bracket / tax-advantaged contribution room if recorded. If not recorded, do
@@ -58,7 +56,7 @@
 - Compute the Rich Life Allocation (Fixed Costs / Structural Savings / Fun Money) per
   `../references/rich-life-allocation.md`.
 
-## Step 4 — Strategic Action Plan & Report
+**Step 4 — Strategic Action Plan & Report**
 
 - Fill `../templates/report-template.md` with everything gathered in Steps 1-3.
 - Pick at most 3 action items for next cycle, ranked by leverage (tax/structural fixes

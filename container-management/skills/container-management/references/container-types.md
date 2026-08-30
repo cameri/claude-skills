@@ -1,5 +1,5 @@
 <overview>
-Two types of containers exist in `/workspace/containers/`. The update procedure differs significantly between them.
+Two types of containers exist in `$CONTAINERS_ROOT` (from this plugin's `CLAUDE.md`). The update procedure differs significantly between them.
 </overview>
 
 <type_upstream>
@@ -40,14 +40,14 @@ docker inspect --format='{{index .RepoDigests 0}}' nginx:1.27.3
 Built locally from source. Two sub-types:
 
 **Simple wrapper** — adds a few tools on top of an upstream image.
-Examples in this repo: `claude-sandboxed/Containerfile`, `sops/Containerfile`, `cloudflared/Containerfile`
+See this plugin's `CLAUDE.md` for this environment's custom-image services.
 
 Update goals:
 1. Update the base `FROM` image tag + pin its sha256
 2. Update any explicitly pinned package/tool versions
 3. Rebuild and verify the image works
 
-**Source-built image** — builds from application source code (e.g., `mongoku/source/Dockerfile`).
+**Source-built image** — builds from application source code (e.g., `<service>/source/Dockerfile`).
 Update goals:
 1. Update the base `FROM` image
 2. Check if `npm install` / `pip install` / `go mod` produces newer deps
@@ -72,10 +72,8 @@ FROM debian:bookworm-slim@sha256:abc123...
 </type_custom>
 
 <services_with_containerfiles>
-Known custom-image services (verify with `find /workspace/containers -name "Containerfile" -o -name "Dockerfile"`):
-- `claude-sandboxed/` — Containerfile
-- `cloudflared/` — Containerfile
-- `sops/` — Containerfile
-- `mongoku/source/` — Dockerfile (source-built, compose uses `build:`)
-- `relaymon/source/` — may have Dockerfile (disabled service, check before updating)
+Custom-image services (directories and image types in this plugin's `CLAUDE.md`). Verify with:
+```bash
+find $CONTAINERS_ROOT -name "Containerfile" -o -name "Dockerfile"
+```
 </services_with_containerfiles>

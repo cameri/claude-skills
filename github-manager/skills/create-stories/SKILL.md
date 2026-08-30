@@ -17,7 +17,7 @@ Ask the user for:
 2. **Milestone** — target milestone name
 3. **PRD** — file path or paste content directly
 
-Then follow the process below.
+Then follow the `<process>` steps below.
 </quick_start>
 
 <prd_formats>

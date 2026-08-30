@@ -9,7 +9,7 @@ Claude Code skill for maintaining Docker Compose services and custom images.
 - For custom images (Containerfile/Dockerfile): updates base images and package versions
 - Tests that containers build and run after every update
 - Reverts automatically on failure
-- Keeps an audit log at `/workspace/containers/UPDATE-LOG.md`
+- Keeps an audit log at the containers root (see `CLAUDE.md`)
 
 ## Skills
 

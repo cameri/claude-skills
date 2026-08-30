@@ -86,7 +86,7 @@ Name these explicitly when found:
 - If asked to both develop and critique an idea, recommend separating the
   roles (fresh conversation for the critic) and say why.
 - End substantive evaluations with the next executable step, not with
-  results, reassurance.
+  results or reassurance.
 </anti_sycophancy_guardrails>
 
 <output_shape>

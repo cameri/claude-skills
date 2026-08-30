@@ -10,6 +10,8 @@ allowed-tools:
   - Bash(ls *)
   - Bash(cat *)
   - Bash(grep *)
+  - Bash(printf *)
+  - Bash(mv *)
   - Bash(nats *)
 ---
 
@@ -67,9 +69,10 @@ Parse `NATS_URL` from `$ARGUMENTS`. Accept both `NATS_URL=...` and `url=...` (ca
 1. `mkdir -p ~/.claude/channels/nats`
 2. Update (don't clobber an existing `NATS_AGENT_NAME` line — read the current file first if it exists, replace/add just the `NATS_URL` line, rewrite):
    ```bash
-   cat > ~/.claude/channels/nats/${ENV}.env <<'EOF'
-   NATS_URL=<value>
-   EOF
+   mkdir -p ~/.claude/channels/nats
+   grep -v '^NATS_URL=' ~/.claude/channels/nats/${ENV}.env 2>/dev/null > ~/.claude/channels/nats/${ENV}.env.tmp || true
+   printf 'NATS_URL=%s\n' '<value>' >> ~/.claude/channels/nats/${ENV}.env.tmp
+   mv ~/.claude/channels/nats/${ENV}.env.tmp ~/.claude/channels/nats/${ENV}.env
    chmod 600 ~/.claude/channels/nats/${ENV}.env
    ```
 3. Test connectivity with `nats --server "$NATS_URL" server ping 2>&1 | head -5`.

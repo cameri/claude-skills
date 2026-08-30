@@ -1,8 +1,6 @@
-# Backfill verification
-
 Techniques for reconciling a *gap* — several consecutive missed statement periods for one account — rather than a single incoming statement. The stakes are higher than a normal reconciliation: a mistake compounds silently across every period after it, and by the time it surfaces (if it ever does) the trail is cold.
 
-## Verify the whole chain before inserting anything
+**Verify the whole chain before inserting anything**
 
 Parse every statement in the gap first, entirely read-only, before writing a single transaction. For each statement, record its own printed opening balance, closing balance, and line items. Then, before touching ActualBudget:
 
@@ -11,11 +9,11 @@ Parse every statement in the gap first, entirely read-only, before writing a sin
 
 Only after every period in the gap validates cleanly should insertion begin. This ordering matters: it turns "did I get this right" into a yes/no check completed *before* any mutation, instead of a forensic exercise after the ledger is already wrong.
 
-## Derive amount and sign from the balance delta, not column position
+**Derive amount and sign from the balance delta, not column position**
 
 OCR'd statement tables are the most common source of transcription errors, and the dangerous ones are sign errors — a withdrawal transcribed as a deposit still "looks plausible" in isolation (right merchant, right rough amount) and can even coincidentally match a same-amount transaction found elsewhere, giving false confidence. The reliable derivation is: `signed_amount = balance[this line] − balance[previous line]`. Trust that over which visual column a number appears to occupy, especially in garbled multi-column layouts. If the running-balance chain check above passes cleanly for every line, sign errors are structurally ruled out — that's the real payoff of doing the chain check first.
 
-## Table-parsing pitfalls in OCR'd statements
+**Table-parsing pitfalls in OCR'd statements**
 
 Two failure modes recur often enough to check for explicitly when writing a parser (regex or otherwise) for statement tables:
 
@@ -24,13 +22,13 @@ Two failure modes recur often enough to check for explicitly when writing a pars
 
 Whatever the parsing approach, always cross-check the extracted lines against the statement's own printed "Total deposits" / "Total withdrawals" figures where present — this catches both of the above even when the running-balance chain happens to still close (rare, but possible if two errors cancel out).
 
-## When the account's absolute balance won't reconcile against the statement figures
+**When the account's absolute balance won't reconcile against the statement figures**
 
 Occasionally an account's ledger balance in ActualBudget has drifted from what the real institution's statements show, for reasons that predate the current backfill (an inaccurate starting balance set at account-creation time, or an even older untracked gap). In that case, don't force the backfill's math to match the statement's absolute dollar figures — it structurally can't, and trying to will produce a false "mismatch" on data that's actually correct.
 
 Instead, validate the *relative* effect: compute what the account's cumulative balance should become by adding the *net change* implied by the newly-inserted transactions (independently verified against each statement's own totals, per above) on top of whatever the ledger's cumulative balance already was immediately before the gap. If a later, independently-trustworthy checkpoint exists (e.g. live bank-sync data that resumes after the gap and is known-correct), you can also work backward from it: the ledger's cumulative balance immediately before the gap should equal (that checkpoint's current total) minus (everything already recorded after the gap) — solve for that fixed reference number once, then check every subsequent insert against it. Flag the underlying absolute-balance discrepancy for the user rather than trying to silently correct it as part of the backfill — it's a separate, older problem.
 
-## Diagnosing scattered drift in an already-live-synced account
+**Diagnosing scattered drift in an already-live-synced account**
 
 Not every "the balance doesn't match reality" report is a clean gap (a block of consecutive missing periods). Sometimes an account has bank-sync running the entire time and *still* drifts, because sync silently dropped specific transactions in specific months while continuing to sync everything else correctly. Treat these as a different diagnostic problem, not a backfill:
 
@@ -42,18 +40,18 @@ Not every "the balance doesn't match reality" report is a clean gap (a block of 
 
 This approach was used successfully 2026-07-26 on a live-synced account whose balance had drifted ~$25,500 from reality: the checkpoint (one statement boundary, 12 months back) was confirmed clean on the first try, and per-month diffing found the actual problem was 6 non-contiguous months each missing 1-6 specific withdrawal transactions — 7 of the 13 months in scope needed zero changes at all. Full narrative in `docs/finance/learned-rules.md`.
 
-## Don't stop at the first confirmed hypothesis — a named cause can mask a second, smaller one
+**Don't stop at the first confirmed hypothesis — a named cause can mask a second, smaller one**
 
 If the user (or an initial pass) identifies a specific cause for the drift — "bank-sync stopped importing payment transactions" — verify that hypothesis, but don't let it become the whole investigation. Diff *every* statement line against Actual regardless of transaction type, for every period in scope. On a credit-card reconciliation 2026-07-26, the reported symptom was a 6-month payment-sync gap; that was real, but 3 of those same months *also* silently dropped one purchase transaction each (in one month, the entire period's purchase activity was missing, not just the payment) — a second, independent dropout the payment-only hypothesis would never have surfaced. The tell was the same one described above: compare the statement's own printed purchase/withdrawal subtotal against the sum of what's actually in Actual for that window, per period, even in months where the "known" cause (the missing payment) is the only thing you were looking for.
 
-## Prefer linking an existing unlinked counterpart over inserting a fresh transfer pair
+**Prefer linking an existing unlinked counterpart over inserting a fresh transfer pair**
 
 When a statement line for a payment/transfer is missing from the account being reconciled, check the other tracked accounts for a transaction with the *exact* matching date and amount before writing anything new — it's common for the payer side to already be correctly synced while only the receiving side missed it, in which case the fix is a link, not two new inserts. Search by exact amount first (not fuzzy/±few-days) since payment amounts rarely coincide by chance; a same-date-and-amount match on the counterpart side is strong enough evidence on its own. This is the normal shape of the "found" case in Step 7b of `workflows/reconcile-statement.md` — flagging it here because during backfill work it's tempting to just insert both sides fresh (simpler to reason about) rather than search first, which risks creating a duplicate of a transaction that was already correctly recorded on the other side.
 
-## Verifying against a live "current balance" instead of a closed statement
+**Verifying against a live "current balance" instead of a closed statement**
 
 Sometimes there's no statement to check the most recent activity against yet — the user reports a live balance from their banking app for the still-open, unbilled cycle. That comparison is inherently weaker than chain-verifying closed statements: there's no printed opening/closing balance for an open cycle, so you can only spot-check the period's net change, not chain-verify a boundary. Expect — and don't chase as if it were a reconciliation error — a small residual from transactions still pending/uncleared at sync time: a pre-authorization hold commonly settles for a slightly different final amount than what synced (tip, tax, partial refund), so a few cents to a few dollars of drift confined entirely to one still-pending line is normal, not a bug. If asked how far back a residual like this goes, the honest answer is bounded by what has an actual closed-statement boundary to check against: reconciliation confidence is exact up to the last closed statement, and only approximate for the open cycle after it — recheck once that transaction posts or the next statement closes, rather than trying to force an exact match now.
 
-## Avoiding duplicates at a live-sync boundary
+**Avoiding duplicates at a live-sync boundary**
 
 If the gap being backfilled butts up against data that's already live-synced (rather than a clean account-creation start), check whether the last real statement in the gap already includes a line dated *into* the first live-synced period — interest or a scheduled item is often posted/dated on the first of the following month even though it's "earned" during the prior period, and may already exist in the ledger from live sync. Compare the tail of your backfill against the head of the existing live data before inserting; drop any line that's already present rather than double-counting it.

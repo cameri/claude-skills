@@ -3,15 +3,18 @@ name: doubt-driven-development
 description: Use when correctness matters more than speed — a non-trivial decision (branching logic, a module/service boundary, an unverifiable property like thread-safety or ordering, or an irreversible/production/security-sensitive change) is about to stand, when working in unfamiliar code, or any time a confident output would be cheaper to verify now than to debug later.
 ---
 
-# Doubt-Driven Development
-
-## Overview
-
+<objective>
 A confident answer is not a correct one. Long sessions accumulate context that quietly turns assumptions into "facts" without anyone noticing. Doubt-driven development is the discipline of materializing a fresh-context reviewer — biased to **disprove**, not approve — before any non-trivial output stands.
 
 This is not `/code-review`. A code review is a verdict on a finished artifact. This is an in-flight posture: non-trivial decisions get cross-examined while course-correction is still cheap.
+</objective>
 
-## When to Use
+<quick_start>
+Name the decision as a CLAIM, extract the smallest reviewable ARTIFACT + CONTRACT (Step 2), then dispatch the Step 3 adversarial prompt to a fresh-context reviewer. Never pass the CLAIM to the reviewer.
+</quick_start>
+
+<context>
+**When to Use**
 
 A decision is **non-trivial** when at least one of these is true:
 
@@ -39,15 +42,23 @@ Apply the skill when:
 
 If you doubt every keystroke, you ship nothing. The skill applies only to non-trivial decisions as defined above.
 
-## Loading Constraints
+**Loading Constraints**
 
 This skill is designed to run from the **main-session orchestrator**, where Step 3 (DOUBT, below) spawns a genuinely fresh-context reviewer.
 
 - **Don't have a subagent invoke this skill and spawn another subagent from inside itself.** Some subagent types can't nest further subagent calls at all, and even where nesting is technically possible it defeats the point: a subagent already carries whatever context its dispatcher gave it, so anything it spawns isn't the clean-slate reviewer this skill needs. Orchestrate from the main session.
 - **If you find yourself applying this skill from inside a subagent** (nested spawn unavailable or undesirable): the preferred path is to surface to the user that doubt-driven cannot run nested and let the main session handle it. As a last resort only, a degraded self-questioning fallback exists — rewrite ARTIFACT + CONTRACT as a fresh self-prompt with a hard mental separator from your prior reasoning, and walk Steps 1–5. This is **not fresh-context review** (you carry your own context with you), so flag the result as degraded and prefer escalation whenever the user is reachable.
 
-## The Process
+**Interaction with Other Skills**
 
+- **A post-hoc code-review skill** (e.g. `code-review`): complementary, not redundant. A code review is a post-hoc PR verdict; doubt-driven is in-flight, per-decision. Use both.
+- **A documentation/source-verification skill**, if you have one installed: that kind of skill verifies *facts about frameworks or libraries* against official docs — it checks the API exists. Doubt-driven verifies *your reasoning about the artifact* — it checks you used that API correctly under the contract. Different checks; run both when both apply.
+- **`superpowers:test-driven-development`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
+- **`superpowers:systematic-debugging`**: when the reviewer surfaces a real failure mode, drop into a debugging skill to localize and fix.
+- **Orchestration rule**: this skill runs from the main session (see Loading Constraints above). A subagent spawning another subagent to run this skill is the anti-pattern to avoid.
+</context>
+
+<process>
 Copy this checklist when applying the skill:
 
 ```
@@ -59,9 +70,8 @@ Doubt cycle:
 - [ ] Step 5: STOP — met stop condition (trivial findings, 3 cycles, or user override)
 ```
 
-### Step 1: CLAIM — Surface what stands
-
-Name the decision in two or three lines:
+<step name="CLAIM">
+Surface what stands. Name the decision in two or three lines:
 
 ```
 CLAIM: "The new caching layer is thread-safe under the
@@ -71,20 +81,20 @@ WHY THIS MATTERS: a race here corrupts user data and is
 ```
 
 If you can't write the claim that compactly, you have a vibe, not a decision. Surface it before scrutinizing it.
+</step>
 
-### Step 2: EXTRACT — Smallest reviewable unit
-
-A fresh-context reviewer needs the **artifact** and the **contract**, not the journey.
+<step name="EXTRACT">
+Smallest reviewable unit. A fresh-context reviewer needs the **artifact** and the **contract**, not the journey.
 
 - Code: the diff or the function — not the whole file
 - Decision: the proposal in 3–5 sentences plus the constraints it has to satisfy
 - Assertion: the claim plus the evidence that supposedly supports it (kept distinct from the Step 1 CLAIM block, which is the orchestrator's hypothesis under scrutiny)
 
 Strip your reasoning. If you hand over conclusions, you'll get back validation of your conclusions. The unit must be small enough that a reviewer can hold it in mind in one read — if it's a 500-line PR, decompose first.
+</step>
 
-### Step 3: DOUBT — Invoke the fresh-context reviewer
-
-The reviewer's prompt **must be adversarial**. Framing decides the answer.
+<step name="DOUBT">
+Invoke the fresh-context reviewer. The reviewer's prompt **must be adversarial**. Framing decides the answer.
 
 ```
 Adversarial review. Find what is wrong with this artifact.
@@ -109,8 +119,7 @@ In Claude Code, any Agent-tool `subagent_type` other than `fork` starts with gen
 
 **The adversarial prompt above takes precedence over a persona's default response shape.** Role-specific subagents are often written to produce balanced verdicts with both strengths and weaknesses; doubt-driven needs issues-only output. Paste the adversarial prompt verbatim into the dispatch so it overrides the persona's default. If a persona's response shape can't be overridden cleanly, fall back to a generic subagent with the adversarial prompt.
 
-#### Cross-model escalation
-
+<cross_model_escalation>
 A single-model reviewer shares blind spots with the original author — a colder, different-architecture model catches them. Doubt-driven is already opt-in for non-trivial decisions, so within that scope offering cross-model is part of the skill's value, not optional friction.
 
 **Interactive sessions: always offer. Never silently skip.**
@@ -164,10 +173,11 @@ Acknowledge the skip in the output (*"Proceeding with single-model findings only
 - **Never invoke an external CLI without explicit user authorization** — this is a load-bearing safety property.
 
 Cross-model adds cost, latency, and tool fragility. The agent surfaces the choice every cycle; the user decides whether this artifact warrants it.
+</cross_model_escalation>
+</step>
 
-### Step 4: RECONCILE — Fold findings back
-
-The reviewer's output is data, not verdict. **You are still the orchestrator.** Re-read the artifact text against each finding before classifying — rubber-stamping the reviewer is the same failure mode as ignoring it.
+<step name="RECONCILE">
+Fold findings back. The reviewer's output is data, not verdict. **You are still the orchestrator.** Re-read the artifact text against each finding before classifying — rubber-stamping the reviewer is the same failure mode as ignoring it.
 
 For each finding, classify in this **precedence order** (first matching class wins):
 
@@ -177,10 +187,10 @@ For each finding, classify in this **precedence order** (first matching class wi
 4. **Noise** — reviewer flagged something that's actually correct under context the reviewer didn't have. Note it, move on, and ask: would adding that context to the contract have prevented the false flag?
 
 A fresh reviewer can be wrong because it lacks context. Don't defer just because it's "fresh."
+</step>
 
-### Step 5: STOP — Bounded loop, not recursion
-
-Stop when:
+<step name="STOP">
+Bounded loop, not recursion. Stop when:
 
 - Next iteration returns only trivial or already-considered findings, **or**
 - 3 cycles completed (escalate to user, don't grind a fourth alone), **or**
@@ -189,47 +199,121 @@ Stop when:
 If after 3 cycles the reviewer still surfaces substantive issues, the artifact may not be ready. Surface this to the user — three unresolved cycles is information about the artifact, not a reason to keep looping.
 
 If 3 cycles is "obviously insufficient" because the artifact is large: the artifact is too big — return to Step 2 and decompose. Do not lift the bound.
+</step>
+</process>
 
-## Common Rationalizations
+<anti_patterns>
+**Common Rationalizations**
 
-| Rationalization | Reality |
-|---|---|
-| "I'm confident, skip the doubt step" | Confidence correlates poorly with correctness on novel problems. Moments of certainty are exactly when blind spots hide. |
-| "Spawning a reviewer is expensive" | Debugging a wrong commit in production is more expensive. The check is bounded; the bug isn't. |
-| "The reviewer will just nitpick" | Only if unscoped. Constrain the prompt to "issues that would make this fail under the contract." |
-| "I'll do doubt at the end with `/code-review`" | A code review is a final gate. Doubt-driven catches wrong directions early when course-correction is cheap. By PR time it's too late. |
-| "If I doubt every step I'll never ship" | The skill applies to non-trivial decisions, not every keystroke. Re-read "When NOT to Use." |
-| "Two opinions are always better than one" | Not when the second has less context and produces noise. Reconcile, don't defer. |
-| "The reviewer disagreed so I was wrong" | The reviewer lacks your context — disagreement is information, not verdict. Re-read the artifact, classify, then decide. |
-| "Cross-model is always better" | Cross-model catches blind spots a single model shares with itself, but it adds cost and tool fragility. Offer it every interactive doubt cycle — the user decides whether the artifact warrants it. The agent's job is to surface the choice, not to gate it. |
-| "User said yes once, so I can keep invoking the CLI" | Each invocation is its own authorization. The artifact, the prompt, and the flags change between calls — re-confirm the exact command with the user before every run. |
+<pitfall name="confident_skip">
+- ❌ "I'm confident, skip the doubt step"
+- ✅ Confidence correlates poorly with correctness on novel problems. Moments of certainty are exactly when blind spots hide.
+</pitfall>
 
-## Red Flags
+<pitfall name="reviewer_expensive">
+- ❌ "Spawning a reviewer is expensive"
+- ✅ Debugging a wrong commit in production is more expensive. The check is bounded; the bug isn't.
+</pitfall>
 
-- Spawning a fresh-context reviewer for a one-line rename or formatting change
-- Treating reviewer output as authoritative without re-reading the artifact text
-- Looping >3 cycles without escalating to the user
-- Prompting the reviewer with "is this good?" instead of "find issues"
-- Skipping doubt under time pressure on a high-stakes decision
-- Re-spawning fresh-context on an unchanged artifact (you'll get the same findings; you're stalling)
-- **Doubt theater (checkable signal)**: across 2 or more cycles where the reviewer surfaced substantive findings, zero findings were classified as actionable. You are validating, not doubting. Stop and escalate.
-- Doubting only after committing — that's a code review, not doubt-driven development
-- Hardcoding an external CLI invocation without confirming with the user that the tool exists, is configured, and accepts that exact syntax
-- **Silently skipping cross-model in an interactive doubt cycle.** Even when not recommending it, the offer must be visible. Skipping is fine; silent skipping is not.
-- Falling back silently when an external CLI errors or is missing — surface the failure and let the user redirect
-- Stripping the contract from the reviewer's input
-- Passing the CLAIM to the reviewer (biases toward agreement)
+<pitfall name="reviewer_nitpicks">
+- ❌ "The reviewer will just nitpick"
+- ✅ Only if unscoped. Constrain the prompt to "issues that would make this fail under the contract."
+</pitfall>
 
-## Interaction with Other Skills
+<pitfall name="doubt_at_end">
+- ❌ "I'll do doubt at the end with `/code-review`"
+- ✅ A code review is a final gate. Doubt-driven catches wrong directions early when course-correction is cheap. By PR time it's too late.
+</pitfall>
 
-- **A post-hoc code-review skill** (e.g. `code-review`): complementary, not redundant. A code review is a post-hoc PR verdict; doubt-driven is in-flight, per-decision. Use both.
-- **A documentation/source-verification skill**, if you have one installed: that kind of skill verifies *facts about frameworks or libraries* against official docs — it checks the API exists. Doubt-driven verifies *your reasoning about the artifact* — it checks you used that API correctly under the contract. Different checks; run both when both apply.
-- **`superpowers:test-driven-development`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
-- **`superpowers:systematic-debugging`**: when the reviewer surfaces a real failure mode, drop into a debugging skill to localize and fix.
-- **Orchestration rule**: this skill runs from the main session (see Loading Constraints above). A subagent spawning another subagent to run this skill is the anti-pattern to avoid.
+<pitfall name="doubt_every_step">
+- ❌ "If I doubt every step I'll never ship"
+- ✅ The skill applies to non-trivial decisions, not every keystroke. Re-read "When NOT to Use."
+</pitfall>
 
-## Verification
+<pitfall name="two_opinions_better">
+- ❌ "Two opinions are always better than one"
+- ✅ Not when the second has less context and produces noise. Reconcile, don't defer.
+</pitfall>
 
+<pitfall name="disagreement_means_wrong">
+- ❌ "The reviewer disagreed so I was wrong"
+- ✅ The reviewer lacks your context — disagreement is information, not verdict. Re-read the artifact, classify, then decide.
+</pitfall>
+
+<pitfall name="cross_model_always_better">
+- ❌ "Cross-model is always better"
+- ✅ Cross-model catches blind spots a single model shares with itself, but it adds cost and tool fragility. Offer it every interactive doubt cycle — the user decides whether the artifact warrants it. The agent's job is to surface the choice, not to gate it.
+</pitfall>
+
+<pitfall name="once_authorized_always_authorized">
+- ❌ "User said yes once, so I can keep invoking the CLI"
+- ✅ Each invocation is its own authorization. The artifact, the prompt, and the flags change between calls — re-confirm the exact command with the user before every run.
+</pitfall>
+
+**Red Flags**
+
+<pitfall name="reviewer_for_trivial_change">
+- ❌ Spawning a fresh-context reviewer for a one-line rename or formatting change
+</pitfall>
+
+<pitfall name="reviewer_output_authoritative">
+- ❌ Treating reviewer output as authoritative without re-reading the artifact text
+</pitfall>
+
+<pitfall name="looping_beyond_three_cycles">
+- ❌ Looping >3 cycles without escalating to the user
+</pitfall>
+
+<pitfall name="validating_prompt">
+- ❌ Prompting the reviewer with "is this good?" instead of "find issues"
+</pitfall>
+
+<pitfall name="skipping_doubt_under_time_pressure">
+- ❌ Skipping doubt under time pressure on a high-stakes decision
+</pitfall>
+
+<pitfall name="respawning_on_unchanged_artifact">
+- ❌ Re-spawning fresh-context on an unchanged artifact (you'll get the same findings; you're stalling)
+</pitfall>
+
+<pitfall name="doubt_theater">
+- ❌ **Doubt theater (checkable signal)**: across 2 or more cycles where the reviewer surfaced substantive findings, zero findings were classified as actionable. You are validating, not doubting. Stop and escalate.
+</pitfall>
+
+<pitfall name="doubting_after_commit">
+- ❌ Doubting only after committing — that's a code review, not doubt-driven development
+</pitfall>
+
+<pitfall name="hardcoded_cli_invocation">
+- ❌ Hardcoding an external CLI invocation without confirming with the user that the tool exists, is configured, and accepts that exact syntax
+</pitfall>
+
+<pitfall name="silent_cross_model_skip">
+- ❌ **Silently skipping cross-model in an interactive doubt cycle.** Even when not recommending it, the offer must be visible. Skipping is fine; silent skipping is not.
+</pitfall>
+
+<pitfall name="silent_cli_failure_fallback">
+- ❌ Falling back silently when an external CLI errors or is missing — surface the failure and let the user redirect
+</pitfall>
+
+<pitfall name="stripping_contract">
+- ❌ Stripping the contract from the reviewer's input
+</pitfall>
+
+<pitfall name="passing_claim_to_reviewer">
+- ❌ Passing the CLAIM to the reviewer (biases toward agreement)
+</pitfall>
+</anti_patterns>
+
+<security_checklist>
+- Check the tool is in PATH (`which gemini`, `which codex`) before relying on it — a stale or broken binary may pass `which` but fail on real input
+- Test the binary works (`gemini --version` or equivalent) before passing the full prompt
+- Confirm the exact invocation with the user before every run — each invocation is its own authorization; the artifact, the prompt, and the flags change between calls
+- Never interpolate the artifact into a shell-quoted argument — write the full prompt to a file and pipe it through stdin so backticks, `$(...)`, and quote characters stay inert
+- Never invoke an external CLI without explicit user authorization
+</security_checklist>
+
+<success_criteria>
 After applying doubt-driven development:
 
 - [ ] Every non-trivial decision (per the definition above) was named explicitly as a CLAIM before standing
@@ -241,3 +325,4 @@ After applying doubt-driven development:
 - [ ] In interactive mode, cross-model was **explicitly offered** to the user (regardless of artifact stakes) and the response was acknowledged in the output
 - [ ] In non-interactive mode, cross-model was skipped and the skip was announced
 - [ ] Any external CLI invocation was preceded by a PATH check, a working-binary test, syntax confirmation with the user, and explicit authorization to run
+</success_criteria>

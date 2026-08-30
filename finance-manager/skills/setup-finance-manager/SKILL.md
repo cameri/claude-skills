@@ -3,11 +3,26 @@ name: setup-finance-manager
 description: Onboards the finance-manager plugin for first use (household members, bank accounts, hot/cold wallets, ownership, connecting Actual Budget and Paperless-ngx, per-account reconciliation mode, periodic sync jobs), or reviews/adds/removes tracked accounts and wallets on subsequent runs. Use when the user asks to set up finance-manager, configure accounts/wallets, connect Actual Budget or Paperless-ngx for the first time, or review/add/remove tracked accounts.
 ---
 
+<objective>
+Onboards the finance-manager plugin for first use — household members, bank accounts,
+hot/cold wallets and ownership, connections to Actual Budget and Paperless-ngx, per-account
+reconciliation mode, and periodic sync jobs — and reviews/adds/removes tracked accounts and
+wallets on later runs. Configuration lives in `~/.claude/channels/finance-manager/`
+(`config.json` + `credentials.json`) rather than inside the plugin or `docs/finance/`, so
+the plugin stays portable and credentials never enter a git-tracked repo.
+</objective>
+
+<quick_start>
+If `~/.claude/channels/finance-manager/config.json` doesn't exist yet → this is first-run
+onboarding: go straight to `workflows/first-run-setup.md`. If it exists, route via
+`<routing>` below (add / remove / review / periodic jobs / redo).
+</quick_start>
+
 <essential_principles>
 **Config lives outside the plugin and outside `docs/finance/`.** Structure/status goes in
 `~/.claude/channels/finance-manager/config.json`; wallet descriptors (credential-like — they
 reveal full balance/address history) go in `~/.claude/channels/finance-manager/credentials.json`.
-Neither is ever written into `projects/claude-skills/finance-manager/` (breaks plugin
+Neither is ever written into this plugin's own directory (breaks plugin
 portability) or `docs/finance/` (that's a git repo pushed to a remote; the channels
 directory never is).
 

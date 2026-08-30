@@ -1,6 +1,13 @@
 {
   "name": "github-manager",
-  "description": "Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts across managed repos.",
-  "version": "0.3.1",
-  "keywords": ["github", "webhooks", "issues", "pull-requests", "discussions", "ci"]
+  "description": "Autonomous GitHub repository manager \u2014 handles webhook events for issues, PRs, discussions, CI failures, and security alerts across managed repos.",
+  "version": "0.3.2",
+  "keywords": [
+    "github",
+    "webhooks",
+    "issues",
+    "pull-requests",
+    "discussions",
+    "ci"
+  ]
 }

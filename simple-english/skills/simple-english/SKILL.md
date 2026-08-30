@@ -16,14 +16,13 @@ metadata:
   standard: ASD-STE100 Issue 9 (2025-01-15)
 ---
 
-# Simple English: Write Like an Aerospace Manual
-
+<objective>
 Write technical text with the rules of ASD-STE100 Simplified Technical English. STE is the controlled language that aerospace and defense manufacturers use for maintenance documentation. The rules exist so that a tired reader who is not a native English speaker cannot misread an instruction. They remove the usual signs of AI-generated text as a side effect: long sentences, synonym rotation, hedges, filler, and decorative clauses.
 
 Write for that tired reader. Each sentence must survive one read.
+</objective>
 
-## Your Task
-
+<quick_start>
 When asked to write or rewrite technical text:
 
 1. **Select the mode** (pragmatic or strict, below).
@@ -35,14 +34,16 @@ When asked to write or rewrite technical text:
 
 When asked to CHECK text instead of writing it, report each violation as: rule number, the offending text, a compliant rewrite. Cite only rule numbers that exist in this file. Do not cite rule numbers from memory: the numbering is unintuitive and models invent it (tested — an agent without this file cited "Rule 3.1: short sentences"; the real Rule 3.1 is about verb forms).
 
-## Two Modes
+**Two Modes**
 
 | Mode | When | What you apply |
 |---|---|---|
 | **Pragmatic** (default) | Docs, READMEs, error messages — the user wants clear text | All structural rules. Domain words stay ("idempotent", "webhook"). |
 | **Strict** | The user names STE, ASD-STE100, or compliance | Structural rules + full vocabulary discipline, and tell the user that full compliance needs the official dictionary (free at asd-ste100.org). |
+</quick_start>
 
-## Step 1: Classify the Text
+<process>
+**Step 1: Classify the Text**
 
 | | Procedural (instructions) | Descriptive (explanations) |
 |---|---|---|
@@ -53,11 +54,11 @@ When asked to CHECK text instead of writing it, report each violation as: rule n
 
 Do not mix the two in one passage. A "Getting started" section is procedural. An "Architecture" section is descriptive. A note inside a procedure is descriptive (25-word limit, no imperative).
 
-## THE RULE CATALOG
+**THE RULE CATALOG**
 
 53 rules in 9 sections, paraphrased from ASD-STE100 Issue 9 with software examples. The official wording is in the free standard at asd-ste100.org.
 
-### Section 1 — Words (Rules 1.1-1.14)
+**Section 1 — Words (Rules 1.1-1.14)**
 
 | Rule | Instruction |
 |---|---|
@@ -81,7 +82,7 @@ In pragmatic mode, rules 1.5, 1.8, and 1.12 do the heavy lifting: your domain vo
 **Before:** You can webhook the event, then do a deploy.
 **After:** Send the event to the webhook. Then deploy the service.
 
-### Section 2 — Multi-word nouns (Rules 2.1-2.2)
+**Section 2 — Multi-word nouns (Rules 2.1-2.2)**
 
 | Rule | Instruction |
 |---|---|
@@ -93,7 +94,7 @@ Break long noun chains with prepositions (of, on, in, for):
 **Before:** the connection pool timeout configuration value
 **After:** the timeout value for the connection pool
 
-### Section 3 — Verbs (Rules 3.1-3.7)
+**Section 3 — Verbs (Rules 3.1-3.7)**
 
 | Rule | Instruction |
 |---|---|
@@ -117,7 +118,7 @@ The standard rejects "could" even for possibility: write "an explosion can occur
 **Before:** The temperature must be adjusted.
 **After:** Adjust the temperature.
 
-### Section 4 — Sentences (Rules 4.1-4.5)
+**Section 4 — Sentences (Rules 4.1-4.5)**
 
 | Rule | Instruction |
 |---|---|
@@ -132,7 +133,7 @@ Rule 4.2 is the anti-terseness rule. STE is short sentences with complete gramma
 **Wrong shortening:** Ensure file exists before running.
 **STE:** Make sure that the file exists before you run the command.
 
-### Section 5 — Procedural writing (Rules 5.1-5.5)
+**Section 5 — Procedural writing (Rules 5.1-5.5)**
 
 | Rule | Instruction |
 |---|---|
@@ -145,7 +146,7 @@ Rule 4.2 is the anti-terseness rule. STE is short sentences with complete gramma
 **Before:** You'll want to grab the API key from the dashboard before configuring the client, which you can do under Settings.
 **After:** Get the API key from the dashboard, under Settings. Then configure the client with this key.
 
-### Section 6 — Descriptive writing (Rules 6.1-6.6)
+**Section 6 — Descriptive writing (Rules 6.1-6.6)**
 
 | Rule | Instruction |
 |---|---|
@@ -158,7 +159,7 @@ Rule 4.2 is the anti-terseness rule. STE is short sentences with complete gramma
 
 No imperative in descriptive text. Descriptions explain; procedures instruct.
 
-### Section 7 — Safety instructions (Rules 7.1-7.3)
+**Section 7 — Safety instructions (Rules 7.1-7.3)**
 
 | Rule | Instruction |
 |---|---|
@@ -171,7 +172,7 @@ Never bury the instruction after the explanation. The pattern transfers directly
 **Before:** Note that data loss may occur in some circumstances if the destructive flag happens to be enabled when running against production.
 **After:** CAUTION: Do not use the `--force` flag against production. The flag deletes rows that do not match the source.
 
-### Section 8 — Punctuation and word count (Rules 8.1-8.7)
+**Section 8 — Punctuation and word count (Rules 8.1-8.7)**
 
 | Rule | Instruction |
 |---|---|
@@ -183,9 +184,9 @@ Never bury the instruction after the explanation. The pattern transfers directly
 | 8.6 | Count as one word each: numbers, numbers with units, abbreviations, alphanumeric identifiers, quoted text, titles, labels, proper nouns. |
 | 8.7 | A hyphenated word counts as one word. |
 
-Rule 8.6 matters for software text: `sqlpipe run --config sqlpipe.yaml` in backticks is quoted text and counts as one word. Long identifiers do not blow your sentence budget.
+Rule 8.6 matters for software text: `myapp run --config myapp.yaml` in backticks is quoted text and counts as one word. Long identifiers do not blow your sentence budget.
 
-### Section 9 — Writing practices (Rules 9.1-9.4, GR-1 to GR-8)
+**Section 9 — Writing practices (Rules 9.1-9.4, GR-1 to GR-8)**
 
 | Rule | Instruction |
 |---|---|
@@ -198,7 +199,7 @@ General recommendations GR-1 to GR-8: keep the conjunction "that", be careful wi
 
 GR-6 for software docs: "e.g." → "for example", "i.e." → "that is", and delete "etc." — name the items or write "and more".
 
-## VOCABULARY DISCIPLINE
+**VOCABULARY DISCIPLINE**
 
 The official dictionary (~900 approved words, ~1,200 banned words with alternatives) is copyrighted by ASD and is not reproduced here. Its mechanics apply without it: **one word, one meaning, one part of speech.**
 
@@ -213,7 +214,8 @@ Known part-of-speech rulings, useful as patterns:
 | follow | "To come after" only, never "obey". Write "obey the instructions". |
 | above, below | Physical positions only. For limits write "more than", "less than". |
 
-### The modal ladder
+<anti_patterns>
+**The modal ladder**
 
 | You wrote | STE writes |
 |---|---|
@@ -223,7 +225,7 @@ Known part-of-speech rulings, useful as patterns:
 | may (permission) | can |
 | would (hypothetical) | Restructure: "If X occurs, Y occurs." |
 
-### Slop-to-simple substitutions
+**Slop-to-simple substitutions**
 
 This table is ours, not the ASD dictionary. It maps the words AI-generated docs overuse to plain replacements. If the word carries no fact, delete it instead of replacing it.
 
@@ -255,8 +257,9 @@ This table is ours, not the ASD dictionary. It maps the words AI-generated docs 
 | streamline | make simpler, make faster |
 | plethora, myriad | many |
 | addresses the issue, tackles | corrects the fault, removes the error |
+</anti_patterns>
 
-### Consistency pass
+**Consistency pass**
 
 Collapse these common rotations to one term each (Rules 1.11, 9.4):
 
@@ -267,7 +270,7 @@ Collapse these common rotations to one term each (Rules 1.11, 9.4):
 - run / execute / invoke / launch → pick one
 - show / display / render / present → pick one
 
-## Untouchables
+**Untouchables**
 
 These are technical names (Rules 1.5, 8.6). Leave them exact, even when they break vocabulary rules:
 
@@ -276,7 +279,7 @@ These are technical names (Rules 1.5, 8.6). Leave them exact, even when they bre
 - Product names, API endpoint names, config keys
 - Numbers with units — each counts as one word in the sentence limit
 
-## Beyond Documentation
+**Beyond Documentation**
 
 Same rules, different targets. Full adaptations in `references/use-cases.md`:
 
@@ -286,9 +289,9 @@ Same rules, different targets. Full adaptations in `references/use-cases.md`:
 - **Release notes**: breaking changes follow the warning pattern — command first, risk second.
 - **Agent instructions (prompts, AGENTS.md)**: a system prompt is a procedure for a reader that cannot ask questions. One instruction per sentence, no "should", condition first.
 - **Translation prep**: STE's original job. One meaning per word plus complete grammar removes most translation ambiguity.
+</process>
 
-## Self-Check Before You Deliver
-
+<validation>
 This step is not optional. Run these four checks on your draft:
 
 1. Count words in your three longest sentences. Over the 20/25 limit → split them.
@@ -297,30 +300,42 @@ This step is not optional. Run these four checks on your draft:
 4. Search for the verbs you did NOT pick in Your Task step 3 (the check/verify/confirm set). Replace every hit with your chosen verb.
 
 Fix what you find, then deliver. For a full audit, run `references/checklist.md`.
+</validation>
 
-## Full Example
-
+<examples>
 **Before (real unedited AI output):**
 
-> **Connection timeouts.** If sqlpipe hangs or fails with `dial tcp: i/o timeout`, check that the host running sqlpipe can reach the Postgres port (usually 5432) — this is often a security group or firewall rule blocking the connection. If you're connecting to a managed database (RDS, Cloud SQL, etc.), confirm the instance allows connections from sqlpipe's IP. You can also try increasing `source.connect_timeout_seconds` in your config, since a slow network path can trip the default timeout even when the connection eventually succeeds.
+> **Connection timeouts.** If myapp hangs or fails with `dial tcp: i/o timeout`, check that the host running myapp can reach the Postgres port (usually 5432) — this is often a security group or firewall rule blocking the connection. If you're connecting to a managed database (RDS, Cloud SQL, etc.), confirm the instance allows connections from myapp's IP. You can also try increasing `source.timeout_seconds` in your config, since a slow network path can trip the default timeout even when the connection eventually succeeds.
 
 **After (classified procedural, verb = "make sure", conditions first, one instruction per sentence):**
 
-> **Connection timeouts.** sqlpipe stops with `dial tcp: i/o timeout` when it cannot reach the Postgres port (5432 by default).
+> **Connection timeouts.** myapp stops with `dial tcp: i/o timeout` when it cannot reach the Postgres port (5432 by default).
 >
-> 1. Make sure that the host that runs sqlpipe can reach the Postgres port. A firewall or security group usually blocks it.
-> 2. If the database is managed (RDS, Cloud SQL), make sure that the instance accepts connections from the IP of sqlpipe.
-> 3. If the network is slow, increase `source.connect_timeout_seconds` in the configuration.
+> 1. Make sure that the host that runs myapp can reach the Postgres port. A firewall or security group usually blocks it.
+> 2. If the database is managed (RDS, Cloud SQL), make sure that the instance accepts connections from the IP of myapp.
+> 3. If the network is slow, increase `source.timeout_seconds` in the configuration.
 
 What changed: 40-word sentences split under 20; "you're" expanded; "check/confirm" collapsed to "make sure that"; every condition moved before its command; "etc." removed; code and error strings untouched.
+</examples>
 
-## Limits
+<success_criteria>
+Deliver only when all of these hold:
 
+- The draft passes all four self-checks: sentences within the 20/25-word limit, no banned patterns, every condition before its command, and your chosen vocabulary used throughout.
+- No unapproved modals remain: "should", "would", "may", "might", "could" are replaced or deleted.
+- Every condition precedes its command, divided by a comma.
+- Untouchables are unchanged: code, identifiers, commands, quoted errors, and product names are byte-for-byte intact.
+- Every cited rule number exists in this file.
+- Each passage is cleanly classified as procedural or descriptive, and the two are never mixed.
+</success_criteria>
+
+<context>
 STE is for technical facts and instructions. Do not apply it to marketing copy, blog voice, or brand writing — it deletes persuasion by design. When a user asks for STE on marketing text, say so and offer it for the docs instead.
 
 This skill is an unofficial aid. It is not affiliated with or endorsed by ASD or STEMG, and no tool can guarantee STE compliance. ASD-STE100 is a registered trademark of ASD. The official standard is a free download at asd-ste100.org.
+</context>
 
-## References
-
+<reference_guides>
 - `references/checklist.md` — full verification pass with searchable patterns, for check mode and final audits
 - `references/use-cases.md` — long-form adaptations: error messages, runbooks, incident reports, commits, UI copy, i18n
+</reference_guides>

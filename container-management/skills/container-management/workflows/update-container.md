@@ -1,10 +1,10 @@
-# Workflow: Update a Container
-
 <required_reading>
 **Read these reference files NOW before proceeding:**
 1. references/container-types.md
 2. references/update-strategies.md
 3. references/log-format.md
+
+**Environment values:** resolve `$CONTAINERS_ROOT` and the service/network inventory from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) — never hardcode paths or service lists.
 </required_reading>
 
 <process>
@@ -12,8 +12,8 @@
 **If a container name was given:** use it.
 
 **If no container was specified:**
-1. Read `/workspace/containers/UPDATE-LOG.md`
-2. List all service directories under `/workspace/containers/` (each subdir with a `compose.yml`)
+1. Read `$CONTAINERS_ROOT/UPDATE-LOG.md`
+2. List all service directories under `$CONTAINERS_ROOT` (each subdir with a `compose.yml`)
 3. Find the service with the oldest `last_updated` date in the log, or with no entry at all (treat missing as epoch 0)
 4. Announce: "Updating `<service>` — last updated `<date>` (or never updated)."
 
@@ -34,10 +34,10 @@ Capture the current state before any changes:
 
 ```bash
 # For compose images — record current image line
-grep "image:" /workspace/containers/<service>/compose.yml
+grep "image:" $CONTAINERS_ROOT/<service>/compose.yml
 
 # For custom images — record Containerfile/Dockerfile content
-cat /workspace/containers/<service>/Containerfile  # or Dockerfile
+cat $CONTAINERS_ROOT/<service>/Containerfile  # or Dockerfile
 ```
 
 Save this snapshot mentally (or in a variable) for rollback.
@@ -63,7 +63,7 @@ See `references/update-strategies.md` for per-package-manager guidance.
 <step_5_test>
 **For upstream compose images:**
 ```bash
-cd /workspace/containers
+cd $CONTAINERS_ROOT
 docker compose pull <service>
 docker compose up -d <service>
 # Wait 15s then check health
@@ -74,12 +74,12 @@ Success: container shows `Up` and `(healthy)` if it has a healthcheck.
 
 **For custom images:**
 ```bash
-cd /workspace/containers/<service>
+cd $CONTAINERS_ROOT/<service>
 docker build -t <service>:test -f Containerfile .  # or Dockerfile
 # If build succeeds, do a smoke-run
 docker run --rm <service>:test <entry-or-version-flag> 2>&1 | head -5
 # Then deploy
-cd /workspace/containers
+cd $CONTAINERS_ROOT
 docker compose up -d --build <service>
 sleep 15
 docker ps --filter "name=<container_name>" --format "{{.Status}}"
@@ -100,18 +100,18 @@ docker ps --filter "name=<container_name>" --format "{{.Status}}"
 </step_6_evaluate>
 
 <step_7_log>
-Append to `/workspace/containers/UPDATE-LOG.md` using the format in `references/log-format.md`.
+Append to `$CONTAINERS_ROOT/UPDATE-LOG.md` using the format in `references/log-format.md`.
 
 If the file doesn't exist yet, create it with the header first.
 </step_7_log>
 </process>
 
 <success_criteria>
-- [ ] Target container identified and announced
-- [ ] Pre-change snapshot captured
-- [ ] Image/dependencies updated (tag + sha256 pinned)
-- [ ] Build succeeds (for custom images)
-- [ ] Container is running and healthy after update
-- [ ] Changes committed and pushed (or reverted on failure)
-- [ ] Log entry appended to UPDATE-LOG.md
+- Target container identified and announced
+- Pre-change snapshot captured
+- Image/dependencies updated (tag + sha256 pinned)
+- Build succeeds (for custom images)
+- Container is running and healthy after update
+- Changes committed and pushed (or reverted on failure)
+- Log entry appended to UPDATE-LOG.md
 </success_criteria>

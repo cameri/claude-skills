@@ -8,6 +8,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `container-management` (v0.4.1): portability pass — new plugin CLAUDE.md is the
+  single home for environment-specific values (containers root, Docker networks,
+  Dozzle group membership, Watchtower-excluded and custom-image services); SKILL.md
+  and all six workflow files resolve paths via `$CONTAINERS_ROOT` and point at
+  CLAUDE.md instead of hardcoding `/workspace/containers`; workflows migrated from
+  markdown headings to pure-XML structure; update-strategies.md's incident
+  narrative scrubbed of plan filenames, dates, and personal identifiers.
+- `finance-manager` (v0.11.1): audit fix wave — review-finances,
+  setup-finance-manager, reconcile-statement, and manage-paperless-workflows
+  gained the required XML tags (`<objective>`/`<quick_start>`/`<success_criteria>`)
+  with legacy markdown sections migrated; hardcoded absolute paths replaced with
+  runtime discovery (actual CLI via `command -v` + plugin-dir fallback,
+  skill-dir-relative script paths, container-name discovery); the transfer-link
+  data-loss incident detail moved into its own reference file; financial-planner
+  agent pinned to sonnet and given a worked example; `.pytest_cache` gitignored.
+- `github-manager` (v0.3.2): the six manage-* webhook skills gained the required
+  `<objective>`/`<quick_start>`/`<success_criteria>` skeleton per audit guidance;
+  minor quick fixes in create-stories and handle-dependabot-pr.
+- `nats` (v0.1.4): send-message examples no longer leak the maintainer's real
+  agent-to-agent traffic (generic message bodies, fake agent ID); access's
+  credential-update snippet now preserves the existing `NATS_AGENT_NAME` line
+  instead of clobbering the file (granted `Bash(printf *)`/`Bash(mv *)`); success
+  criteria in show-nats-status/discover-agents aligned with actual output (no
+  phantom capabilities field); ping-agent timeout syntax unified to
+  `timeout=<ms>`.
+- `jj` (v0.1.1): working-with-jj skill migrated from legacy markdown to pure XML
+  (7 semantic tags, all required tags present), frontmatter `name` fixed to match
+  the directory, environment-specific hook claim made conditional, `TodoWrite`
+  tool reference removed.
+- `research-tools` (v0.1.2): all six skills gained `<quick_start>`, third-person
+  descriptions, and an explicit source-unavailability fallback step.
+- `simple-english` (v0.1.1): SKILL.md and both references migrated to pure XML; a
+  real product name in the worked example genericized.
+- `knowledge-wiki` (v0.1.1): maintain-wiki migrated to pure XML; new plugin
+  CLAUDE.md (`WIKI_ROOT`) replaces five hardcoded `/workspace/docs` paths; README
+  installers pointed at CLAUDE.md instead of the skill's path.
+- `doubt-driven-development` (v0.1.1): markdown-heading body migrated to pure XML
+  (22 anti-pattern entries preserved), plus `<quick_start>` and
+  `<security_checklist>` added.
+- `cronjobs` (v0.1.5): description trigger aligned to `/cronjobs:cronjob`;
+  error-handling guidance added to the workflow (unsupported expression, unknown
+  job ID).
+- `webhooks` (v0.2.2): receive-webhooks documents that `allowed_ips` is
+  exact-match only (no CIDR) and defers GitHub IPs to api.github.com/meta; added
+  `<security_checklist>` and `<validation>` with server-verified status codes;
+  wording generalized from Telegram to channel messages.
+- `netshoot` (v0.1.2): new plugin CLAUDE.md holds the deployment-specific stack
+  (containers root, Docker networks, service names); SKILL.md and the bundled
+  script genericized to placeholders with runtime discovery; `--env-file` now
+  conditional so the script no longer fails hard without `.env`; `bash -n`
+  verified.
+- `repo-hygiene-sweep` (v0.1.1): sweep.sh no longer falls back to a literal
+  `/workspace` root (resolves `CLAUDE_PROJECT_DIR` → `REPO_HYGIENE_WORKSPACE_ROOT`
+  → hard error), and exits 1 with an explicit message when the standalone-repo
+  list cannot be parsed instead of reporting a false "everything clean"; SKILL.md
+  documents the new resolution order and failure mode.
+- `consider` (v0.1.2): added `<quick_start>` framework selector; trimmed
+  `<when_to_use>` to the negative trigger.
+- `audiobookshelf` (v0.1.1): access objective's `{env}` notation unified to
+  `${ENV}`; query-library `<notes>` deduplicated against inline verification
+  markers.
+- `wallabag` (v0.0.4): access example credentials made obviously fictional;
+  save-url explicitly forbids echoing secrets in failure reports.
+- `executable-skepticism` (v0.1.1): comma splice in the anti-sycophancy
+  guardrails fixed.
 - `brain` (v0.4.2): the `learn-from` skill's `<quick_start>` still claimed
   `learn_from` takes "no parameters — v1 has exactly one source" — stale
   since v0.3.0 added the optional `path` argument and v0.4.0 added

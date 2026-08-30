@@ -1,6 +1,10 @@
 {
   "name": "consider",
-  "description": "Apply a proven decision-making or thinking-model framework — inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization — to a real decision or tradeoff moment.",
-  "version": "0.1.1",
-  "keywords": ["decision-making", "thinking-models", "mental-models"]
+  "description": "Apply a proven decision-making or thinking-model framework \u2014 inversion, first-principles, second-order effects, Pareto, via negativa, opportunity cost, or Eisenhower prioritization \u2014 to a real decision or tradeoff moment.",
+  "version": "0.1.2",
+  "keywords": [
+    "decision-making",
+    "thinking-models",
+    "mental-models"
+  ]
 }

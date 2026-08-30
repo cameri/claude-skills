@@ -40,7 +40,7 @@ The local agent is always included in the cache (it self-registers on startup) b
 
 <success_criteria>
 - Discovery ping sent and response window collected
-- All responding agents listed with their capabilities
+- All responding agents listed with their name and ID
 - Cache updated at `~/.claude/channels/nats/agents.json`
 - Zero-response case explained with troubleshooting guidance
 </success_criteria>

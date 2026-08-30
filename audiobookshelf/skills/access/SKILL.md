@@ -13,7 +13,7 @@ allowed-tools:
 ---
 
 <objective>
-Writes Audiobookshelf credentials to `~/.claude/channels/audiobookshelf/{env}.env` and verifies the connection. Uses an Audiobookshelf API key (created in the web UI under **Settings → Users → \<user\> → API Keys**), sent as a Bearer token.
+Writes Audiobookshelf credentials to `~/.claude/channels/audiobookshelf/${ENV}.env` and verifies the connection. Uses an Audiobookshelf API key (created in the web UI under **Settings → Users → \<user\> → API Keys**), sent as a Bearer token.
 </objective>
 
 <quick_start>

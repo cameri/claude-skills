@@ -1,7 +1,7 @@
 {
   "name": "executable-skepticism",
   "description": "A verification protocol for evaluating theories, papers, models, or any confident quantitative claim by routing the verdict through executable, falsifiable tests instead of prose.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "keywords": [
     "verification",
     "skepticism",

@@ -2,7 +2,7 @@
 
 <context>
 This workflow applies when a Dependabot PR is opened or rebased for a managed repo
-that runs a live service (e.g. `cameri/akkadian-agent`). The goal is to test one PR
+that runs a live service. The goal is to test one PR
 at a time — build, start, verify, merge — then handle remaining PRs in sequence.
 </context>
 

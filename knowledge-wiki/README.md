@@ -13,12 +13,13 @@ to related pages, and kept consistent over time.
 
 ## Where the wiki lives
 
-Wiki pages are **not** stored inside this plugin — they live in the host
-workspace at `docs/wiki/`, following the same personal-data-stays-out-of-plugins
+Wiki pages are **not** stored inside this plugin — they live in a host
+workspace git repo, following the same personal-data-stays-out-of-plugins
 convention used by other plugins in this repo (e.g. `journal`). This plugin
 ships only the skill and its consistency-check script, so it stays portable
-for anyone else who installs it; adjust the `docs/wiki/` path in the skill if
-your own workspace stores personal reference data elsewhere.
+for anyone else who installs it. The wiki repo's location is configured in
+this plugin's `CLAUDE.md` (`WIKI_ROOT`); point that value at your own
+workspace's wiki repo if you store personal reference data elsewhere.
 
 ## Install
 

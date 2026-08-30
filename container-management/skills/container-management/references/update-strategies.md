@@ -119,13 +119,9 @@ host's (e.g. a container running as a different user than whoever owns the
 host paths in `compose.yml`), Docker silently auto-creates the missing
 bind-mount source directories under the *wrong* path instead of erroring —
 producing a container with empty, disconnected mounts instead of its real
-data. This bit twice during the 2026-08 tmux→herdr container migration (see
-`docs/superpowers/plans/2026-08-23-herdr-claude-gina-cutover.md` incident 4
-and `docs/superpowers/plans/2026-08-24-herdr-claude-ricardo-cutover.md`), and
-the manual two-command fix documented below proved insufficient on its
-own — it recurred three more times afterward (2026-08-25 ×2,
-2026-08-26 ×1) because remembering to type it correctly, every time, isn't
-reliable. Use the script instead of the manual steps whenever possible:
+data. This failure mode was observed repeatedly during a past container
+migration, and the manual two-command fix proved unreliable on its own. Use
+the script instead of the manual steps whenever possible:
 
 ```bash
 scripts/safe-rebuild.sh --compose-dir <dir> <service>
@@ -159,9 +155,7 @@ If the target is the very container running the current session, this
 command cannot safely run from inside that session at all — it tears down
 the process running it. Hand the exact command to a human at a real host
 shell instead, and treat any follow-up verification as a fresh
-conversation's job (see the `claude-ricardo` plan above for the pattern of
-splitting "safe prep, run from inside" from "the actual recreate, handed
-off").
+conversation's job.
 </self_rebuild_gotcha>
 
 <rollback>
@@ -177,3 +171,10 @@ If testing fails:
 4. Log the failure with error details
 5. Do NOT commit broken changes
 </rollback>
+
+<success_criteria>
+- New version identified and tag updated; sha256 digest pinned
+- Custom images build and smoke-test clean before deploy
+- Container healthy after deploy; reverted and logged on failure
+- Self-rebuild guard honored: never recreate the container running the session from inside it
+</success_criteria>

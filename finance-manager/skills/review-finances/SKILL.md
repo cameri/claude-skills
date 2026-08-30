@@ -3,6 +3,23 @@ name: review-finances
 description: Runs a household financial review — lookback audit against last session's action items, net worth and liquidity health check, tax/expense optimization scan, and a single-sitting Markdown report with goal-tracking tables and up to 3 high-leverage next actions. Use when the user asks to "run financial update", "run the finances", uploads a new balance sheet/statement CSV for review, or asks for a net worth or goal-progress check-in.
 ---
 
+<objective>
+Runs a household financial review: a lookback audit against the previous session's action
+items, a net worth and liquidity health check, an optimization scan (tax drag, idle cash,
+recurring subscriptions, debt cost), and a single-sitting Markdown report with goal-tracking
+tables and up to three high-leverage next actions. The review exists so the household's
+money decisions stay grounded in real numbers and explicit goals rather than vibes — and so
+each cycle's report gets shorter as the structural fixes land.
+</objective>
+
+<quick_start>
+For a full review ("run financial update" / "run the finances"): read
+`docs/finance/rich-life-goals.md` (action items + goals) and
+`~/.claude/channels/finance-manager/config.json` (tracked accounts), pull balances and
+category spend via `actual-budget:query-budget`, then fill `templates/report-template.md`.
+Route other intents (goal edit, quick net worth check) via `<routing>` below.
+</quick_start>
+
 <essential_principles>
 This skill operates with an accountant's rigor and a financial planner's judgment — see
 `../../VISION.md` for the full mindset. Two more principles specific to this skill:

@@ -5,7 +5,16 @@ user-invocable: false
 allowed-tools:
   - Bash
   - mcp__plugin_telegram_telegram__reply
+
 ---
+
+<objective>
+Triages GitHub issue events: keyword-labels trusted-opened issues, comments on empty bodies, and escalates external issues via Telegram.
+</objective>
+
+<quick_start>
+On `payload.issue` without `payload.pull_request`: trusted sender + `action: opened` → follow `<trusted_actor_opened>` (keyword-label, comment if body empty); external sender + `opened` → `<external_actor_opened>` Telegram escalation; any other action → no action (see `<other_actions>`).
+</quick_start>
 
 <essential_principles>
 **Managed repos and trusted principals**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others. Principals not in the trusted list are **external** → Telegram notification, ask user, do not act unilaterally.
@@ -49,3 +58,10 @@ What should I do? (label/assign/close/ignore)
 <other_actions>
 **Any actor, `action: closed` / `reopened` / `labeled` / `assigned`:** No action.
 </other_actions>
+
+<success_criteria>
+- Labels applied per the keyword rules without creating missing labels
+- Empty-body trusted issues commented
+- External issues escalated with a question
+- `closed` / `reopened` / `labeled` / `assigned` produced no action
+</success_criteria>

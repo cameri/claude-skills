@@ -4,7 +4,16 @@ description: Handles GitHub security alerts, collaborator changes, pushes, and a
 user-invocable: false
 allowed-tools:
   - mcp__plugin_telegram_telegram__reply
+
 ---
+
+<objective>
+Handles GitHub security-alert, collaborator-change, push, and ping webhook events; notifies via Telegram.
+</objective>
+
+<quick_start>
+Always notify on `payload.alert` (see `<security_alerts>`) and `payload.member` (see `<collaborator_changes>`) regardless of sender; take no action on push or ping events (see `<noise_events>`).
+</quick_start>
 
 <essential_principles>
 **Managed repos**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others.
@@ -41,3 +50,8 @@ User: @{member.login}
 
 **Ping events** (`payload.zen` present): No action.
 </noise_events>
+
+<success_criteria>
+- Every security alert and collaborator change produced a Telegram notification
+- Push and ping events produced no notification
+</success_criteria>

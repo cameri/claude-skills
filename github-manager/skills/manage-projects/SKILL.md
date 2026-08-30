@@ -5,7 +5,16 @@ user-invocable: false
 allowed-tools:
   - Bash
   - mcp__plugin_telegram_telegram__reply
+
 ---
+
+<objective>
+Handles GitHub Projects v2 webhook events: notifies on lifecycle changes and escalates external activity via Telegram.
+</objective>
+
+<quick_start>
+When a `projects_v2` or `projects_v2_item` payload fires: verify the repo is managed (plugin `CLAUDE.md`), check the sender against the trusted principals list, then send the matching template from `<projects_v2_events>` / `<projects_v2_item_events>`. Ignore noise: `projects_v2` `updated` and trusted `projects_v2_item` events.
+</quick_start>
 
 <essential_principles>
 **Managed repos and trusted principals**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others. Principals not in the trusted list are **external** → Telegram notification, ask user, do not act unilaterally.
@@ -65,3 +74,9 @@ gh project item-add {project_number} --owner {owner} --url {issue_or_pr_url}
 ```
 Only add when you know the target project number. If uncertain, skip.
 </adding_items>
+
+<success_criteria>
+- External activity escalated via Telegram with a clear question ("What should I do?")
+- Trusted-actor events handled per their templates; `updated` and `projects_v2_item` noise correctly ignored
+- Events for non-managed repos produced no action
+</success_criteria>

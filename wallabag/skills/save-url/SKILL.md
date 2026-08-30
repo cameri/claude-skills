@@ -69,6 +69,7 @@ Omit `tags` and `title` fields if not provided.
   If `http_status` in the response is `403`, add a note that the fetcher was blocked (e.g. Cloudflare) and the content may not be captured correctly.
 - **HTTP 401** — token expired or invalid; suggest re-running `/wallabag:access env=$ENV`.
 - **Other error** — show the status code and response body.
+- **Any failure report** — never include `$WALLABAG_PASSWORD` or `$WALLABAG_CLIENT_SECRET` values in error output.
 </display_results>
 
 <success_criteria>

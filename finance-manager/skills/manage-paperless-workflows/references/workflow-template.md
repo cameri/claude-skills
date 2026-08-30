@@ -1,8 +1,6 @@
-# Workflow Template: Bank Statement Auto-Triage
-
 Generic pattern for a Paperless-ngx workflow that auto-tags bank statement documents. Ships with no concrete Paperless IDs — this file must stay portable. This workspace's actual worked examples (with real IDs) live in `docs/finance/paperless-workflow-ids.md`, not here.
 
-## Triggers (create two, identical except `type`)
+**Triggers (create two, identical except `type`)**
 
 | Field | Value |
 |---|---|
@@ -12,7 +10,7 @@ Generic pattern for a Paperless-ngx workflow that auto-tags bank statement docum
 | `match` | 2–6 distinctive words from the institution name and statement boilerplate — see "Choosing match words" |
 | all `filter_*` fields | leave unset — content match is the only gate, matching this workspace's earlier precedent workflows |
 
-## Actions (create two)
+**Actions (create two)**
 
 1. **Assign** (`type: 1`):
    - `assign_correspondent`: `<correspondent_id>`
@@ -35,7 +33,7 @@ print(inbox[0]['id'] if inbox else 'NONE')
 "
 ```
 
-## Choosing match words
+**Choosing match words**
 
 - Prefer words that appear with clean whitespace boundaries in the document's extracted `content` field. Verify every candidate with `scripts/simulate_match.py` (Task 3) before ever using it — do not guess.
 - Avoid words likely to be glued to neighboring text by OCR/PDF extraction (e.g. "Bank" inside a run-together institution name like `AcmeNationalBank`) — this exact failure broke an earlier workflow.

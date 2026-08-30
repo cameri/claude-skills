@@ -1,6 +1,13 @@
 {
   "name": "repo-hygiene-sweep",
   "description": "Sweep every standalone repo in a multi-repo workspace for uncommitted or unpushed work, without missing the ones a plain `git status`/`jj status` from the workspace root can't see.",
-  "version": "0.1.0",
-  "keywords": ["jj", "git", "multi-repo", "hygiene", "status", "monorepo"]
+  "version": "0.1.1",
+  "keywords": [
+    "jj",
+    "git",
+    "multi-repo",
+    "hygiene",
+    "status",
+    "monorepo"
+  ]
 }

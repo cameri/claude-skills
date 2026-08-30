@@ -32,10 +32,10 @@ Parse `env=<name>` from `$ARGUMENTS` before any other processing. Strip it from 
 
 ```
 WALLABAG_URL=https://app.wallabag.it
-WALLABAG_CLIENT_ID=1_abc123
-WALLABAG_CLIENT_SECRET=secrethere
-WALLABAG_USERNAME=myuser
-WALLABAG_PASSWORD=mypassword
+WALLABAG_CLIENT_ID=1_example
+WALLABAG_CLIENT_SECRET=changeme
+WALLABAG_USERNAME=user@example.com
+WALLABAG_PASSWORD=changeme
 ```
 
 All five keys are required. Never quote values. `chmod 600` after writing.

@@ -1,15 +1,13 @@
-# Workflow: Check Fleet Health
-
 <required_reading>
 **Read these reference files NOW before proceeding:**
 1. references/environment.md
 2. references/ipv6-networking.md — when diagnosing IPv6 connectivity or timeouts
+
+**Environment values:** resolve `$CONTAINERS_ROOT` and the service/network inventory from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) — never hardcode paths or service lists.
 </required_reading>
 
 <process>
 <step_1_container_status>
-## Step 1: Check container health status
-
 ```bash
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | sort
 ```
@@ -27,8 +25,6 @@ docker ps -a --filter "status=exited" --format "table {{.Names}}\t{{.Status}}\t{
 </step_1_container_status>
 
 <step_2_cross_reference_gatus>
-## Step 2: Cross-reference with Gatus
-
 Check Gatus logs for recent failures:
 ```bash
 docker logs gatus --tail 50 2>&1 | grep "success=false"
@@ -38,8 +34,6 @@ This shows which endpoints Gatus currently sees as failing, which may differ fro
 </step_2_cross_reference_gatus>
 
 <step_3_diagnose>
-## Step 3: Diagnose unhealthy containers
-
 For each unhealthy or failed container:
 
 ```bash
@@ -64,8 +58,6 @@ Common causes:
 </step_3_diagnose>
 
 <step_4_report>
-## Step 4: Report findings
-
 Summarize:
 - Total containers running vs expected
 - Unhealthy containers with reason
@@ -77,11 +69,11 @@ If everything is healthy, confirm: "All containers running and healthy."
 </step_4_report>
 
 <step_5_remediate>
-## Step 5: Remediate (if user asks)
+**Remediate (if the user asks).**
 
 **Restart a specific service:**
 ```bash
-cd /workspace/containers
+cd $CONTAINERS_ROOT
 docker compose restart <service>
 ```
 
@@ -97,15 +89,15 @@ docker compose logs -f <service>
 
 **Network troubleshooting:**
 ```bash
-NETSHOOT_NETWORK=containers_gatus ../projects/claude-skills/netshoot/scripts/netshoot curl http://<container_name>:<port>
+NETSHOOT_NETWORK=<monitoring-network> netshoot curl http://<container_name>:<port>   # network name from this plugin's CLAUDE.md
 ```
 </step_5_remediate>
 </process>
 
 <success_criteria>
-- [ ] All containers checked for health status
-- [ ] Gatus failures cross-referenced
-- [ ] Unhealthy containers diagnosed with root cause
-- [ ] Summary report provided
-- [ ] Remediation steps taken if requested
+- All containers checked for health status
+- Gatus failures cross-referenced
+- Unhealthy containers diagnosed with root cause
+- Summary report provided
+- Remediation steps taken if requested
 </success_criteria>

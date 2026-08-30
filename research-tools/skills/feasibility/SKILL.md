@@ -1,6 +1,6 @@
 ---
 name: feasibility
-description: Assess whether a proposed project or idea is actually achievable given real technical, resource, and external-dependency constraints, ending in a clear go/no-go verdict. Use only when the user explicitly asks for a feasibility assessment or reality check — do not initiate this on your own, it is a deliberate, potentially token-heavy investigation.
+description: Assess whether a proposed project or idea is actually achievable given real technical, resource, and external-dependency constraints, ending in a clear go/no-go verdict. Use only when the user explicitly asks for a feasibility assessment or reality check — the agent must not initiate this unprompted, it is a deliberate, potentially token-heavy investigation.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -14,6 +14,8 @@ Assesses the feasibility of $ARGUMENTS (or the current topic if none given) —
 an honest reality check on whether it can actually be done given technical,
 resource, and external constraints.
 </objective>
+
+<quick_start>Confirm the project/idea and known constraints from $ARGUMENTS (ask if unclear), then research the technical, resource, and external-dependency dimensions before issuing a verdict.</quick_start>
 
 <workflow>
 1. If no clear project/idea is given in $ARGUMENTS or recent context, ask
@@ -29,6 +31,8 @@ resource, and external constraints.
    any de-risking options that reduce risk before committing further.
 7. Give an overall verdict — Go / Go with conditions / No-go — with the
    reasoning and conditions spelled out, not left implicit.
+8. If authoritative sources are unavailable or disagree, state it plainly
+   and mark confidence instead of padding with weak sources.
 </workflow>
 
 <success_criteria>

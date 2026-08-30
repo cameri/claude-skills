@@ -5,7 +5,16 @@ user-invocable: false
 allowed-tools:
   - Bash
   - mcp__plugin_telegram_telegram__reply
+
 ---
+
+<objective>
+Handles GitHub PR webhook events: auto-merges Dependabot patches via the test → merge → rebase loop and escalates external PRs via Telegram.
+</objective>
+
+<quick_start>
+On `payload.pull_request` with `action: opened`: route by sender against the plugin `CLAUDE.md` Trusted Principals — trusted bot actor (e.g. `dependabot[bot]`) → follow `<dependabot_opened>`; trusted human → `<trusted_human_opened>` informational Telegram; external → `<external_actor_opened>` escalation.
+</quick_start>
 
 <essential_principles>
 **Managed repos and trusted principals**: Read from this plugin's `CLAUDE.md` (at the plugin root, one level above `skills/`). Verify the incoming repo is in the managed repos list before acting — ignore all others. Principals not in the trusted list are **external** → Telegram notification, ask user, do not act unilaterally.
@@ -14,7 +23,7 @@ allowed-tools:
 </essential_principles>
 
 <dependabot_opened>
-**`dependabot[bot]`, `action: opened`:**
+**Trusted bot actor (per the plugin `CLAUDE.md` Trusted Principals), `action: opened`:**
 
 → Read and follow `workflows/handle-dependabot-pr.md` exactly.
 
@@ -28,7 +37,7 @@ Key principles:
 </dependabot_opened>
 
 <trusted_human_opened>
-**Trusted human (`cameri` or `phoenix-server`), `action: opened`:**
+**Trusted human (per the plugin `CLAUDE.md` Trusted Principals), `action: opened`:**
 
 Send Telegram notification (informational — no action):
 ```
@@ -64,3 +73,9 @@ What should I do? (review/approve/close/ignore)
 |----------|---------|
 | handle-dependabot-pr.md | Full test→merge→rebase loop for Dependabot PRs (build, docker compose, verify logs, merge, fix conflicts) |
 </workflows_index>
+
+<success_criteria>
+- Dependabot patch merged only after passing the smoke-test loop
+- External PRs escalated with a review/approve/close/ignore question
+- `closed` / `synchronize` / `labeled` produced no action
+</success_criteria>

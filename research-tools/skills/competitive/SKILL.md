@@ -1,6 +1,6 @@
 ---
 name: competitive
-description: Research the competitive landscape for a product or feature — who else solves this problem, how, and where the gaps are. Use only when the user explicitly asks for competitive research or analysis — do not initiate this on your own, it is a deliberate, potentially token-heavy investigation.
+description: Research the competitive landscape for a product or feature — who else solves this problem, how, and where the gaps are. Use only when the user explicitly asks for competitive research or analysis — the agent must not initiate this unprompted, it is a deliberate, potentially token-heavy investigation.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -15,6 +15,8 @@ none given) — who else solves this problem, how they do it, and where the
 opportunities are.
 </objective>
 
+<quick_start>Confirm the product/feature subject from $ARGUMENTS (ask if unclear), then identify 3–5 real competitors via WebSearch before assessing each against the workflow below.</quick_start>
+
 <workflow>
 1. If no clear subject is given in $ARGUMENTS or recent context, ask what to
    research rather than guessing.
@@ -26,6 +28,8 @@ opportunities are.
    entrant must have.
 6. Synthesize into a clear recommendation: where's the actual opportunity or
    gap, given what already exists.
+7. If authoritative sources are unavailable or disagree, state it plainly
+   and mark confidence instead of padding with weak sources.
 </workflow>
 
 <success_criteria>

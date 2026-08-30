@@ -1,18 +1,16 @@
-# Workflow: Add a New Service
-
 <required_reading>
 **Read these reference files NOW before proceeding:**
 1. references/environment.md
 2. references/container-types.md
 3. references/ipv6-networking.md — if the service needs IPv6 connectivity
+
+**Environment values:** resolve `$CONTAINERS_ROOT` and the service/network inventory from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) — never hardcode paths or service lists.
 </required_reading>
 
 <process>
 <step_1_create_directory>
-## Step 1: Create the service directory and compose.yml
-
 ```bash
-mkdir /workspace/containers/<service>
+mkdir $CONTAINERS_ROOT/<service>
 ```
 
 Create `compose.yml` with:
@@ -22,15 +20,13 @@ Create `compose.yml` with:
 - `networks:` — connect to `gatus` at minimum; add `tsdproxy` if Tailscale access needed; add `cloudflare` if public access needed
 - `environment:` — use object format (`KEY: VALUE`), not array format (`- KEY=VALUE`)
 - `restart: unless-stopped`
-- `healthcheck:` — see Step 4
+- `healthcheck:` — see Step 3
 
 Key ordering convention: `image` → `container_name` → `labels` → `env_file` → `environment` → `volumes` → `networks` → `restart` → `healthcheck`
 </step_1_create_directory>
 
 <step_2_add_to_root>
-## Step 2: Add to root compose.yml
-
-Edit `/workspace/containers/compose.yml` and add to the `include:` list:
+Edit `$CONTAINERS_ROOT/compose.yml` and add to the `include:` list:
 
 ```yaml
 include:
@@ -39,8 +35,6 @@ include:
 </step_2_add_to_root>
 
 <step_3_healthcheck>
-## Step 3: Add a Docker healthcheck
-
 Choose the simplest method available in the container:
 
 | Method | When to use | Example |
@@ -70,9 +64,7 @@ docker run --rm <image> curl -f http://127.0.0.1:PORT
 </step_3_healthcheck>
 
 <step_4_gatus>
-## Step 4: Add Gatus monitoring
-
-Edit `/workspace/containers/gatus/config/config.yaml`.
+Edit `$CONTAINERS_ROOT/gatus/config/config.yaml`.
 
 Add an endpoint entry. Use the appropriate protocol:
 
@@ -120,9 +112,9 @@ Gatus hot-reloads — no restart needed.
 </step_4_gatus>
 
 <step_5_tsdproxy>
-## Step 5: Add TsDproxy config (if Tailscale access needed)
+**Add TsDproxy config (if Tailscale access needed).**
 
-Add the service to the appropriate file in `/workspace/containers/tsdproxy/config/`:
+Add the service to the appropriate file in `$CONTAINERS_ROOT/tsdproxy/config/`:
 - `applications.yaml` — user-facing apps
 - `admin-tools.yaml` — admin/management UIs
 - `infrastructure.yaml` — monitoring/infrastructure
@@ -141,12 +133,12 @@ The service must be on the `tsdproxy` network.
 </step_5_tsdproxy>
 
 <step_6_cloudflare>
-## Step 6: Add Cloudflare tunnel config (if public access needed)
+**Add Cloudflare tunnel config (if public access needed).**
 
 Use the Cloudflare API via netshoot to update the tunnel ingress:
 
 ```bash
-./scripts/netshoot sh -c 'curl -s -X PUT \
+netshoot sh -c 'curl -s -X PUT \
   -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
   -H "Content-Type: application/json" \
   "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel/${CLOUDFLARE_TUNNEL_ID}/configurations" \
@@ -157,10 +149,8 @@ The service must be on the `cloudflare` network.
 </step_6_cloudflare>
 
 <step_7_test>
-## Step 7: Test the service
-
 ```bash
-cd /workspace/containers
+cd $CONTAINERS_ROOT
 docker compose up -d <service>
 sleep 15
 docker ps --filter "name=<container_name>" --format "table {{.Names}}\t{{.Status}}"
@@ -175,8 +165,6 @@ Verify:
 </step_7_test>
 
 <step_8_commit>
-## Step 8: Commit
-
 ```bash
 jj describe -m "add <service>: <brief description>"
 jj bookmark set main -r @
@@ -186,12 +174,12 @@ jj git push
 </process>
 
 <success_criteria>
-- [ ] compose.yml created with container_name, dozzle label, correct networks, healthcheck
-- [ ] Added to root compose.yml include list
-- [ ] Healthcheck verified working
-- [ ] Gatus endpoint added with both telegram and custom alerts
-- [ ] TsDproxy config added (if applicable)
-- [ ] Cloudflare tunnel updated (if applicable)
-- [ ] Container running and healthy
-- [ ] Changes committed and pushed
+- compose.yml created with container_name, dozzle label, correct networks, healthcheck
+- Added to root compose.yml include list
+- Healthcheck verified working
+- Gatus endpoint added with both telegram and custom alerts
+- TsDproxy config added (if applicable)
+- Cloudflare tunnel updated (if applicable)
+- Container running and healthy
+- Changes committed and pushed
 </success_criteria>

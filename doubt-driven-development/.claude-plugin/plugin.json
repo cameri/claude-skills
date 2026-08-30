@@ -1,7 +1,7 @@
 {
   "name": "doubt-driven-development",
-  "description": "Adversarial fresh-context review of non-trivial in-flight decisions — CLAIM, EXTRACT, DOUBT, RECONCILE, STOP — with optional user-authorized cross-model escalation.",
-  "version": "0.1.0",
+  "description": "Adversarial fresh-context review of non-trivial in-flight decisions \u2014 CLAIM, EXTRACT, DOUBT, RECONCILE, STOP \u2014 with optional user-authorized cross-model escalation.",
+  "version": "0.1.1",
   "keywords": [
     "review",
     "verification",

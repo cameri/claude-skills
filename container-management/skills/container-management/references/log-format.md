@@ -1,5 +1,5 @@
 <overview>
-The update log lives at `/workspace/containers/UPDATE-LOG.md`. Every update attempt is recorded here — successful or not.
+The update log lives at `$CONTAINERS_ROOT/UPDATE-LOG.md` (root from this plugin's `CLAUDE.md`). Every update attempt is recorded here — successful or not.
 </overview>
 
 <file_header>
@@ -78,7 +78,7 @@ To find the oldest-updated container:
 
 1. Read UPDATE-LOG.md
 2. Extract the most recent date per service (a service may have multiple entries)
-3. List all service directories under `/workspace/containers/` (dirs containing compose.yml)
+3. List all service directories under `$CONTAINERS_ROOT` (dirs containing compose.yml)
 4. Services with no entries in the log are treated as "never updated" (oldest priority)
 5. Among services with entries, pick the one with the earliest last-updated date
 </picking_oldest>

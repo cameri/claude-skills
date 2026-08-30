@@ -1,5 +1,3 @@
-# The Rich Life Allocation
-
 How to compute the baseline that anchors Step 3 of `templates/report-template.md`: what's
 structurally spoken for versus what's genuinely free to spend without guilt.
 

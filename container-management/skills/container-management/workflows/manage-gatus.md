@@ -1,13 +1,13 @@
-# Workflow: Manage Gatus Monitoring
-
 <required_reading>
 **Read these reference files NOW before proceeding:**
 1. references/environment.md
+
+**Environment values:** resolve `$CONTAINERS_ROOT` and the service/network inventory from this plugin's `CLAUDE.md` (plugin root, one level above `skills/`) — never hardcode paths or service lists.
 </required_reading>
 
 <process>
 <overview>
-Gatus config: `/workspace/containers/gatus/config/config.yaml`
+Gatus config: `$CONTAINERS_ROOT/gatus/config/config.yaml`
 
 Gatus **hot-reloads** on file change — no restart needed. Changes take effect within seconds.
 
@@ -15,8 +15,6 @@ Alert providers are defined once at the top under `alerting:`. Endpoints referen
 </overview>
 
 <add_endpoint>
-## Adding an endpoint
-
 Append to the `endpoints:` list in the config. Choose the correct protocol:
 
 **HTTP:**
@@ -88,14 +86,10 @@ Append to the `endpoints:` list in the config. Choose the correct protocol:
 </add_endpoint>
 
 <remove_endpoint>
-## Removing an endpoint
-
 Find and delete the endpoint block from `gatus/config/config.yaml`. Each endpoint is a YAML list item starting with `- name:`.
 </remove_endpoint>
 
 <modify_endpoint>
-## Modifying an endpoint
-
 Common modifications:
 - Change URL: update `url:` field
 - Change interval: update `interval:` (e.g. `1m`, `5m`, `30s`)
@@ -105,15 +99,13 @@ Common modifications:
 </modify_endpoint>
 
 <manage_alert_providers>
-## Managing alert providers
-
 Alert providers are defined under `alerting:` at the top of the config.
 
 **Custom webhook provider** (current setup):
 ```yaml
 alerting:
   custom:
-    url: "http://<host-ip>:3456/webhook/<webhook_id>"
+    url: "http://<host-ip>:<port>/webhook/<webhook_id>"
     method: POST
     body: |
       {
@@ -142,8 +134,6 @@ alerting:
 </manage_alert_providers>
 
 <verify>
-## Verifying changes
-
 Check Gatus logs after editing:
 ```bash
 docker logs gatus --tail 20 2>&1 | grep -iE "error|warn|reload"
@@ -154,8 +144,8 @@ If no errors appear and the container continues cycling through endpoints, the c
 </process>
 
 <success_criteria>
-- [ ] Config file edited correctly (valid YAML)
-- [ ] No errors in Gatus logs after change
-- [ ] New endpoint appears in Gatus logs within 1 minute
-- [ ] Alert fires correctly on test failure (if tested)
+- Config file edited correctly (valid YAML)
+- No errors in Gatus logs after change
+- New endpoint appears in Gatus logs within 1 minute
+- Alert fires correctly on test failure (if tested)
 </success_criteria>

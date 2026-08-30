@@ -4,36 +4,36 @@ description: Network troubleshooting using the nicolaka/netshoot container. Use 
 ---
 
 <objective>
-Run network diagnostics inside the Docker container network using the nicolaka/netshoot image. The bundled script at `scripts/netshoot` (relative to this skill) handles container lifecycle — just pass the command and arguments.
+Run network diagnostics inside the Docker container network using the nicolaka/netshoot image. The bundled script at `<plugin>/scripts/netshoot` (plugin root) handles container lifecycle — just pass the command and arguments.
 </objective>
 
 <quick_start>
 ```bash
-# From /workspace/containers/
-./scripts/netshoot curl http://forgejo:3000
-./scripts/netshoot ping gatus
+# From the container stack directory (see plugin CLAUDE.md)
+./scripts/netshoot curl http://<service>:<port>
+./scripts/netshoot ping <service>
 ./scripts/netshoot nc -zv 192.0.2.1 5432
 ```
 
-**The script must be run from `/workspace/containers/`** so it can load `.env` via `--env-file .env`.
+**Run the script from the container stack directory** (see plugin CLAUDE.md) so it can load `.env` via `--env-file .env`. The script ships at the plugin root `<plugin>/scripts/netshoot`; the examples use `./scripts/netshoot` as shorthand — call it by its actual path from the stack directory. If `.env` is missing there, the script skips `--env-file` and runs without it (or create `.env` from the stack's template — see plugin CLAUDE.md).
 
 Target a specific network with `NETSHOOT_NETWORK`:
 ```bash
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot ping gatus
-NETSHOOT_NETWORK=container:gatus ./scripts/netshoot ss -tuln
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot ping <service>
+NETSHOOT_NETWORK=container:<container> ./scripts/netshoot ss -tuln
 NETSHOOT_NETWORK=host ./scripts/netshoot ip route show
 ```
 
 Default network: `host`
+
+Network names are environment-specific: see the plugin CLAUDE.md for this stack's networks, or discover them with `docker network ls`.
 </quick_start>
 
 <network_modes>
 | Value | Meaning |
 |-------|---------|
 | `host` (default) | Use host networking — can reach host services |
-| `containers_gatus` | Join the `gatus` Docker network — can reach containers on it |
-| `containers_tsdproxy` | Join the `tsdproxy` network |
-| `containers_cloudflare` | Join the `cloudflare` network |
+| `<network-name>` | Join a named Docker network — can reach containers on it. See plugin CLAUDE.md for this stack's networks, or run `docker network ls` |
 | `container:<name>` | Share network namespace with a running container |
 </network_modes>
 
@@ -58,7 +58,7 @@ Default network: `host`
 <common_patterns>
 **Check if HTTP service is reachable:**
 ```bash
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot curl -f http://<container>:<port>
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot curl -f http://<container>:<port>
 ```
 
 **Test TCP port connectivity:**
@@ -70,25 +70,30 @@ NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot curl -f http://<container>:
 
 **DNS resolution:**
 ```bash
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot nslookup immich-server
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot dig forgejo
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot nslookup <service>
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot dig <service>
 ```
 
 **Inspect container's open ports:**
 ```bash
-NETSHOOT_NETWORK=container:gatus ./scripts/netshoot ss -tuln
+NETSHOOT_NETWORK=container:<container> ./scripts/netshoot ss -tuln
 ```
 
 **Packet capture:**
 ```bash
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot tcpdump -i any -n port 80
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot tcpdump -i any -n port 80
 ```
 
 **Run a shell for interactive debugging:**
 ```bash
-NETSHOOT_NETWORK=containers_gatus ./scripts/netshoot sh
+NETSHOOT_NETWORK=<network-name> ./scripts/netshoot sh
 ```
 </common_patterns>
+
+<error_handling>
+- **"network not found"** — the `NETSHOOT_NETWORK` value does not match a real network. Run `docker network ls` and check the plugin CLAUDE.md for this stack's network names.
+- **Missing `.env`** — the script skips `--env-file` when `.env` is absent, so the container starts without env vars. If the target service needs them, create `.env` in the stack directory (see plugin CLAUDE.md).
+</error_handling>
 
 <success_criteria>
 - Command runs without "network not found" errors

@@ -23,7 +23,7 @@ Payload:
 { "ref": "refs/heads/main", "commits": [...] }
 </channel>
 ```
-Parse the payload and act on it — open a PR, trigger a deploy, send a Telegram message, etc.
+Parse the payload and act on it — open a PR, trigger a deploy, send a channel message, etc.
 </quick_start>
 
 <tools>
@@ -49,14 +49,28 @@ Parse the payload and act on it — open a PR, trigger a deploy, send a Telegram
 - Default header: `X-Webhook-Secret`
 - Example header: `X-Webhook-Secret: my-secret-token`
 </auth_modes>
+<security_checklist>
+- Prefer `hmac_sha256` on public endpoints; reserve `header` for trusted senders and `none` for internal networks only.
+- Never log secrets or echo them in replies — `list_webhooks` redacts them.
+- Use placeholder secrets (`<your-secret>`) in examples and test deliveries.
+</security_checklist>
 
 <ip_allowlist>
-`allowed_ips` is an array of exact IP addresses. Empty array = allow all.
+`allowed_ips` accepts exact IP addresses only — no CIDR notation or ranges. Empty array = allow all.
 
 For services behind a reverse proxy, set `trust_proxy: true` in config so the server reads `X-Forwarded-For` for the real client IP.
 
-**GitHub webhook IPs** (as of 2026): `140.82.112.0/20` range — use `set_config trust_proxy: true` if behind nginx/Caddy, then check GitHub's meta API for the current CIDR ranges and list them as individual IPs or note them in the webhook name.
+**GitHub webhook IPs** — GitHub publishes its current webhook IP ranges in its meta API (`https://api.github.com/meta`, `hooks` field) and they change over time. Since `allowed_ips` cannot express CIDR ranges, do not enumerate them in the webhook; enforce them at the reverse proxy (with `trust_proxy: true`, above) or firewall instead.
 </ip_allowlist>
+
+<validation>
+Rejected requests return a JSON error and are never queued:
+- `401` — verification failed (missing signature header, invalid signature, or secret mismatch). Check that the secret matches the external service, that `hmac_prefix` matches its format (`sha256=` prefix vs raw hex), and that the header name is right (`X-Signature-256` by default, or `auth_header`).
+- `403` — client IP not in `allowed_ips`.
+- `404` — unknown or disabled webhook ID.
+
+A successful delivery returns `202`; the payload is then delivered as a channel notification. If a test delivery fails, match the status code against the list above and fix the corresponding cause.
+</validation>
 
 <server_requirements>
 The server requires:
@@ -96,7 +110,7 @@ The notification body contains the full payload as formatted JSON (or raw text f
 **CI/CD notification:**
 1. `add_webhook` with `name: "Deploy Done"`, `auth_mode: "header"`, `secret: "token-abc"`, `auth_header: "X-Deploy-Token"`
 2. Configure your CI to POST with `X-Deploy-Token: token-abc` on pipeline completion
-3. React by sending a Telegram message or updating a status page
+3. React by sending a channel message or updating a status page
 
 **Disable without deleting:**
 - `update_webhook` with `id: "<id>"`, `enabled: false`

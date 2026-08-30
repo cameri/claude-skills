@@ -1,14 +1,14 @@
-# Workflow: create-or-update-workflow
-
 Creates or fixes a Paperless-ngx workflow so a bank statement type gets auto-tagged. Applies automatically once the match simulation validates — no confirmation prompt. Aborts without writing anything if no candidate match text can be validated.
 
-## Setup
+**Setup**
 
 ```bash
 set -a
 source ~/.claude/channels/paperless/.env
 set +a
-SIMULATE="projects/claude-skills/finance-manager/skills/manage-paperless-workflows/scripts/simulate_match.py"
+# The simulator ships in this skill's own scripts/ dir — resolve at runtime,
+# never hardcode a repo path (the plugin can live anywhere).
+SIMULATE="<this-skill-dir>/scripts/simulate_match.py"
 TOKEN=$(http --ignore-stdin -b POST "${PAPERLESS_URL%/}/api/token/" \
   username="$PAPERLESS_USERNAME" password="$PAPERLESS_PASSWORD" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
@@ -16,7 +16,7 @@ TOKEN=$(http --ignore-stdin -b POST "${PAPERLESS_URL%/}/api/token/" \
 
 ---
 
-## Step 1 — Gather inputs
+**Step 1 — Gather inputs**
 
 Need: correspondent id/name, document_type id/name, processed tag id/name, and at least one sample document ID (an existing untriaged document is ideal — same correspondent, still missing document_type or still carrying the inbox tag).
 
@@ -33,7 +33,7 @@ Fetch the sample document's content via the `paperless:view-content` skill (pref
 
 ---
 
-## Step 2 — Check for an existing workflow
+**Step 2 — Check for an existing workflow**
 
 ```bash
 http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/workflows/?page_size=200" "Authorization:Token $TOKEN" \
@@ -44,7 +44,7 @@ If one already targets this correspondent/document-type combination by name (or 
 
 ---
 
-## Step 3 — Simulate the match (the safety gate)
+**Step 3 — Simulate the match (the safety gate)**
 
 For each candidate match text (start with institution name + "Statement", add/remove distinctive words per `references/workflow-template.md`'s guidance):
 
@@ -59,7 +59,7 @@ python3 "$SIMULATE" "<candidate match text>" <sample_document_id>
 
 ---
 
-## Step 4 — Resolve the inbox tag dynamically
+**Step 4 — Resolve the inbox tag dynamically**
 
 ```bash
 INBOX_TAG_ID=$(http --ignore-stdin -b GET "${PAPERLESS_URL%/}/api/tags/?page_size=200" \
@@ -75,7 +75,7 @@ If `NONE`, this instance has no inbox tag configured — skip the `remove_tags` 
 
 ---
 
-## Step 5 — Apply automatically
+**Step 5 — Apply automatically**
 
 **Fixing an existing workflow** — `PATCH` just the trigger(s):
 
@@ -111,7 +111,7 @@ No confirmation prompt at this point — Step 3 already validated the match.
 
 ---
 
-## Step 6 — Verify
+**Step 6 — Verify**
 
 Re-fetch the workflow and re-run the simulation:
 
@@ -125,6 +125,6 @@ If the workflow's trigger has `is_insensitive: false`, pass `--case-sensitive` t
 
 ---
 
-## Step 7 — Report
+**Step 7 — Report**
 
 State what was created/changed: workflow name and ID, trigger match text, and the exact correspondent/document-type/tag IDs assigned, with their resolved names (e.g. "correspondent 355 (Acme Bank), document_type 194 (Financial), tag 77 (statement)") — so an incorrect ID is visible in the report, not just applied silently. Send to the caller directly, or via `config.json`'s `reporting.telegram_chat_id` if invoked headless from a reconciliation report. This is the transparency mechanism in place of a confirmation step — automatic does not mean silent.

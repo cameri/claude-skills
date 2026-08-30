@@ -1,6 +1,6 @@
 ---
 name: technical
-description: Research concrete implementation approaches for something you need to build — libraries, patterns, architectures — with honest tradeoffs and a recommendation fitted to stated constraints. Use only when the user explicitly asks for technical/implementation research — do not initiate this on your own, it is a deliberate, potentially token-heavy investigation.
+description: Research concrete implementation approaches for a stated build goal — libraries, patterns, architectures — with honest tradeoffs and a recommendation fitted to stated constraints. Use only when the user explicitly asks for technical/implementation research — the agent must not initiate this unprompted, it is a deliberate, potentially token-heavy investigation.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -14,6 +14,8 @@ Researches technical implementation approaches for $ARGUMENTS (or the
 current topic if none given) — concrete ways to build it (libraries,
 patterns, architectures) with honest tradeoffs for each.
 </objective>
+
+<quick_start>Confirm the subject and hard constraints from $ARGUMENTS (ask if unclear), then run 2–4 scoped WebSearch queries and fetch the most authoritative results before applying the workflow below.</quick_start>
 
 <workflow>
 1. If what needs to be built, or its hard constraints (language/framework,
@@ -30,6 +32,8 @@ patterns, architectures) with honest tradeoffs for each.
 5. Recommend one approach fitted to the stated constraints, with enough
    concreteness (starting point, order of implementation, known gotchas)
    that someone could begin building from it immediately.
+6. If authoritative sources are unavailable or disagree, state it plainly
+   and mark confidence instead of padding with weak sources.
 </workflow>
 
 <success_criteria>

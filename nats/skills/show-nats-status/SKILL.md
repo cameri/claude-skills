@@ -20,7 +20,7 @@ Shows the connection state of the local NATS agent and all known agents from the
 **1. Configuration:**
 
 Read `~/.claude/channels/nats/.env` if it exists. Show:
-- `NATS_URL`: value or "(not configured — using defaults: nats://nats:4222, nats://nats-server:4222)"
+- `NATS_URL`: value or "(not configured — using the default URLs documented in the access skill)"
 
 **2. This agent's identity:**
 
@@ -49,7 +49,7 @@ Run `/nats:discover-agents` for a live scan of all connected agents.
 
 <success_criteria>
 - NATS URL and agent ID displayed (or clear not-configured messages)
-- Agent list from cache shown with capabilities
+- Agent list from cache shown
 - MCP server connectivity confirmed or failure explained
 - User knows next step (discover if cache empty, reconfigure if URL missing)
 </success_criteria>

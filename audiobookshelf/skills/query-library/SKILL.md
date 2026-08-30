@@ -81,9 +81,8 @@ Display `username`, `type` (e.g. `root`), and summarize `mediaProgress` (empty i
 </workflow>
 
 <notes>
-- Confirmed against a live instance while this skill was built: `GET /api/libraries`, `GET /api/libraries/<id>/items`, `GET /api/me`, `POST /api/authorize` all work with the Bearer key. `GET /api/search` (no library scope) 404s.
-- Not yet live-verified (library was empty, no items to test against): per-library search, item details, series (`GET /api/libraries/<id>/series`), authors (`GET /api/authors/<id>`), users list (`GET /api/users`, root-only), and listening-progress updates (`PATCH /api/me/progress/<id>`). Treat these as "likely correct per Audiobookshelf's public API docs, not confirmed here" until exercised against real data — if one of them 404s or shapes its response differently than expected, trust the live response over this file and flag the mismatch to the user.
 - `401`/`403` almost always means the API key is stale or was revoked in the web UI — point the user at `/audiobookshelf:access` to refresh it, don't guess at other causes first.
+- If any endpoint 404s or returns an unexpected shape, trust the live response over this file and flag the mismatch to the user.
 </notes>
 
 <success_criteria>
