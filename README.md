@@ -296,6 +296,15 @@ MCP-only — no `SKILL.md` skills. Ships an MCP server (`@getalby/mcp`) wired to
 | `replicator:capture` | Queue a candidate skill the moment you notice something reusable was just learned during a session |
 | `replicator:meditate` | Run the nightly replicator cycle — review gene usage, look inward/outward for skills worth building, build with scrutiny, prune stale ones, write a trace |
 
+This plugin also ships an MCP server (`replicator` v0.9.0+) exposing
+SearXNG-backed `search`/`fetch` tools (self-hosted, endpoint via
+`SEARXNG_ENDPOINT`, default `http://searxng:8080`). These exist so the
+`replicator:quarantine` agent — deliberately fetch-only, no Bash/Write/Edit/
+Agent — can evaluate external sources in its own contained context; under
+omp, agent sessions only inherit mounted MCP server tools, so the quarantine
+agent needs this server to have any web capability at all. `fetch` is
+SSRF-guarded (refuses private/loopback/link-local/CGNAT destinations).
+
 ### repo-hygiene-sweep
 
 | Skill | Description |
