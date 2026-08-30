@@ -19,14 +19,15 @@ describe('formatUsageMessage', () => {
     expect(msg).toContain('Context: 42% used (~85k/200k tokens)')
   })
 
-  test('formats a rate-limit bucket with its reset time and countdown', () => {
-    const resetsAt = NOW + 3600 * 2 + 60 * 15 // 2h15m from now
+  test('flags a past resets_at as stale instead of "in 0m"', () => {
+    const resetsAt = NOW - 3600 * 2 // 2h in the past — stale bucket
     const msg = formatUsageMessage(
-      { cached_at: NOW, rate_limits: { five_hour: { used_percentage: 61, resets_at: resetsAt } } },
+      { cached_at: NOW, rate_limits: { seven_day: { used_percentage: 20, resets_at: resetsAt } } },
       NOW,
     )
-    expect(msg).toContain('5-hour limit: 61% used')
-    expect(msg).toContain('in 2h 15m')
+    expect(msg).toContain('Weekly limit: 20% used')
+    expect(msg).toContain('(stale)')
+    expect(msg).not.toContain('in 0m')
   })
 
   test('omits a bucket entirely when its percentage is null/missing', () => {

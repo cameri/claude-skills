@@ -44,6 +44,10 @@ function formatReset(resetsAt: number | null | undefined, nowSeconds: number): s
       minute: '2-digit',
       hour12: false,
     }).format(new Date(resetsAt * 1000)) + ' ET'
+  // A past resets_at is never a fresh provider value (the Anthropic /usage
+  // endpoint always returns the next reset, in the future) — it means the
+  // bucket survived from an older report. Say so instead of "in 0m".
+  if (resetsAt <= nowSeconds) return `resets ${timeStr} (stale)`
   return `resets ${timeStr} (in ${humanDelta(resetsAt - nowSeconds)})`
 }
 
