@@ -8,7 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- `sandbox-manager` (v0.18.5): new `idle-state-tracker` extension — port of
+  the idle-state-tracker.py Stop hook for omp (Claude Code hooks never run
+  under omp, so the telegram-ng idle sentinel's state file went stale after
+  the claude→omp migration and it started asking "Still going, or done for
+  now?" on every allowlisted chat, including at session start). Writes
+  ~/.claude/channels/telegram-ng/idle-state.json after every turn and at
+  session_start in the sentinel's exact shape, tracking last_chat_id from
+  inbound channel notifications so the sentinel targets the chat that
+  actually talked instead of broadcasting to the allowlist.
 - `telegram-ng` (v0.12.5): omp channel isolation — the wake-bridge extension
   no longer wakes subagent sessions on inbound channel notifications (a
   session is a subagent when `yield` is in its active tools); main-session
