@@ -300,10 +300,12 @@ This plugin also ships an MCP server (`replicator` v0.9.0+) exposing
 SearXNG-backed `search`/`fetch` tools (self-hosted, endpoint via
 `SEARXNG_ENDPOINT`, default `http://searxng:8080`). These exist so the
 `replicator:quarantine` agent — deliberately fetch-only, no Bash/Write/Edit/
-Agent — can evaluate external sources in its own contained context; under
-omp, agent sessions only inherit mounted MCP server tools, so the quarantine
-agent needs this server to have any web capability at all. `fetch` is
-SSRF-guarded (refuses private/loopback/link-local/CGNAT destinations).
+Agent — can evaluate external sources in its own contained context; omp
+child sessions enforce a strict `tools:` allowlist, so the agent def must
+name the registered MCP tool identifiers (`mcp__replicator__search` /
+`mcp__replicator__fetch`) — `WebSearch`/`WebFetch` are not registered names
+and grant nothing. `fetch` is SSRF-guarded (refuses
+private/loopback/link-local/CGNAT destinations).
 
 ### repo-hygiene-sweep
 

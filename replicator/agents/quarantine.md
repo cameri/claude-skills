@@ -1,7 +1,7 @@
 ---
 name: quarantine
 description: Fetches and evaluates a single external source (URL, feed entry, or search result) for the replicator's outward-scan step, entirely inside this agent's own context. Use when the meditate skill needs to check whether an external source contains a capability worth building a skill for. Never invoke for internal/trusted content — this agent exists to keep untrusted fetched text away from the calling agent's context.
-tools: WebSearch, WebFetch
+tools: mcp__replicator__search, mcp__replicator__fetch
 ---
 
 <role>
