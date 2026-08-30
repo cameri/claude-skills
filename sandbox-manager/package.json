@@ -1,11 +1,11 @@
 {
   "name": "sandbox-manager",
-  "version": "0.18.3",
+  "version": "0.18.4",
   "private": true,
   "description": "Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health.",
   "pi": {
     "name": "sandbox-manager",
-    "version": "0.18.3",
+    "version": "0.18.4",
     "description": "Manage the Claude Code sandbox itself — restart sessions, manage its own plugins/marketplaces, and check post-restart health.",
     "extensions": ["extensions/"]
   }

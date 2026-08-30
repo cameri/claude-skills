@@ -79,7 +79,25 @@ The extension listens for `mcp_notification` events, filters to `notifications/c
 
 </critical_rules>
 
-</wake_bridge_extension>
+<subagent_isolation>
+
+## Subagent Isolation
+
+Channel notifications must reach only the **main** session. omp subagent sessions inherit the parent's extension set and MCP connections, so without a guard every spawned subagent would wake on inbound channel traffic (and, worse, be able to call the channel's MCP tools itself).
+
+**The bridge never wakes a subagent.** The template's `mcp_notification` handler returns early when the session is a subagent, detected by the hidden `yield` tool: omp adds `yield` to every subagent session's tool set (`requireYieldTool` in `task/executor.ts`) and never to a main session.
+
+```ts
+// Subagent sessions must not wake on channel notifications — the main
+// session owns channel conversations (see sandbox-manager's
+// subagent-hardening extension). omp adds `yield` to every subagent
+// session's tool set (requireYieldTool), so its presence identifies one.
+if (pi.getActiveTools().includes("yield")) return;
+```
+
+**Subagents cannot call MCP tools at all.** Independent of the bridge, the `sandbox-manager` plugin ships `extensions/subagent-hardening.ts`, which strips every `mcp__*` tool from subagent sessions at `session_start` (and re-strips on `mcp_notification` in case a server's `tools/list_changed` re-activated them). An agent definition's `tools:` frontmatter whitelist therefore is the complete, explicit tool contract for a subagent — channel MCP servers are never reachable from one.
+
+</subagent_isolation>
 
 <channel_wrapping>
 

@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- `telegram-ng` (v0.12.5): omp channel isolation — the wake-bridge extension
+  no longer wakes subagent sessions on inbound channel notifications (a
+  session is a subagent when `yield` is in its active tools); main-session
+  wakes unchanged.
+- `cronjobs` (v0.1.6): omp channel isolation — wake-bridge extension skips
+  subagent sessions on inbound channel notifications (same `yield` check as
+  telegram-ng); main-session wakes unchanged.
+- `webhooks` (v0.2.3): omp channel isolation — wake-bridge extension skips
+  subagent sessions on inbound channel notifications (same `yield` check as
+  telegram-ng); main-session wakes unchanged.
+- `sandbox-manager` (v0.18.4): new `subagent-hardening` extension — strips
+  every `mcp__*` tool from subagent sessions at session_start (and
+  re-strips on mcp_notification), so subagents can never call channel MCP
+  tools (telegram-ng reply, cronjobs, webhooks) or any other MCP server
+  tool; an agent definition's `tools:` frontmatter whitelist is now the
+  complete tool contract for a subagent.
+- `agent-resources` (v0.2.3): create-mcp-servers — omp-channel bridge
+  template and omp-channel-notifications reference now include the subagent
+  wake gate (channel notifications must not wake subagent sessions) and
+  document the sandbox-manager subagent-hardening extension.
 - `telegram-ng` (v0.12.4): new direct-bot-api skill — raw Bot API fallback (sendMessage/editMessageText/sendDocument via curl) for when the telegram-ng MCP server is disconnected mid-turn; confirmed-gone gate before fallback, token never logged, degraded-mode caveats documented.
 - `container-management` (v0.4.1): portability pass — new plugin CLAUDE.md is the
   single home for environment-specific values (containers root, Docker networks,

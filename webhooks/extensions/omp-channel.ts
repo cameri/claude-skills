@@ -41,6 +41,11 @@ function escapeAttribute(value: string): string {
 export default function ompChannelBridge(pi: ExtensionAPI): void {
   pi.on("mcp_notification", (event) => {
     if (event.method !== "notifications/claude/channel") return;
+    // Subagent sessions must not wake on channel notifications — the main
+    // session owns channel conversations (see sandbox-manager's
+    // subagent-hardening extension). omp adds `yield` to every subagent
+    // session's tool set (requireYieldTool), so its presence identifies one.
+    if (pi.getActiveTools().includes("yield")) return;
     const params = event.params as ChannelParams | undefined;
     if (typeof params?.content !== "string") return;
 

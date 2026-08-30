@@ -1,6 +1,6 @@
 {
   "name": "agent-resources",
   "description": "Build and audit Claude Code skills, hooks, MCP servers, and subagents — the toolkit for extending Claude Code itself.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "keywords": ["skills", "hooks", "mcp", "subagents", "meta"]
 }
