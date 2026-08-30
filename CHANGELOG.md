@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `telegram-ng` (v0.12.6): idle sentinel opt-out — setting
+  TELEGRAM_NG_IDLE_SENTINEL_DISABLED=true in the channel .env never starts
+  the "Still going, or done for now?" timer, for deployments that should
+  never receive idle prompts (e.g. the locked-down claude-gina sibling
+  instance).
 - `sandbox-manager` (v0.18.5): new `idle-state-tracker` extension — port of
   the idle-state-tracker.py Stop hook for omp (Claude Code hooks never run
   under omp, so the telegram-ng idle sentinel's state file went stale after

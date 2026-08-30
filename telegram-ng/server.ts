@@ -511,6 +511,11 @@ const IDLE_STATE_FILE = join(IDLE_STATE_DIR, 'idle-state.json')
 const IDLE_THRESHOLD_MS = 45 * 60 * 1000
 const IDLE_CHECK_INTERVAL_MS = 60 * 1000
 const IDLE_COMPACT_CAP = 1
+// Opt-out for deployments that should never receive the idle question (e.g.
+// a locked-down sibling instance whose user rarely interacts): set
+// TELEGRAM_NG_IDLE_SENTINEL_DISABLED=true in the channel .env. The sentinel
+// timer never starts, so no "Still going, or done for now?" is ever sent.
+const IDLE_SENTINEL_DISABLED = process.env.TELEGRAM_NG_IDLE_SENTINEL_DISABLED === 'true'
 
 // Sibling sandbox-manager scripts. Each script self-detects its pane via
 // $TMUX/$TMUX_PANE (tmux) or $HERDR_ENV/$HERDR_PANE_ID (herdr) env vars,
@@ -611,7 +616,7 @@ async function checkIdle(): Promise<void> {
   }
 }
 
-if (!STATIC) setInterval(() => { void checkIdle() }, IDLE_CHECK_INTERVAL_MS).unref()
+if (!STATIC && !IDLE_SENTINEL_DISABLED) setInterval(() => { void checkIdle() }, IDLE_CHECK_INTERVAL_MS).unref()
 
 async function handleIdleCallback(ctx: Context, choice: 'compact' | 'pause' | 'dismiss'): Promise<void> {
   const access = loadAccess()
