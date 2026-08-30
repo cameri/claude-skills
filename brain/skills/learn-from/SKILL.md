@@ -11,13 +11,23 @@ ones no longer in graphify-out.
 </objective>
 
 <quick_start>
-Call the `learn_from` MCP tool (no parameters — v1 has exactly one source,
-`graphify-out`, read from `graphify-out/graph.json` at the workspace root).
+Call the `learn_from` MCP tool. With no arguments it syncs the default
+source — graphify's `graphify-out/graph.json` at the workspace root. Two
+optional arguments:
 
-If the tool call fails because `graphify-out/graph.json` doesn't exist yet,
-tell the user to run `/graphify` first — `learn_from` has nothing to read
-otherwise.
-</quick_start>
+- `path` — sync any graph-json snapshot in the same
+  `{nodes, links, hyperedges?}` shape instead of the default file (e.g. a
+  second project's `graphify-out/graph.json`, or any other producer of the
+  same schema). The resolved path is registered for `study_status`
+  staleness tracking.
+- `duration_seconds` — wall-clock seconds the calling agent's `/graphify`
+  run took, if timed. Recorded on that path's study-registry entry so
+  `study_status` can report it; omit when untimed — brain never invents
+  one.
+
+If the call fails because the default `graphify-out/graph.json` doesn't
+exist yet (and no `path` was given), tell the user to run `/graphify`
+first — `learn_from` has nothing to read otherwise.
 
 <success_criteria>
 Report the returned counts (`nodesCreated`, `nodesUpdated`, `nodesDeleted`,

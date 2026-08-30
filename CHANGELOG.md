@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `brain` (v0.4.2): the `learn-from` skill's `<quick_start>` still claimed
+  `learn_from` takes "no parameters — v1 has exactly one source" — stale
+  since v0.3.0 added the optional `path` argument and v0.4.0 added
+  `duration_seconds`. Documented both arguments (and that the resolved
+  path is registered for `study_status` staleness tracking); no code
+  change.
 - `container-management` (v0.4.0): new reference `references/ipv6-networking.md` — IPv6
   networking for containers on Linux: host uplink prerequisites (global address, default
   route, RA/SLAAC and the `accept_ra=0` route-expiry flap), Docker `enable_ipv6`
