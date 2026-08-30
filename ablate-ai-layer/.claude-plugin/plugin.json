@@ -1,0 +1,15 @@
+{
+  "name": "ablate-ai-layer",
+  "description": "Measure whether a repository's AI instructions still earn their place — runs the same real task with the layer intact and with it stripped, in throwaway git worktrees, then grades every rule against what actually changed.",
+  "version": "0.1.0",
+  "keywords": [
+    "ai-layer",
+    "ablation",
+    "claude-md",
+    "agents-md",
+    "rules",
+    "context",
+    "pruning",
+    "audit"
+  ]
+}

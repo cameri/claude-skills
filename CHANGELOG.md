@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `ablate-ai-layer` (v0.1.0): new plugin — audited import of the `ablate-ai-layer`
+  skill from `coleam00/skills` (MIT), picked out of that repo's 33 skills (the
+  rest duplicate existing workspace skills/tools). Runs an AI-layer ablation: the
+  same real probe task N times with the repo's always-loaded agent instructions
+  intact and N times stripped, in throwaway git worktrees (working tree never
+  touched), then grades every rule against what actually changed
+  (`references/comparison.md` rubric, graded per rule and blind to arm). Ships
+  `scripts/map_layer.py` (read-only layer inventory + per-session token cost) and
+  `scripts/run_ablation.py` (drives both arms; spawns `claude -p` or `--runner`).
+  Import audit: both scripts reviewed — no network, no credential access,
+  mutations scoped to throwaway worktrees and `.ablation/` output. Import hash
+  (sha256 of the imported SKILL.md, audited deltas included): `8c37ae48…69ad7`;
+  source pinned in `skills-lock.json`.
 - `sandbox-manager` (v0.18.6): new `usage-state-writer` extension — keeps
   ~/.claude/session-status-cache.json fresh under omp for the telegram-ng
   /usage bot command (Claude Code's statusline hook never runs under omp,

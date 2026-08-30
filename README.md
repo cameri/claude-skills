@@ -6,6 +6,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 
 | Plugin | Description | Tools |
 |---|---|---|
+| [ablate-ai-layer](./ablate-ai-layer/) | Measure whether a repository's AI instructions still earn their place — runs the same real task with the layer intact and stripped, in throwaway git worktrees, then grades every rule against what actually changed | Claude + Cursor |
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets | Claude + Cursor |
 | [agent-resources](./agent-resources/) | Build and audit Claude Code skills, hooks, MCP servers, and subagents | Claude + Cursor |
 | [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
@@ -45,6 +46,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 |---|---|
 | `/actual-budget:access` | Set up Actual Budget credentials — save the server URL and password |
 | `/actual-budget:query-budget` | Query accounts, check balances, view recent transactions, and trigger bank sync |
+
+### ablate-ai-layer
+
+| Skill | Description |
+|---|---|
+| `/ablate-ai-layer:ablate-ai-layer` | Run an AI-layer ablation — same real task N times with the always-loaded instructions intact and N times stripped, in throwaway git worktrees, then grade every rule against what actually changed (load-bearing / redundant / ignored / untested) |
 
 ### agent-resources
 
