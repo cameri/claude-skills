@@ -33,14 +33,14 @@ Requests with `Content-Type: application/json` are parsed and delivered as struc
 ## Install
 
 ```
-/plugin install webhooks@claude-skills
+/plugin install webhooks@cameri-skills
 /reload-plugins
 ```
 
 Then start Claude with the channel flag:
 
 ```sh
-claude --dangerously-load-development-channels plugin:webhooks@claude-skills
+claude --dangerously-load-development-channels plugin:webhooks@cameri-skills
 ```
 
 > **Note:** `--dangerously-load-development-channels` requires interactive approval the first time. Once channels are generally available, use `--channels` instead.

@@ -93,7 +93,7 @@ See references/recommended-structure.md for structure templates.
 
 ## Step 4: Plugin-Level Files (for plugins in a monorepo)
 
-If the skill lives inside a plugin monorepo (e.g. `claude-skills`), create these before the skill files:
+If the skill lives inside a plugin monorepo (e.g. `cameri-skills`), create these before the skill files:
 
 **`.claude-plugin/plugin.json`** — plugin identity and version:
 ```json

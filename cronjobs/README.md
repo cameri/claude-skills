@@ -36,14 +36,14 @@ All times are UTC.
 ## Install
 
 ```
-/plugin install cronjobs@claude-skills
+/plugin install cronjobs@cameri-skills
 /reload-plugins
 ```
 
 Then start Claude with the channel flag:
 
 ```sh
-claude --dangerously-load-development-channels plugin:cronjobs@claude-skills
+claude --dangerously-load-development-channels plugin:cronjobs@cameri-skills
 ```
 
 > **Note:** `--dangerously-load-development-channels` requires interactive approval the first time. Once channels are generally available, use `--channels` instead.

@@ -25,7 +25,7 @@ description: Improve a SKILL.md using binary evals and iterative prompt mutation
 What skill would you like to optimize, and do you have eval questions ready?
 
 Provide:
-1. **Path to SKILL.md** — e.g., `projects/claude-skills/jj/skills/working-with-jj/SKILL.md`
+1. **Path to SKILL.md** — e.g., `projects/skills/jj/skills/working-with-jj/SKILL.md`
 2. **Binary eval questions** (optional) — yes/no criteria for a good run. If omitted, I'll propose evals based on the skill's stated constraints.
 3. **Test tasks** (optional) — standard tasks to run the skill against each iteration. If omitted, I'll generate 2–3 representative tasks.
 

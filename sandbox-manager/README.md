@@ -38,7 +38,7 @@ Link it in the container boot flow with `herdr plugin link
 ## Install
 
 ```
-/plugin install sandbox-manager@claude-skills
+/plugin install sandbox-manager@cameri-skills
 /reload-plugins
 ```
 

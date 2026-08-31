@@ -962,6 +962,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/schedule-task`). Also added the 7 plugins missing from the root plugin
   table and skill-reference sections entirely: autoresearch,
   docker-maintenance, home-assistant, jj, nostr, telegram, telegram-ng.
+- Leftover `claude-skills` references in per-plugin docs (journal, cronjobs,
+  telegram-ng, sandbox-manager, nats, webhooks, github-manager, autoresearch,
+  agent-resources) fixed to the `cameri-skills` marketplace / `cameri/skills`
+  repo names; `optimize-skill`'s example path corrected to `projects/skills/`.
+  All nine plugins bumped (patch).
 
 ## [agent-resources 0.1.1] - 2026-08-22
 
