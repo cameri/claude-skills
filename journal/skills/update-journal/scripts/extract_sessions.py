@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Condense Claude Code session transcripts into a chronological digest.
+"""Condense Claude Code / OMP session transcripts into a chronological digest.
 
-Scans every project's session transcripts under a projects directory
-(default ~/.claude/projects), keeps only user/assistant text turns
-(dropping tool_use/tool_result/thinking noise and subagent sidechains),
-optionally filtered to entries after --since, and prints a chronological,
-project-tagged digest to stdout.
+Scans every project's session transcripts under one or more session roots
+(default ~/.claude/projects for Claude Code and ~/.omp-agent/sessions for
+OMP), keeps only user/assistant text turns (dropping tool_use/tool_result/
+thinking noise and subagent sidechains), optionally filtered to entries
+after --since, and prints a chronological, project-tagged digest to stdout.
 """
 from __future__ import annotations
 
@@ -59,8 +59,12 @@ class DigestEntry:
 def parse_transcript_file(path: Path, since: datetime | None) -> list[DigestEntry]:
     """Parse one session's JSONL transcript into digest entries.
 
-    Skips malformed lines, non-user/assistant record types, subagent
-    sidechain turns, and (if `since` is given) anything at or before it.
+    Accepts both transcript schemas: Claude Code records (`type` in
+    user/assistant, role implied by the record type) and OMP records
+    (`type: "message"` with the role inside `message.role`, roles
+    user/assistant/toolResult). Skips malformed lines, non-user/assistant
+    record types, subagent sidechain turns, and (if `since` is given)
+    anything at or before it.
     """
     entries: list[DigestEntry] = []
     project = path.parent.name
@@ -78,7 +82,13 @@ def parse_transcript_file(path: Path, since: datetime | None) -> list[DigestEntr
         except json.JSONDecodeError:
             continue
 
-        if record.get("type") not in ("user", "assistant"):
+        message = record.get("message") or {}
+        rtype = record.get("type")
+        if rtype in ("user", "assistant"):
+            role = rtype
+        elif rtype == "message" and message.get("role") in ("user", "assistant"):
+            role = message["role"]
+        else:
             continue
         if record.get("isSidechain"):
             continue
@@ -93,23 +103,26 @@ def parse_transcript_file(path: Path, since: datetime | None) -> list[DigestEntr
         if since is not None and timestamp <= since:
             continue
 
-        message = record.get("message") or {}
         for text in extract_text_blocks(message.get("content")):
             entries.append(
                 DigestEntry(
                     timestamp=timestamp,
                     project=project,
-                    session_id=record.get("sessionId", "unknown"),
-                    role=record["type"],
+                    session_id=record.get("sessionId", path.stem),
+                    role=role,
                     text=text,
                 )
             )
     return entries
 
 
-def discover_transcript_files(projects_dir: Path) -> list[Path]:
-    """Every session transcript one level under each project directory."""
-    return sorted(projects_dir.glob("*/*.jsonl"))
+def discover_transcript_files(roots: list[Path]) -> list[Path]:
+    """Every session transcript one level under each project directory,
+    across every configured session root (deduplicated)."""
+    files: set[Path] = set()
+    for root in roots:
+        files.update(root.glob("*/*.jsonl"))
+    return sorted(files)
 
 
 def file_mtime(path: Path) -> datetime:
@@ -128,9 +141,9 @@ def format_digest(entries: list[DigestEntry]) -> str:
     return summary if not ordered else f"{digest}\n{summary}"
 
 
-def collect_digest(projects_dir: Path, since: datetime | None) -> str:
+def collect_digest(roots: list[Path], since: datetime | None) -> str:
     entries: list[DigestEntry] = []
-    for path in discover_transcript_files(projects_dir):
+    for path in discover_transcript_files(roots):
         if since is not None:
             try:
                 if file_mtime(path) < since:
@@ -150,13 +163,19 @@ def main(argv=None) -> int:
         help="Directory containing one subdirectory per Claude Code project (default: ~/.claude/projects)",
     )
     parser.add_argument(
+        "--omp-dir",
+        type=Path,
+        default=Path.home() / ".omp-agent" / "sessions",
+        help="OMP session root, one subdirectory per project (default: ~/.omp-agent/sessions)",
+    )
+    parser.add_argument(
         "--since",
         type=str,
         default=None,
         help="ISO 8601 timestamp; only include entries strictly after this",
     )
     args = parser.parse_args(argv)
-    print(collect_digest(args.projects_dir, parse_since(args.since)))
+    print(collect_digest([args.projects_dir, args.omp_dir], parse_since(args.since)))
     return 0
 
 

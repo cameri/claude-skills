@@ -362,6 +362,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Found by `/replicator:meditate`'s inward review, cycle 2026-08-26.
 
 ### Fixed
+- `journal` (v0.1.2): `update-journal`'s session extraction only scanned
+  `~/.claude/projects`, so it returned nothing once the sandbox ran OMP
+  (the last Claude transcript predates the cutover) — journals silently
+  stopped capturing activity. `extract_sessions.py` now scans both
+  `~/.claude/projects` and `~/.omp-agent/sessions` and parses OMP's
+  transcript schema (`type: "message"` with `message.role`
+  user/assistant/toolResult) alongside Claude's, so nightly journal
+  updates see OMP sessions again.
 - `sandbox-manager` (v0.18.0): session-control scripts (restart, exit,
   background, branch, compact, rename, resume, export, reload-plugins)
   refused to fire on panes running the `omp` harness instead of `claude`
