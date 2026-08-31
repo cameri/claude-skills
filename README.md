@@ -302,8 +302,8 @@ SearXNG-backed `search`/`fetch` tools (self-hosted, endpoint via
 `replicator:quarantine` agent — deliberately fetch-only, no Bash/Write/Edit/
 Agent — can evaluate external sources in its own contained context; omp
 child sessions enforce a strict `tools:` allowlist, so the agent def must
-name the registered MCP tool identifiers (`mcp__replicator__search` /
-`mcp__replicator__fetch`) — `WebSearch`/`WebFetch` are not registered names
+name the registered MCP tool identifiers (`mcp__replicator_replicator_search` /
+`mcp__replicator_replicator_fetch`) — `WebSearch`/`WebFetch` are not registered names
 and grant nothing. `fetch` is SSRF-guarded (refuses
 private/loopback/link-local/CGNAT destinations).
 
