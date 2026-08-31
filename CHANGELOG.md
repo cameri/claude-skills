@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` (v0.18.8): `subagent-hardening` now allowlists the
+  replicator search/fetch MCP pair (`mcp__replicator_replicator_search`,
+  `mcp__replicator_replicator_fetch`) instead of stripping every `mcp__*`
+  tool from subagent sessions. The pair is the quarantine agent's deliberate
+  fetch-only grant against the SSRF-guarded replicator server; all channel
+  servers (telegram-ng reply, cronjobs, webhooks) remain stripped.
 - `ablate-ai-layer` (v0.1.0): new plugin — audited import of the `ablate-ai-layer`
   skill from `coleam00/skills` (MIT), picked out of that repo's 33 skills (the
   rest duplicate existing workspace skills/tools). Runs an AI-layer ablation: the
