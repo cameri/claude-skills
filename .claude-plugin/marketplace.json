@@ -6,7 +6,20 @@
     "name": "Ricardo Arturo Cabral Mejía",
     "email": "cameri@users.noreply.github.com"
   },
-  "plugins": [
+    "plugins": [
+    {
+      "name": "immune-system",
+      "description": "Defensive security monitor for the agent instance — watches skills, plugins, and hooks for new or changed content, quarantines confirmed threats, alerts the operator, and removes only on confirmation.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./immune-system"
+    },
     {
       "name": "ablate-ai-layer",
       "description": "Measure whether a repository's AI instructions still earn their place — runs the same real task with the layer intact and stripped, in throwaway git worktrees, then grades every rule against what actually changed.",

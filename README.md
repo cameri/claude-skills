@@ -21,6 +21,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [finance-manager](./finance-manager/) | Reconcile bank statements against ActualBudget, run household financial reviews (net worth, goal tracking, optimization), look up Bitcoin transactions/addresses/wallet descriptors via mempool.space, and onboard or manage the plugin's tracked accounts, wallets, and periodic sync jobs | Claude + Cursor |
 | [github-manager](./github-manager/) | Autonomous GitHub repository manager — handles webhook events for issues, PRs, discussions, CI failures, and security alerts | Claude |
 | [home-assistant](./home-assistant/) | Interact with Home Assistant via the REST API — get entity states, call services, fire events, render Jinja2 templates, and query state history | Claude + Cursor |
+| [immune-system](./immune-system/) | Defensive security monitor for the agent instance — watches skills, plugins, and hooks for new or changed content, quarantines confirmed threats, alerts the operator, and removes only on confirmation | Claude |
 | [jj](./jj/) | Use Jujutsu (jj) instead of git for version control — core concepts plus actionable skills for everyday operations (commit, split, squash, cleanup, checkout, rebase) | Claude |
 | [journal](./journal/) | Keeps a series of narrative journals about what you've been doing, written from Claude's own perspective, by reading session history and memory | Claude |
 | [knowledge-wiki](./knowledge-wiki/) | Maintains a self-updating, cross-linked markdown knowledge base — ingests durable facts and research as topic pages instead of re-deriving them each time, with query and link-consistency checks | Claude |
@@ -239,6 +240,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/home-assistant:fire-event` | Fire a custom event to trigger event-driven automations |
 | `/home-assistant:query-history` | Query state history or logbook for one or more entities |
 | `/home-assistant:render-template` | Render and debug a Jinja2 template |
+
+### immune-system
+
+| Skill | Description |
+|---|---|
+| `/immune-system:immune-response` | Review and neutralize skills, plugins, or hooks the watcher flags — quarantined evaluation, Telegram alert on confirmed threat, removal only on operator confirmation |
 
 ### jj
 

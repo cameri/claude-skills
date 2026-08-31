@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `immune-system` (v0.1.0): new plugin — defensive security monitor for the
+  agent instance, separate from the replicator. Always-on Bun MCP watcher
+  (`server.ts`) fingerprints every entry under the Claude Code and omp plugin
+  caches, user skills dirs, the hooks dir, and `settings.json` hook
+  registrations on a configurable interval (`~/.claude/channels/immune-system/`);
+  new or changed entries become `pending` findings and wake the session via a
+  batched `source="immune-system"` channel notification. Pure fingerprint/diff
+  logic in `lib/fingerprint.ts` (content-hashes manifests and hooks scripts,
+  stats the rest, skips node_modules/.git/build noise — unit-tested). Seven
+  MCP tools: `scan`, `list_findings`, `quarantine`, `restore`, `remove`,
+  `clear`, `status`. `immune-response` skill applies the replicator's
+  injection-defense doctrine (untrusted content, no trust bypass, quarantined
+  read-only subagent evaluation, safety score 1–5) and quarantines confirmed
+  threats + alerts the operator over Telegram; removal only on explicit
+  confirmation. Ships the `extensions/omp-channel.ts` wake bridge so channel
+  notifications reach the session under omp exactly like cronjobs/telegram-ng.
 - `sandbox-manager` (v0.18.8): `subagent-hardening` now allowlists the
   replicator search/fetch MCP pair (`mcp__replicator_replicator_search`,
   `mcp__replicator_replicator_fetch`) instead of stripping every `mcp__*`

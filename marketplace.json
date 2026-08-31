@@ -8,6 +8,19 @@
   },
   "plugins": [
     {
+      "name": "immune-system",
+      "description": "Defensive security monitor for the agent instance — watches skills, plugins, and hooks for new or changed content, quarantines confirmed threats, alerts the operator, and removes only on confirmation.",
+      "tools": [
+        "claude"
+      ],
+      "category": "productivity",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./immune-system"
+    },
+    {
       "name": "wallabag",
       "description": "Save, search, and manage read-it-later articles via your Wallabag instance.",
       "tools": [

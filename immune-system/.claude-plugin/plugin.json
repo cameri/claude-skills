@@ -1,0 +1,14 @@
+{
+  "name": "immune-system",
+  "description": "Defensive security monitor for the agent instance — watches every skill, plugin, and hook install location for new or changed content, flags it for review, quarantines confirmed threats (scripts, hooks, MCP servers, encoded directives), alerts the operator, and removes only on confirmation. Always-on watcher daemon with channel notifications in both Claude Code and omp.",
+  "version": "0.1.0",
+  "keywords": [
+    "security",
+    "skills",
+    "plugins",
+    "hooks",
+    "quarantine",
+    "monitoring",
+    "injection-defense"
+  ]
+}
