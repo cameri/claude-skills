@@ -64,8 +64,22 @@ teardown
 
 setup
 export HERDR_ENV=1
-export STUB_PANE_ARGV0="/usr/local/bin/node"
-assert_eq "current_cmd: herdr mode basenames a full path correctly" "node" \
+export STUB_PANE_ARGVS='[{"argv":["bash","/srv/omp-loop.sh"]},{"argv":["omp","--cwd","/workspace"]}]'
+assert_eq "current_cmd: herdr scans past a bash wrapper to the omp agent" "omp" \
+  "$(bash -c "source '$LIB'; pane_io_current_cmd 'w1:p1'")"
+teardown
+
+setup
+export HERDR_ENV=1
+export STUB_PANE_ARGVS='[{"argv":["bash","/srv/omp-loop.sh"]},{"argv":["claude"]}]'
+assert_eq "current_cmd: herdr finds claude behind a wrapper too" "claude" \
+  "$(bash -c "source '$LIB'; pane_io_current_cmd 'w1:p1'")"
+teardown
+
+setup
+export HERDR_ENV=1
+export STUB_PANE_ARGVS='[{"argv":["bash","-lc","sleep 999"]}]'
+assert_eq "current_cmd: herdr falls back to first command when no agent" "bash" \
   "$(bash -c "source '$LIB'; pane_io_current_cmd 'w1:p1'")"
 teardown
 
@@ -85,11 +99,9 @@ setup
 export HERDR_ENV=1
 bash -c "source '$LIB'; pane_io_send 'w1:p1' '/clear'"
 line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
-assert_eq "send: herdr mode makes two calls (send-text, send-keys)" "2" "$line_count"
-assert_eq "send: herdr first call is send-text with pane id and text" "w1:p1${us}/clear${us}" \
+assert_eq "send: herdr mode makes one agent prompt call" "1" "$line_count"
+assert_eq "send: herdr agent prompt sends pane id and text" "w1:p1${us}/clear${us}" \
   "$(sed -n '1p' "$HERDR_STUB_LOG")"
-assert_eq "send: herdr second call is send-keys enter" "w1:p1${us}enter${us}" \
-  "$(sed -n '2p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

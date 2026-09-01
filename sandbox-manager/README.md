@@ -7,7 +7,7 @@ Lets Claude Code manage its own sandbox — restarting or exiting its own sessio
 | Skill | Description |
 |---|---|
 | `restart-session` | Fires automatically when a connected channel (e.g. Telegram) sends `/clear`. Sends `/clear` + Enter to the pane (tmux or herdr) running this Claude Code session. |
-| `exit-session` | Fires automatically when a connected channel sends `/exit`. Sends `/exit` + Enter to the pane, ending the process (on herdr, also explicitly stops the herdr session — herdr doesn't tear one down on its own) — relies on something outside the pane (a supervisor or restart policy) to bring it back. |
+| `exit-session` | Fires automatically when a connected channel sends `/exit`. Sends `/exit` + Enter to the pane, ending the Claude Code process. On herdr the pane process is a self-restarting wrapper (`herdr/omp-loop.sh`) that relaunches omp with its original args in the same pane; on tmux the container restart policy brings the session back. |
 | `rename-session` | Fires on a channel message like `/rename <name>`. Sends `/rename <name>` + Enter to name the current session. |
 | `resume-session` | Fires on a channel message like `/resume <name>`. Sends `/resume <name>` + Enter to switch the pane to a different, previously named session. Always requires a name — a bare `/resume` opens an interactive picker that can't be scripted. |
 | `branch-session` | Fires automatically when a connected channel sends `/branch`. Sends `/branch` + Enter to fork the conversation at the current point without disturbing the original. |

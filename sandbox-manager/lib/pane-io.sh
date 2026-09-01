@@ -32,13 +32,26 @@ pane_io_current_cmd() {
   local pane_id="$1"
   case "$(pane_io_active)" in
     herdr)
-      # The JSON's "name" field is unreliable (e.g. reports "MainThread" for
-      # a node process, verified live against herdr 0.8.0) - argv[0] is the
-      # actual command, basenamed to match tmux's bare-name convention.
-      local argv0
-      argv0="$(herdr pane process-info --pane "$pane_id" \
-        | jq -r '.result.process_info.foreground_processes[0].argv[0] // empty')"
-      echo "${argv0##*/}"
+      # argv[0] of the first foreground process is the reliable command name
+      # (the JSON's "name" field is unreliable - e.g. reports "MainThread" for
+      # a node process, verified live against herdr 0.8.0). But a pane process
+      # may be a wrapper around the real agent: omp under herdr/omp-loop.sh
+      # shows "bash" first, with the actual agent as a later foreground
+      # process. Scan the whole list for a known agent command and return the
+      # first match; fall back to the first process's command so callers'
+      # refusal branches still fire for genuinely non-agent panes.
+      local argv0s a
+      argv0s="$(herdr pane process-info --pane "$pane_id" \
+        | jq -r '.result.process_info.foreground_processes[].argv[0] // empty')"
+      while IFS= read -r a; do
+        case "${a##*/}" in
+          omp|claude|node|bun)
+            echo "${a##*/}"
+            return 0
+            ;;
+        esac
+      done <<< "$argv0s"
+      echo "${argv0s%%$'\n'*}"
       ;;
     tmux)
       tmux display-message -p '#{pane_current_command}'

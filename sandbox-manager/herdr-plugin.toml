@@ -1,18 +1,22 @@
 id = "omp-respawn"
 name = "omp-respawn"
-version = "0.1.0"
+version = "0.1.1"
 min_herdr_version = "0.8.2"
-description = "Runs omp as a herdr plugin pane's process and restarts it whenever it exits (crash or deliberate /exit), with a crash-loop guard and a stop-marker escape hatch. Ships inside the sandbox-manager package."
+description = "Runs omp as a herdr plugin pane's process under a self-restarting wrapper (herdr/omp-loop.sh) so /exit and crashes relaunch omp with its original args in the same pane, with a crash-loop guard and a stop-marker escape hatch; a pane.exited hook (herdr/restart.sh) reopens the pane as a fallback. Ships inside the sandbox-manager package."
 
-# omp runs AS the pane process (plugin-pane commands replace the shell), so
-# its death is the pane's death: herdr emits pane.exited, restart.sh reopens
-# the pane. Verified against herdr 0.8.2: command-exit fires pane.exited with
-# {pane_id, workspace_id}; auto-closed plugin panes leave no tab behind.
+# omp runs AS the pane process under herdr/omp-loop.sh, a self-restarting
+# wrapper: the wrapper is the pane's process, so its death is the pane's
+# death, but omp itself exiting (deliberate /exit or crash) just relaunches
+# in place — the pane/tab/workspace never tears down, which is what makes
+# /exit reliable. The pane.exited hook below is the fallback for the wrapper
+# itself dying (e.g. SIGKILL), not the primary restart path. Verified against
+# herdr 0.8.2: command-exit fires pane.exited with {pane_id, workspace_id};
+# auto-closed plugin panes leave no tab behind.
 [[panes]]
 id = "omp"
 title = "omp"
 placement = "tab"
-command = ["omp", "--cwd", "/workspace", "--auto-approve"]
+command = ["bash", "-lc", "exec \"$HERDR_PLUGIN_ROOT/herdr/omp-loop.sh\""]
 
 [[events]]
 on = "pane.exited"

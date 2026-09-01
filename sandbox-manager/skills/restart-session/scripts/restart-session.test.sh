@@ -37,7 +37,7 @@ assert_eq "(c) sends /clear literally" "-t${us}%3${us}-l${us}--${us}/clear${us}"
 assert_eq "(c) sends Enter" "-t${us}%3${us}Enter${us}" "$(sed -n '2p' "$TMUX_STUB_LOG")"
 teardown
 
-# --- (d) herdr mode: sends /clear via send-text + send-keys enter ---
+# --- (d) herdr mode: sends /clear to a claude pane via agent prompt ---
 setup
 export HERDR_ENV=1
 export HERDR_PANE_ID="w1:p1"
@@ -60,6 +60,16 @@ line_count="$(wc -l < "$HERDR_STUB_LOG" | tr -d ' ')"
 assert_eq "(e) exactly one herdr call logged (agent prompt)" "1" "$line_count"
 assert_eq "(e) omp pane gets /new, not /clear" "w1:p1${us}/new${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
 assert_eq "(e) reports the sent command" "Sent /new to pane w1:p1" "$out"
+teardown
+
+# --- (f) herdr mode: omp behind a bash wrapper (omp-loop.sh) still gets /new ---
+setup
+export HERDR_ENV=1
+export HERDR_PANE_ID="w1:p1"
+export STUB_PANE_ARGVS='[{"argv":["bash","/srv/omp-loop.sh"]},{"argv":["omp","--cwd","/workspace"]}]'
+out="$("$TARGET" 2>&1)"; rc=$?
+assert_eq "(f) exits zero for omp behind a wrapper" "0" "$rc"
+assert_eq "(f) wrapper-wrapped omp gets /new" "w1:p1${us}/new${us}" "$(sed -n '1p' "$HERDR_STUB_LOG")"
 teardown
 
 echo

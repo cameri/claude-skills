@@ -400,6 +400,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Found by `/replicator:meditate`'s inward review, cycle 2026-08-26.
 
 ### Fixed
+- `sandbox-manager` (v0.18.11): `/exit` on herdr stopped working reliably — two
+  mechanisms fought each other and both lost. (1) The omp-respawn plugin's
+  `pane.exited` hook reopened omp with `plugin pane open --workspace <id>`,
+  but herdr's auto-close cascade (plugin pane exit → last tab close →
+  workspace close) had already deleted the workspace by the time the async
+  hook ran, so the reopen failed with `workspace_not_found` (observed live
+  2026-08-31 03:26Z: omp down for 22 minutes until a manual reopen). (2)
+  `exit-session.sh` additionally ran `herdr session stop` after sending
+  `/exit`; since the container's PID 1 is `herdr --session claude`, that
+  killed the server, exited the container, and the docker-restart snapshot
+  restore came back with plain bash shells instead of omp (observed live
+  2026-08-31 01:54Z). Fix: the omp pane process is now `herdr/omp-loop.sh`, a
+  self-restarting wrapper that relaunches omp with its original args
+  (`omp --cwd /workspace --auto-approve`) in the same pane/tab/workspace on
+  any exit (deliberate `/exit` or crash), with a crash-loop guard and the
+  existing stop-marker escape hatch — the pane never tears down, so no hook
+  and no container restart are involved in the normal path. `restart.sh`
+  remains as the fallback for the wrapper itself dying and now recreates the
+  workspace (cwd/label from `$HERDR_PLUGIN_CONFIG_DIR/respawn.env`, defaults
+  `/workspace` + `omp`) when the exit cascade closed it, then closes the
+  auto-created root shell pane so the recreated workspace holds only the omp
+  pane (no stray second tab). `exit-session.sh` no longer stops the herdr
+  session (removed 2026-08-31) and accepts `bash` as a pane command (the
+  wrapper's foreground flips to bash between omp relaunches);
+  `herdr-plugin.toml` `[[panes]]` command updated accordingly.
 - `journal` (v0.1.2): `update-journal`'s session extraction only scanned
   `~/.claude/projects`, so it returned nothing once the sandbox ran OMP
   (the last Claude transcript predates the cutover) — journals silently

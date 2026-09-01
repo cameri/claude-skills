@@ -63,8 +63,13 @@ case "$1" in
   pane)
     case "$2" in
       process-info)
+        if [ -n "${STUB_PANE_ARGVS:-}" ]; then
+          procs="$STUB_PANE_ARGVS"
+        else
+          procs="[{\"argv\":[\"${STUB_PANE_ARGV0:-claude}\"],\"name\":\"MainThread\"}]"
+        fi
         cat <<JSON
-{"result":{"process_info":{"foreground_processes":[{"argv":["${STUB_PANE_ARGV0:-claude}"],"name":"MainThread"}]}}}
+{"result":{"process_info":{"foreground_processes":$procs}}}
 JSON
         ;;
       run)
