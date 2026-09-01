@@ -41,6 +41,7 @@ What would you like to do?
 5. **Manage Gatus** — add/remove/modify monitored endpoints or alert providers
 6. **View update log** — see history of what was updated and when
 7. **Initialize log** — create UPDATE-LOG.md if it doesn't exist yet
+8. **Manage experiential** — rotate provider API keys or sync the model list
 
 **Or just describe what you want and I'll route appropriately.**
 </intake>
@@ -55,6 +56,7 @@ What would you like to do?
 | 5, "gatus", "monitor", "alert", "endpoint" | `workflows/manage-gatus.md` |
 | 6, "log", "history", "view" | `workflows/view-log.md` |
 | 7, "init", "initialize", "create log" | `workflows/view-log.md` (init section) |
+| 8, "experiential", "gateway", "rotate key", "sync models", "model list", "provider key" | `workflows/manage-experiential.md` |
 
 **After reading the workflow, follow it exactly.**
 </routing>
@@ -65,6 +67,7 @@ What would you like to do?
 **Log format and entry structure:** references/log-format.md
 **IPv6 networking for containers (host uplink, docker networks, NAT66, gotchas):** references/ipv6-networking.md
 **Infrastructure specifics (networks, deps, Watchtower, Gatus):** references/environment.md
+**Experiential gateway (key rotation, model sync, verification):** references/experiential.md
 </reference_index>
 
 <workflows_index>
@@ -75,5 +78,6 @@ What would you like to do?
 | add-service.md | Onboard a new service: compose, healthcheck, Gatus, TsDproxy |
 | remove-service.md | Clean removal: compose, Gatus, TsDproxy, volumes |
 | manage-gatus.md | Add/remove/modify Gatus endpoints and alert providers |
+| manage-experiential.md | Rotate provider API keys / sync the model list on the experiential gateway |
 | view-log.md | Show update history; initialize log if missing |
 </workflows_index>

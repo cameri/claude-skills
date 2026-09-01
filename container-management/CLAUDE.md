@@ -54,5 +54,6 @@ Updated manually — always pin sha256:
 | `claude-sandboxed/` | Containerfile (simple wrapper) |
 | `cloudflared/` | Containerfile (simple wrapper) |
 | `sops/` | Containerfile (simple wrapper) |
+| `experiential/` | Containerfile (custom; pins `EXPERIENTIAL_VERSION`, bundles sops) |
 | `mongoku/source/` | Dockerfile (source-built, compose uses `build:`) |
 | `relaymon/source/` | may have Dockerfile (disabled service, check before updating) |
