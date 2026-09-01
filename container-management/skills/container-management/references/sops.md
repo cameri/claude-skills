@@ -66,6 +66,12 @@ If the service uses a dedicated age key (not the master), pass it:
 - **sops `set` key format:** `["KEY"]` (double-quoted inside brackets); bare `[KEY]` → "Invalid set index format". Value must be a JSON literal.
 - **`--input-type dotenv --output-type dotenv` required** for `sops set` when the file isn't a recognized dotenv extension.
 - **Vendor key formats vary** — e.g. Z.AI keys are `id.secret` (2 parts); a mis-copied `id.id.secret` 401s. If you hit persistent auth failures after a rotation, re-enter the key rather than assuming the endpoint is wrong.
+- **Values must be stored UNQUOTED** in `.env.encrypted` — `shell source` strips quotes but `sops exec-env` does not. A quoted value (e.g. `PASS='x'`) is injected with literal quotes and breaks the consumer (seen live: alby-hub's AUTO_UNLOCK_PASSWORD → "Invalid password").
+- **No `--` separator** before the command in `sops exec-env`: `sops exec-env FILE "cmd args"` works; `sops exec-env FILE -- cmd` fails with "missing file to decrypt".
+- **`exec-env` spawns the command via `/bin/sh`** — a distroless image (no shell: gatus, watchtower, beszel, tsdproxy, cloudflared) fails with `fork/exec /bin/sh: no such file`. Base the image on the sops alpine image + `COPY --from=<app> <bin> <bin>`, or ensure `/bin/sh` exists.
+- **Non-root containers can't read 0600 root bind-mounted keys** — chmod 0644 the dedicated `<service>-keys.txt` file (dedicated key leaks only that service's secrets, so world-read is acceptable). Experiential, cloudflared, alby-hub, homepage run non-root.
+- **Healthcheck on busybox-only images** must be exec-form array (`["CMD","/busybox/busybox","nc",...]`); a string form wraps in `/bin/sh -c` which doesn't exist.
+- **Nested quotes in `ENTRYPOINT` get mangled** by Docker (becomes `["/bin/sh","-c","["/busybox/sh"...]"]`). Use a COPY'd wrapper script + `ENTRYPOINT ["/busybox/sh","/entrypoint.sh"]` instead.
 </gotchas>
 
 <verify>
