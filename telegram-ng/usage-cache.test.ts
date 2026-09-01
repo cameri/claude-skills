@@ -59,4 +59,51 @@ describe('formatUsageMessage', () => {
     expect(msg).toContain('Context: 12% used')
     expect(msg).not.toContain('tokens)')
   })
+  test('renders the omp usage/cost section from stats.db aggregation', () => {
+    const msg = formatUsageMessage(
+      {
+        cached_at: NOW,
+        omp: {
+          stats_at: NOW,
+          overall: {
+            totalRequests: 1294,
+            failedRequests: 1,
+            totalInputTokens: 9_145_088,
+            totalOutputTokens: 1_070_876,
+            totalCacheReadTokens: 198_478_729,
+            cacheRate: 0.956,
+            cacheSavings: 0.746,
+            totalCost: 3.3588,
+            totalPremiumRequests: 0,
+          },
+          byModel: [
+            { model: '~deepseek/deepseek-v4-flash-latest', provider: 'openrouter', totalRequests: 961, totalCost: 2.8286, totalInputTokens: 1, totalOutputTokens: 1 },
+            { model: 'deepseek-v4-flash', provider: 'deepseek', totalRequests: 260, totalCost: 0.449, totalInputTokens: 1, totalOutputTokens: 1 },
+            { model: 'z-ai/glm-5.3-flash', provider: 'openrouter', totalRequests: 72, totalCost: 0.08, totalInputTokens: 1, totalOutputTokens: 1 },
+          ],
+        },
+      },
+      NOW,
+    )
+    expect(msg).toContain('1294 req · $3.36 · cache 96%')
+    expect(msg).toContain('9.1M in · 1.1M out · 198.5M cached')
+    expect(msg).toContain('~75% saved by caching')
+    expect(msg).toContain('top models:')
+    expect(msg).toContain('~deepseek/deepseek-v4-flash-latest · $2.83 (961 req)')
+    expect(msg.indexOf('deepseek-v4-flash-latest')).toBeLessThan(msg.indexOf('deepseek-v4-flash ·'))
+  })
+
+  test('omits the omp section entirely when the cache has no omp block', () => {
+    const msg = formatUsageMessage({ cached_at: NOW, context_window: { used_percentage: 30 } }, NOW)
+    expect(msg).not.toContain('omp')
+  })
+
+  test('renders a partial omp block (cost only) without crashing', () => {
+    const msg = formatUsageMessage(
+      { cached_at: NOW, omp: { overall: { totalCost: 0.449 } } },
+      NOW,
+    )
+    expect(msg).toContain('$0.449')
+    expect(msg).toContain('omp usage')
+  })
 })

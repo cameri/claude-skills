@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `sandbox-manager` (v0.18.10): `usage-state-writer` extension now also
+  surfaces omp's own usage/cost for the telegram-ng /usage command. Runs
+  `omp stats -j` (the harness's stats.db aggregation: requests, tokens in/
+  out/cache-read, cache rate + savings, total cost, per-model breakdown) on
+  a 5-minute cadence — the sync takes ~1-2s, so it's throttled rather than
+  per-turn — and merges the result into `~/.claude/session-status-cache.json`
+  as an `omp` block (`overall` + `byModel` + `stats_at`), parsing the JSON
+  from the first `{` because `omp stats -j` prints a sync line to stdout
+  first. Failures keep the previously written block; the standard
+  context_window/rate_limits write path is unchanged.
+- `telegram-ng` (v0.12.11): /usage renders the omp block the sandbox-manager
+  extension writes — a `🤖 omp usage` section after the rate-limit buckets
+  with total requests, spend (`$3.35` style), cache rate, ~% saved,
+  token volumes, and the top 3 models by cost. `UsageCache` type extended;
+  `formatUsageMessage` skips the section when the block is absent, so a
+  Claude-Code-only cache renders exactly as before.
 - `immune-system` (v0.1.0): new plugin — defensive security monitor for the
   agent instance, separate from the replicator. Always-on Bun MCP watcher
   (`server.ts`) fingerprints every entry under the Claude Code and omp plugin
