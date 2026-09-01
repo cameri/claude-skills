@@ -13,8 +13,13 @@ Three shared Docker networks are defined in the root `compose.yml` (network name
 | `tsdproxy` | Tailscale exposure — TsDproxy creates TS machines for services here |
 | `cloudflare` | Public access — Cloudflared tunnel routes traffic to services here |
 
-**Rule:** Network definitions live in root `compose.yml` only. Never redefine them in individual service compose files.
-</networks>
+<compose_driver_context>
+**Prefer running `docker compose` from the host.** The two path-resolution contexts differ and can diverge:
+- compose interpolates `${VAR}` / `env_file` / `secrets: file:` values from the environment where *compose itself runs*;
+- the Docker daemon then resolves bind sources and file paths against the **host** filesystem.
+
+Running compose from inside a container therefore substitutes the container's env values (e.g. a container-local `${HOME}` or relative `./`) into paths the daemon looks up on the host — yielding wrong or nonexistent paths. Symptoms: daemon error `bind source path does not exist: <container-side path>`, or a sidecar that starts but logs `cannot operate on non-existent file "/config/…"`. Mitigations, in order of preference: drive compose from the host; or, when you must run from inside a container, expand the variables to absolute host paths at the invocation (or set the env var that compose interpolates, e.g. `HOME`, to the host user's value). Concrete host paths are instance-specific — take them from the workspace-local `docs/infra/container-management-environment.md`, never hardcode them here.
+</compose_driver_context>
 
 <external_dependencies>
 Some services run on the host's own IP (not in Docker) rather than a container network — see your own `docs/infra/container-management-environment.md` (workspace-local, not shipped with this plugin) for the actual host/port table in your instance. Common candidates: Redis, PostgreSQL, MongoDB.
