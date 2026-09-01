@@ -12,7 +12,7 @@ Skills only act on repos in this table. Events for any other repo are silently i
 | `cameri/akkadian-agent` | `/workspace/projects/akkadian-agent/` | `compose.yml` | `akkadian-agent` | `"Nest application successfully started"` |
 
 Repos with no live service (no build/test needed — merge directly after CI passes):
-- `cameri/claude-skills`
+- `cameri/skills`
 - `cameri/phoenix-server`
 - `phoenix-server/taches-cc-resources`
 - `cameri/nostream`

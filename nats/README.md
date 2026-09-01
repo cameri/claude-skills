@@ -20,7 +20,7 @@ hosts that both reach the same NATS server.
 Then restart Claude Code with the channel flag:
 
 ```sh
-claude --dangerously-load-development-channels plugin:nats@claude-skills
+claude --dangerously-load-development-channels plugin:nats@cameri-skills
 ```
 
 > **Note:** `--dangerously-load-development-channels` requires interactive
@@ -104,7 +104,7 @@ Agent cache is stored at `~/.claude/channels/nats/agents.json`.
 ## Install
 
 ```
-/plugin install nats@claude-skills
+/plugin install nats@cameri-skills
 /reload-plugins
 ```
 

@@ -25,7 +25,7 @@ it's a permanent, immutable record of that cycle.
 ## Install
 
 ```
-/plugin install journal@claude-skills
+/plugin install journal@cameri-skills
 ```
 
 ## License

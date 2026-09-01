@@ -30,7 +30,7 @@ Show the display name too: `NATS_AGENT_NAME` from the env file if set, otherwise
 
 **3. MCP server and connection:**
 
-Use the `get_agents` MCP tool to check whether the NATS MCP server is connected. If the tool call succeeds, the server is running and NATS is reachable. If it fails, note that the channel may not be active — the user can restart Claude Code with `--channels plugin:nats@claude-skills`.
+Use the `get_agents` MCP tool to check whether the NATS MCP server is connected. If the tool call succeeds, the server is running and NATS is reachable. If it fails, note that the channel may not be active — the user can restart Claude Code with `--channels plugin:nats@cameri-skills`.
 
 **4. Discovered agents:**
 
