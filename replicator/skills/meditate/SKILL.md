@@ -59,10 +59,14 @@ so no env var needs setting in this workspace.
    via `ledger-cli.ts set-core --key "<plugin>:<skill>"` for each.
 2. Extract invocation counts since the last cycle: run
    `bash /workspace/projects/skills/replicator/scripts/grep-skill-usage.sh
-   /home/node/.claude/projects/-workspace <since-epoch>`, where
-   `<since-epoch>` is `ledger.cycles.lastRun` converted to epoch seconds
-   (or 14 days ago on the very first run). Save the output to a temp file
-   and run `ledger-cli.ts record --input <temp-file> --date <today>`.
+   <transcripts-root> <since-epoch>`, where `<transcripts-root>` is the
+   running agent's session-transcripts dir (omp/pi:
+   `~/.omp-agent/sessions/--workspace--`; Claude Code:
+   `~/.claude/projects/-workspace`) and the script auto-detects the
+   transcript format, and `<since-epoch>` is `ledger.cycles.lastRun`
+   converted to epoch seconds (or 14 days ago on the very first run). Save
+   the output to a temp file and run
+   `ledger-cli.ts record --input <temp-file> --date <today>`.
 3. Run `ledger-cli.ts classify --date <today>` and read the JSON result.
    For each gene classified `flapping`: widen its `muteThresholdWeeks` by
    editing `ledger.json` directly (double the current value, capped at 26)

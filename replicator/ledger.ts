@@ -75,6 +75,19 @@ export function registerGene(
   return { ...ledger, genes: { ...ledger.genes, [key]: gene } }
 }
 
+// A parsed invocation key is normally already plugin-qualified (`plugin:skill`)
+// or an existing gene. omp records skill activation as a bare `skill://<name>`
+// read with no plugin namespace, so a bare name must be resolved to its
+// plugin-qualified gene — otherwise every cycle would register a spurious
+// unqualified gene alongside the real one. Resolution is a unique suffix match
+// against existing genes; unresolved or ambiguous names stay bare (registered
+// as-is) so a skill is never silently attributed to the wrong plugin.
+export function resolveGeneKey(ledger: Ledger, raw: string): string {
+  if (raw.includes(':') || ledger.genes[raw]) return raw
+  const matches = Object.keys(ledger.genes).filter((k) => k.endsWith(`:${raw}`))
+  return matches.length === 1 ? matches[0] : raw
+}
+
 export function recordInvocation(ledger: Ledger, key: string, dateISO: string, count: number): Ledger {
   const gene = ledger.genes[key]
   if (!gene) throw new Error(`unknown gene: ${key}`)

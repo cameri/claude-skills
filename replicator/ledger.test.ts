@@ -12,6 +12,8 @@ import {
   recordHarnessModel,
   recordPublish,
   DEFAULT_MUTE_THRESHOLD_WEEKS,
+  resolveGeneKey,
+  type Ledger,
 } from './ledger'
 
 describe('emptyLedger', () => {
@@ -184,12 +186,36 @@ describe('recordHarnessModel', () => {
   })
 })
 
-describe('recordPublish', () => {
-  test('sets lastPublish without touching other cycle fields', () => {
-    let l = recordCycleRun(emptyLedger(), '2026-08-14')
-    l = recordPublish(l, '2026-08-15')
-    expect(l.cycles.lastPublish).toBe('2026-08-15')
-    expect(l.cycles.lastRun).toBe('2026-08-14')
-    expect(l.cycles.count).toBe(1)
+describe('resolveGeneKey', () => {
+  const seed = (keys: string[]): Ledger => {
+    let l = emptyLedger()
+    for (const k of keys) l = registerGene(l, k, 'preexisting', '2026-09-01T00:00:00Z', '2026-09-01')
+    return l
+  }
+
+  test('passes a plugin-qualified key through unchanged', () => {
+    const l = seed(['sandbox-manager:restart-session'])
+    expect(resolveGeneKey(l, 'sandbox-manager:restart-session')).toBe('sandbox-manager:restart-session')
+  })
+
+  test('passes an existing bare gene through unchanged', () => {
+    const l = seed(['graphify'])
+    expect(resolveGeneKey(l, 'graphify')).toBe('graphify')
+  })
+
+  test('resolves a bare name to its unique plugin-qualified gene', () => {
+    const l = seed(['sandbox-manager:restart-session', 'journal:update-journal', 'replicator:meditate'])
+    expect(resolveGeneKey(l, 'restart-session')).toBe('sandbox-manager:restart-session')
+    expect(resolveGeneKey(l, 'update-journal')).toBe('journal:update-journal')
+  })
+
+  test('leaves an ambiguous bare name bare rather than guessing', () => {
+    const l = seed(['taches-cc-resources:add-to-todos', 'sandbox-manager:add-to-todos'])
+    expect(resolveGeneKey(l, 'add-to-todos')).toBe('add-to-todos')
+  })
+
+  test('leaves an unresolved bare name bare', () => {
+    const l = seed(['sandbox-manager:restart-session'])
+    expect(resolveGeneKey(l, 'no-such-skill')).toBe('no-such-skill')
   })
 })

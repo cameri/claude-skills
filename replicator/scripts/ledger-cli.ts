@@ -11,6 +11,7 @@ import {
   setReportOnlyPruning,
   recordHarnessModel,
   recordPublish,
+  resolveGeneKey,
   type GeneOrigin,
 } from '../ledger'
 import { loadLedger, saveLedger } from '../store'
@@ -73,7 +74,10 @@ function main(): void {
       if (!inputPath) throw new Error('record requires --input <path>')
       const date = flag(args, 'date') ?? today()
       const counts = parseSkillUsage(readFileSync(inputPath, 'utf8'))
-      for (const [key, count] of Object.entries(counts)) {
+      for (const [rawKey, count] of Object.entries(counts)) {
+        // Bare omp skill names resolve to their plugin-qualified gene before
+        // registration; a namespaced or already-existing key passes through.
+        const key = resolveGeneKey(ledger, rawKey)
         // Auto-registration must use the same `date` string this loop is
         // about to record the invocation against — not a freshly computed
         // nowISO() — or born can end up after the invocation it was
