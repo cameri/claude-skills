@@ -24,7 +24,7 @@ Shared networks are defined in the root `compose.yml` only — never redefined i
 | `gatus` | `containers_gatus` | Internal monitoring — Gatus probes services on this network |
 | `tsdproxy` | `containers_tsdproxy` | Tailscale exposure — TsDproxy creates TS machines for services here |
 | `cloudflare` | `containers_cloudflare` | Public access — Cloudflared tunnel routes traffic to services here |
-| `experiential` | `containers_experiential` | Model gateway — claude-ricardo reaches the experiential gateway on this network |
+| `experiential` | `containers_experiential` | Model gateway — the agent sandbox instance reaches the experiential gateway on this network |
 
 ## Service Inventory
 

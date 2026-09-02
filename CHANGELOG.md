@@ -399,6 +399,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compose-file `container_name` (confirmed live in this workspace).
   Found by `/replicator:meditate`'s inward review, cycle 2026-08-26.
 
+### Changed
+- `telegram-ng` (v0.12.12): Genericized a doc example in
+  `skills/bot-api-reference/references/files-and-media.md` that named a
+  specific internal instance (`claude-ricardo`) — now reads "one instance's
+  bot to a different one". No behavior change.
+- `container-management` (v0.4.6): Updated the `experiential` network row in
+  `CLAUDE.md`'s Docker Networks table — the instance that reaches the
+  experiential gateway was renamed (`claude-ricardo` → agent sandbox) in the
+  consuming workspace. No behavior change.
+
 ### Fixed
 - `sandbox-manager` (v0.18.11): `/exit` on herdr stopped working reliably — two
   mechanisms fought each other and both lost. (1) The omp-respawn plugin's

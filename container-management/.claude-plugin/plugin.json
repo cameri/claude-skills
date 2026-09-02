@@ -1,7 +1,7 @@
 {
   "name": "container-management",
   "description": "Maintain Docker Compose services and custom images \u2014 update base images, pin sha256 digests, manage Containerfile/Dockerfile dependencies, test builds, and log all changes.",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "keywords": [
     "docker",
     "compose",
