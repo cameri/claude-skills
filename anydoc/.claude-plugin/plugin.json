@@ -1,0 +1,13 @@
+{
+  "name": "anydoc",
+  "description": "Convert Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and PDF files to clean GitHub-Flavored Markdown via the anydoc CLI.",
+  "version": "0.0.1",
+  "keywords": [
+    "anydoc",
+    "documents",
+    "markdown",
+    "pdf",
+    "office",
+    "conversion"
+  ]
+}

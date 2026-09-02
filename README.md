@@ -9,6 +9,7 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | [ablate-ai-layer](./ablate-ai-layer/) | Measure whether a repository's AI instructions still earn their place — runs the same real task with the layer intact and stripped, in throwaway git worktrees, then grades every rule against what actually changed | Claude + Cursor |
 | [actual-budget](./actual-budget/) | Interact with your self-hosted Actual Budget instance — check balances, add transactions, and query budgets | Claude + Cursor |
 | [agent-resources](./agent-resources/) | Build and audit Claude Code skills, hooks, MCP servers, and subagents | Claude + Cursor |
+| [anydoc](./anydoc/) | Convert Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and PDF files to clean GitHub-Flavored Markdown via the anydoc CLI | Claude + Cursor |
 | [audiobookshelf](./audiobookshelf/) | Interact with a self-hosted Audiobookshelf instance — list libraries, browse and search library items, and check listening progress | Claude + Cursor |
 | [autoresearch](./autoresearch/) | Autonomously optimize Claude Code skills using Karpathy's autoresearch methodology — binary evals, prompt mutation, and iterative improvement loops | Claude |
 | [brain](./brain/) | Workspace-wide knowledge graph backed by LatticeDB — syncs a graph-json snapshot in, defaulting to graphify's output (`learn_from`), answers questions over it via Cypher (`recall`), writes/links a single fact directly (`remember`), soft- or permanently deletes a node/edge (`forget`), and reports staleness/cost-to-re-study for any previously-learned path (`study_status`) | Claude + Cursor |
@@ -65,6 +66,12 @@ Monorepo of Claude Code plugins and slash commands by Ricardo Arturo Cabral Mej�
 | `/agent-resources:audit-skill` | Audit a SKILL.md file for YAML compliance, pure XML structure, progressive disclosure, and best practices |
 | `/agent-resources:audit-subagent` | Audit a subagent configuration file for role definition, prompt quality, and tool selection |
 | `/agent-resources:heal-skill` | Apply corrections to a skill's SKILL.md based on mistakes discovered during execution, with approval workflow |
+
+### anydoc
+
+| Skill | Description |
+|---|---|
+| `/anydoc:convert-documents-to-markdown` | Convert Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, or PDF to GitHub-Flavored Markdown |
 
 ### audiobookshelf
 
@@ -383,6 +390,7 @@ Run this once inside any Claude Code session:
 
 ```
 /plugin install actual-budget@cameri-skills
+/plugin install anydoc@cameri-skills
 /plugin install elevenlabs@cameri-skills
 /plugin install github-manager@cameri-skills
 /plugin install nats@cameri-skills
@@ -404,7 +412,7 @@ After reloading, all plugin skills are available (e.g. `/paperless:configure`, `
 
 Cursor reads the same `SKILL.md` format as Claude Code (frontmatter `name`/`description`, discovered from `.cursor/skills/<name>/SKILL.md`) and the same `.mcp.json` shape (`{"mcpServers": {...}}`, read from `~/.cursor/mcp.json`). No plugin content needs to change for Cursor — only how it's discovered.
 
-The 12 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`, `audiobookshelf`, `agent-resources`, `consider`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
+The 13 plugins marked "Claude + Cursor" in the table above (`paperless`, `actual-budget`, `technitium-dns`, `home-assistant`, `wallabag`, `elevenlabs`, `nats`, `container-management`, `finance-manager`, `audiobookshelf`, `anydoc`, `agent-resources`, `consider`) work under Cursor. Channel plugins (`telegram`, `telegram-ng`, `nostr`, `webhooks`, `cronjobs`, `sandbox-manager`) stay Claude-only — they react to inbound background messages, which has no Cursor equivalent since Cursor is an interactive editor, not a background message host. `netshoot` also stays Claude-only for now.
 
 ### 1. Symlink each skill directory
 

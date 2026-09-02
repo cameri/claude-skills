@@ -63,6 +63,20 @@
       "source": "./agent-resources"
     },
     {
+      "name": "anydoc",
+      "description": "Convert Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and PDF files to clean GitHub-Flavored Markdown via the anydoc CLI.",
+      "tools": [
+        "claude",
+        "cursor"
+      ],
+      "category": "developer-tools",
+      "author": {
+        "name": "Ricardo Arturo Cabral Mejía",
+        "email": "cameri@users.noreply.github.com"
+      },
+      "source": "./anydoc"
+    },
+    {
       "name": "audiobookshelf",
       "description": "Interact with a self-hosted Audiobookshelf instance via its REST API — list libraries, browse and search library items, and check listening progress.",
       "tools": [

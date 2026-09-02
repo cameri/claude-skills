@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `anydoc` (v0.0.1): new plugin — convert Word, PowerPoint, Excel, OpenDocument,
+  RTF, EPUB, CSV, and PDF files to GitHub-Flavored Markdown via the anydoc CLI.
+  Single `convert-documents-to-markdown` skill shells out to
+  `npx -y @firecrawl/anydoc` (Node 20+, no install) and teaches the CLI contract:
+  content-based format detection, exit codes (0/1/2/3), writing large docs to a
+  file with `-o`, and routing scanned/image-only PDFs (exit 3) through
+  `--ocr hosted` (Firecrawl Parse). Verified end-to-end against docx/pdf/csv
+  fixtures in-sandbox.
 - `sandbox-manager` (v0.18.10): `usage-state-writer` extension now also
   surfaces omp's own usage/cost for the telegram-ng /usage command. Runs
   `omp stats -j` (the harness's stats.db aggregation: requests, tokens in/
