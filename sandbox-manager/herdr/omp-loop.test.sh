@@ -51,20 +51,39 @@ stop_lines="$(grep -c 'stop marker present' "$(logfile)")"
 assert_eq "(a) logs the stop-marker reason" "1" "$stop_lines"
 teardown
 
-# --- (b) relaunch: fake exits 0 instantly, wrapper starts it again ---
+# --- (b) clean exit: no relaunch, stop marker written, wrapper exits 0 ---
 setup
+timeout 6s "$TARGET" -- "$FAKE" >/dev/null 2>&1; rc=$?
+assert_eq "(b) no relaunch after clean exit" "1" "$(starts)"
+assert_eq "(b) wrapper exits zero after clean exit" "0" "$rc"
+[ -f "$OMP_LOOP_STATE_DIR/stop" ]
+assert_eq "(b) stop marker written after clean exit" "0" "$?"
+teardown
+
+# --- (b2) signal death: wrapper relaunches ---
+setup
+cat > "$FAKE" <<'EOF'
+#!/usr/bin/env bash
+kill -9 "$$"
+EOF
+chmod +x "$FAKE"
 timeout 6s "$TARGET" -- "$FAKE" >/dev/null 2>&1
 n="$(starts)"
 [ "$n" -ge 2 ]
-assert_eq "(b) relaunches after exit (>=2 starts, got $n)" "0" "$?"
+assert_eq "(b2) relaunches after signal death (>=2 starts, got $n)" "0" "$?"
 teardown
 
-# --- (c) crash-loop guard: rapid exits engage the backoff ---
+# --- (c) crash-loop guard: rapid signal deaths engage the backoff ---
 setup
+cat > "$FAKE" <<'EOF'
+#!/usr/bin/env bash
+kill -9 "$$"
+EOF
+chmod +x "$FAKE"
 OMP_LOOP_BACKOFF=1 timeout 8s "$TARGET" -- "$FAKE" >/dev/null 2>&1
 n="$(grep -c 'backing off' "$(logfile)" 2>/dev/null || echo 0)"
 [ "$n" -ge 1 ]
-assert_eq "(c) rapid exits trigger backoff (>=1 backoff, got $n)" "0" "$?"
+assert_eq "(c) rapid crashes trigger backoff (>=1 backoff, got $n)" "0" "$?"
 teardown
 
 # --- (d) default args: no args -> omp --cwd /workspace --auto-approve ---

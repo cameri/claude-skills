@@ -7,7 +7,7 @@ Lets Claude Code manage its own sandbox — restarting or exiting its own sessio
 | Skill | Description |
 |---|---|
 | `restart-session` | Fires automatically when a connected channel (e.g. Telegram) sends `/clear`. Sends `/clear` + Enter to the pane (tmux or herdr) running this Claude Code session. |
-| `exit-session` | Fires automatically when a connected channel sends `/exit`. Sends `/exit` + Enter to the pane, ending the Claude Code process. On herdr the pane process is a self-restarting wrapper (`herdr/omp-loop.sh`) that relaunches omp with its original args in the same pane; on tmux the container restart policy brings the session back. |
+| `exit-session` | Fires automatically when a connected channel sends `/exit`. Sends `/exit` + Enter to the pane, ending the Claude Code process. On herdr the pane process is `herdr/omp-loop.sh`: a deliberate `/exit` is final — the wrapper writes the stop marker and omp stays down until the marker is cleared or the container restarts; only a crash (signal death) is relaunched in the same pane. |
 | `rename-session` | Fires on a channel message like `/rename <name>`. Sends `/rename <name>` + Enter to name the current session. |
 | `resume-session` | Fires on a channel message like `/resume <name>`. Sends `/resume <name>` + Enter to switch the pane to a different, previously named session. Always requires a name — a bare `/resume` opens an interactive picker that can't be scripted. |
 | `branch-session` | Fires automatically when a connected channel sends `/branch`. Sends `/branch` + Enter to fork the conversation at the current point without disturbing the original. |
@@ -29,9 +29,12 @@ Since v0.18.7 the plugin also ships a **herdr plugin** (`herdr-plugin.toml` +
 `herdr/restart.sh`): `omp-respawn` runs omp as a herdr plugin pane's process
 (command-as-pane-process, so omp's death is the pane's death) and an
 `[[events]] on = "pane.exited"` hook reopens the pane in the same workspace —
-a crash or a deliberate `/exit` brings omp straight back. Includes a
-crash-loop guard (5 exits/60s → 30s backoff), a stop-marker escape hatch
-(`touch <plugin-state>/stop`), and a hook log at `<plugin-state>/restart.log`.
+only a crash brings omp straight back — a deliberate `/exit` writes the
+stop marker and stays down (multiple omp instances sharing one bot token
+break each other's channel MCP pollers). Includes a crash-loop guard
+(3 signal-death exits within 5s of launch → 30s backoff), a stop-marker
+escape hatch (`touch <plugin-state>/stop`), and a hook log at
+`<plugin-state>/restart.log`.
 Link it in the container boot flow with `herdr plugin link
 /workspace/projects/skills/sandbox-manager` (see `containers/claude/compose.yml`).
 

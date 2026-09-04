@@ -5,9 +5,10 @@
 # provides HERDR_PLUGIN_EVENT_JSON ({"event":"pane_exited","data":{...,
 # "pane_id":...,"workspace_id":...}}), HERDR_PLUGIN_STATE_DIR, HERDR_BIN_PATH.
 #
-# Restart policy: restart on pane exit (crash OR deliberate /exit — /exit is
-# the config-reload ritual, so auto-restart preserves it). The primary
-# restart path is herdr/omp-loop.sh keeping omp alive inside the pane; this
+# Restart policy (2026-09-04): reopen ONLY after a crash. A deliberate /exit
+# makes herdr/omp-loop.sh write the stop marker before exiting, so this hook
+# stays suppressed for the /exit path. The primary restart path is
+# herdr/omp-loop.sh relaunching omp on signal death inside the pane; this
 # hook only fires when the pane's process itself died. When the exited pane
 # held its workspace's last tab, herdr's auto-close cascade (pane -> tab ->
 # workspace) has already closed the workspace by the time this hook runs, so
