@@ -323,12 +323,23 @@ process.stdin.on("close", shutdown);
 
 // ── NATS connection ───────────────────────────────────────────────────────────
 
+// Connect with an infinite reconnect budget so a NATS outage or server restart
+// is recovered in place: nats.js retries a live connection (and resubscribes
+// its listeners) on its own, while connectNatsUntilConnected() below keeps
+// re-attempting an initial connect that failed because the server was down at
+// boot. Without the retry the channel server would sit permanently
+// "not connected" (its MCP host respawns it only on crash, not on a dropped
+// connection), silently dropping inbound messages until a manual restart.
 async function connectNats(): Promise<NatsConnection> {
   const urls = PRIMARY_URL === FALLBACK_URL ? [PRIMARY_URL] : [PRIMARY_URL, FALLBACK_URL];
   let lastErr: unknown;
   for (const url of urls) {
     try {
-      const conn = await connect({ servers: url });
+      const conn = await connect({
+        servers: url,
+        maxReconnectAttempts: -1, // never give up on an established connection
+        reconnectTimeWait: 2_000,
+      });
       process.stderr.write(`nats: connected to ${url}\n`);
       return conn;
     } catch (e) {
@@ -339,18 +350,30 @@ async function connectNats(): Promise<NatsConnection> {
   throw lastErr;
 }
 
-try {
-  nc = await connectNats();
-} catch (e) {
-  process.stderr.write(`nats: failed to connect — ${(e as Error).message}\n`);
-  // Keep MCP server alive so tools can report the error gracefully.
+/** Retry the initial connect forever (exponential backoff) until the server is reachable. */
+async function connectNatsUntilConnected(): Promise<NatsConnection> {
+  let delay = 1_000;
+  for (;;) {
+    try {
+      return await connectNats();
+    } catch (e) {
+      process.stderr.write(`nats: not connected (${(e as Error).message}); retrying in ${Math.round(delay / 1000)}s\n`);
+    }
+    const { promise, resolve } = Promise.withResolvers<void>();
+    setTimeout(resolve, delay);
+    await promise;
+    delay = Math.min(delay * 2, 30_000);
+  }
 }
 
-if (nc) {
-  const nnc = nc; // narrowed non-null ref for async closures
-
+/**
+ * Wire inbox/ping/discovery listeners and announce self on a live connection.
+ * Runs once per NatsConnection; nats.js resubscribes these listeners
+ * automatically across the internal reconnects of that same connection.
+ */
+function wireListeners(conn: NatsConnection): void {
   // Inbox: claude.agents.<id>.inbox — free-form message from another agent
-  const inboxSub = nnc.subscribe(`claude.agents.${agentId}.inbox`);
+  const inboxSub = conn.subscribe(`claude.agents.${agentId}.inbox`);
   (async () => {
     for await (const msg of inboxSub) {
       const data = decodeMsg(msg.data, sc) as any;
@@ -374,23 +397,23 @@ if (nc) {
   })().catch(console.error);
 
   // Ping: claude.agents.<id>.ping — respond directly with a pong
-  const pingSub = nnc.subscribe(`claude.agents.${agentId}.ping`);
+  const pingSub = conn.subscribe(`claude.agents.${agentId}.ping`);
   (async () => {
     for await (const msg of pingSub) {
-      if (msg.reply) nnc.publish(msg.reply, sc.encode(envelope("pong", {})));
+      if (msg.reply) conn.publish(msg.reply, sc.encode(envelope("pong", {})));
     }
   })().catch(console.error);
 
   // Discovery ping — respond with our identity
-  const discoveryPingSub = nnc.subscribe("claude.discovery.ping");
+  const discoveryPingSub = conn.subscribe("claude.discovery.ping");
   (async () => {
     for await (const _msg of discoveryPingSub) {
-      nnc.publish("claude.discovery.pong", sc.encode(envelope("pong", {})));
+      conn.publish("claude.discovery.pong", sc.encode(envelope("pong", {})));
     }
   })().catch(console.error);
 
   // Discovery pong — passively update agent cache even outside an active discover() call
-  const pongSub = nnc.subscribe("claude.discovery.pong");
+  const pongSub = conn.subscribe("claude.discovery.pong");
   (async () => {
     for await (const msg of pongSub) {
       const data = decodeMsg(msg.data, sc) as any;
@@ -401,7 +424,7 @@ if (nc) {
   })().catch(console.error);
 
   // Discovery announce — record joining agents and notify Claude
-  const announceSub = nnc.subscribe("claude.discovery.announce");
+  const announceSub = conn.subscribe("claude.discovery.announce");
   (async () => {
     for await (const msg of announceSub) {
       const data = decodeMsg(msg.data, sc) as any;
@@ -423,12 +446,36 @@ if (nc) {
     }
   })().catch(console.error);
 
-  // Announce self and seed cache
-  nnc.publish("claude.discovery.announce", sc.encode(envelope("announce", {})));
+  // Announce self, seed the cache, and re-announce whenever nats.js completes
+  // an internal reconnect so peers refresh our lastSeen after a blip.
+  conn.publish("claude.discovery.announce", sc.encode(envelope("announce", {})));
   updateAgentCache(agentId, { agentId, name: getAgentName() });
   process.stderr.write(`nats: agent ${agentId} ("${getAgentName()}") ready\n`);
-
-  nnc.closed().then(() => {
-    process.stderr.write("nats: connection closed\n");
-  }).catch(() => {});
+  (async () => {
+    for await (const status of conn.status()) {
+      if (status.type === "reconnect") {
+        process.stderr.write("nats: reconnected; re-announcing\n");
+        conn.publish("claude.discovery.announce", sc.encode(envelope("announce", {})));
+        updateAgentCache(agentId, { agentId, name: getAgentName() });
+      }
+    }
+  })().catch(() => {});
 }
+
+/**
+ * Drive the NATS connection for the life of the process: connect (retrying
+ * until the server is reachable), wire listeners, then block until that
+ * connection permanently ends and re-establish from scratch.
+ */
+async function runNats(): Promise<void> {
+  for (;;) {
+    const conn = await connectNatsUntilConnected();
+    nc = conn;
+    wireListeners(conn);
+    await conn.closed().catch(() => {});
+    process.stderr.write("nats: connection closed; reconnecting\n");
+    if (nc === conn) nc = null;
+  }
+}
+
+void runNats();
