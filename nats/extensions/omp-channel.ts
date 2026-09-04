@@ -18,7 +18,7 @@
  *
  */
 
-import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
+import { CHANNEL_INCOMING_MESSAGE_TYPE, type ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
 
 /** MCP server name as declared in this plugin's .mcp.json. */
 const SERVER_NAME = "nats";
@@ -66,7 +66,18 @@ export default function ompChannelBridge(pi: ExtensionAPI): void {
     const safeContent = params.content.replaceAll("</channel", "<\\/channel");
     const wrapped = `<channel ${attrs.join(" ")}>\n${safeContent}\n</channel>`;
     try {
-      pi.sendUserMessage(wrapped);
+      // Inject as a channel:incoming custom message: the model sees the same
+      // <channel> XML as the Claude Code path, while the transcript renders
+      // the dedicated channel card (native in omp >= this contract).
+      pi.sendMessage(
+        {
+          customType: CHANNEL_INCOMING_MESSAGE_TYPE,
+          content: wrapped,
+          display: true,
+          details: { ...meta, text: params.content },
+        },
+        { triggerTurn: true },
+      );
     } catch (error: unknown) {
       process.stderr.write(
         `omp channel bridge: wake failed: ${error instanceof Error ? error.message : String(error)}\n`,
