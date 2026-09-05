@@ -21,20 +21,21 @@
 import { connect, StringCodec, type NatsConnection } from "nats";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { homedir } from "node:os";
 import { join } from "node:path";
+import { resolveClaudeBaseDir } from "./paths.ts";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const STATE_DIR = join(homedir(), ".claude", "channels", "nats");
+const CLAUDE_BASE = resolveClaudeBaseDir();
+const STATE_DIR = join(CLAUDE_BASE, "channels", "nats");
 const ENV_FILE = join(STATE_DIR, ".env");
-const SKILL_DIR = join(homedir(), ".claude", "skills", "nats");
+const SKILL_DIR = join(CLAUDE_BASE, "skills", "nats");
 const AGENT_ID_FILE = join(SKILL_DIR, "agent-id");
 const AGENTS_CACHE = join(STATE_DIR, "agents.json");
-const SESSIONS_DIR = join(homedir(), ".claude", "sessions");
+const SESSIONS_DIR = join(CLAUDE_BASE, "sessions");
 
 // Load ~/.claude/channels/nats/.env into process.env. Real env wins.
 try {

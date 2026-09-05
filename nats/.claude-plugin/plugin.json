@@ -1,7 +1,7 @@
 {
   "name": "nats",
   "description": "Connect Claude Code agents over NATS \u2014 message, ping, and discover other agents point-to-point.",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "keywords": [
     "nats",
     "agents",

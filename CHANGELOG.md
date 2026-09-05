@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `nats` (v0.2.0): **config-home isolation** - the channel server now derives
+  its state root from `CLAUDE_CONFIG_DIR` when set (used exclusively, never
+  merged with `~/.claude`), so an omp instance in an isolated config home is
+  a distinct nats agent with its own `.env`, `agents.json`, agent id, and
+  sessions dir. Unset behavior is unchanged: state stays at `~/.claude`.
+  New `resolveClaudeBaseDir()` helper in `nats/paths.ts`, unit tested in
+  `nats/test/state-root.test.ts`.
 - `nats` (v0.1.9): **self-healing reconnect** - the channel server now survives a NATS outage or server restart in place instead of sitting permanently "not connected". `connectNats` uses an infinite reconnect budget (`maxReconnectAttempts: -1`, 2s wait) so nats.js recovers and resubscribes an established connection on its own; the initial connect is retried forever with exponential backoff (1s to 30s) so a server that's down when the channel server boots is picked up as soon as it returns; and after a permanent close the connection is re-established from scratch. On each (re)connect the agent re-announces so peers refresh `lastSeen`. Previously the server connected once at startup and never retried, so an outage during boot left it dead until its MCP host respawned the process (observed live: whole phoenix infra down ~6h, nats plugin up 5h41m and never connected).
 - `anydoc` (v0.0.1): new plugin — convert Word, PowerPoint, Excel, OpenDocument,
   RTF, EPUB, CSV, and PDF files to GitHub-Flavored Markdown via the anydoc CLI.
