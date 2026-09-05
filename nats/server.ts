@@ -6,9 +6,13 @@
  * messages trigger channel notifications to Claude. Claude can message, ping,
  * and discover other agents via MCP tools.
  *
- * Config: ~/.claude/channels/nats/.env  (NATS_URL, NATS_AGENT_NAME)
- * Agent ID: ~/.claude/skills/nats/agent-id  (stable across restarts)
- * Agent cache: ~/.claude/channels/nats/agents.json
+ * Config: <CLAUDE_BASE>/channels/nats/.env  (NATS_URL, NATS_AGENT_NAME)
+ * Agent ID: <CLAUDE_BASE>/skills/nats/agent-id  (stable across restarts)
+ * Agent cache: <CLAUDE_BASE>/channels/nats/agents.json
+ *
+ * CLAUDE_BASE is $CLAUDE_CONFIG_DIR when set (the config-home isolation
+ * convention: flock members each run under their own CLAUDE_CONFIG_DIR),
+ * else ~/.claude. All state above follows it.
  *
  * Subject hierarchy:
  *   claude.agents.<agent-id>.inbox   — direct message delivery
@@ -37,7 +41,7 @@ const AGENT_ID_FILE = join(SKILL_DIR, "agent-id");
 const AGENTS_CACHE = join(STATE_DIR, "agents.json");
 const SESSIONS_DIR = join(CLAUDE_BASE, "sessions");
 
-// Load ~/.claude/channels/nats/.env into process.env. Real env wins.
+// Load the plugin .env (under CLAUDE_BASE/channels/nats) into process.env. Real env wins.
 try {
   for (const line of readFileSync(ENV_FILE, "utf8").split("\n")) {
     const m = line.match(/^(\w+)=(.*)$/);
@@ -93,7 +97,7 @@ function getParentPid(pid: number): number | undefined {
  * `bun run --cwd <plugin> start`), so the real `claude` process is a
  * grandparent, not the immediate parent — process.ppid alone doesn't reach
  * its session file. Walk up the process tree looking for a
- * ~/.claude/sessions/<pid>.json, capped well above any plausible wrapper
+ * CLAUDE_BASE/sessions/<pid>.json, capped well above any plausible wrapper
  * depth.
  */
 function findAncestorSessionName(): string | undefined {
@@ -183,7 +187,7 @@ const mcp = new Server(
       "  get_agents()                   — list known agents from local cache",
       "",
       `Your inbox subject: claude.agents.${agentId}.inbox`,
-      "Agent cache is stored at ~/.claude/channels/nats/agents.json.",
+      "Agent cache is stored under the plugin state dir (CLAUDE_BASE/channels/nats/agents.json, CLAUDE_BASE = $CLAUDE_CONFIG_DIR or ~/.claude).",
       "Run /nats:access to change the NATS server URL or this agent's display name.",
     ].join("\n"),
   },
